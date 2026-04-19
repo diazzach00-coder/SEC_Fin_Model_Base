@@ -26,7 +26,7 @@ All historical values are in **$MM** unless noted (EPS is per share; shares are 
 
 ## Live App
 
-> [Replace this with your Streamlit Community Cloud URL after deployment]
+> (https://financial-model-tools-dva8f8bk5rcbzxakungset.streamlit.app/)
 
 ---
 
