@@ -375,8 +375,10 @@ def build_excel(company_name, ticker, cik, fy_labels, proj_labels,
             lc.font = Font(bold=is_sub, size=10, name="Calibri"); lc.fill = rfill
             for i, fy in enumerate(fy_labels):
                 v  = df.loc[label, fy]
+                if isinstance(v, pd.Series):
+                    v = v.iloc[0]
                 dc = ws.cell(row=r, column=dsc+i,
-                             value=(float(v) if pd.notna(v) and v is not None else None))
+                             value=(float(v) if v is not None and pd.notna(v) else None))
                 dc.number_format = nfmt
                 dc.font      = Font(color="0000FF", name="Calibri", size=10, bold=is_sub)
                 dc.fill      = rfill
