@@ -720,6 +720,14 @@ def run_pipeline(ticker, user_agent):
         tenk_filings.sort(key=lambda x: x["filingDate"], reverse=True)
         tenk_filings = tenk_filings[:5]
         tenk_filings.sort(key=lambda x: x["reportDate"])
+        # Deduplicate: if two filings share a calendar year keep only the later one
+        seen_fy, unique_filings = set(), []
+        for f in tenk_filings:
+            lbl = f"FY{f['reportDate'][:4]}"
+            if lbl not in seen_fy:
+                seen_fy.add(lbl)
+                unique_filings.append(f)
+        tenk_filings = unique_filings
         FY_ENDS   = [f["reportDate"] for f in tenk_filings]
         FY_LABELS = [f"FY{f['reportDate'][:4]}" for f in tenk_filings]
         MOST_RECENT_YEAR = int(FY_ENDS[-1][:4])
