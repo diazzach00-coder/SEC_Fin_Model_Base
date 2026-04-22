@@ -668,7 +668,9 @@ def build_excel(company_name, ticker, cik, fy_labels, proj_labels,
             row = [stmt, label, lvl_map.get(label, 0)]
             for fy in fy_labels:
                 v = df_map.loc[label, fy]
-                row.append(float(v) if pd.notna(v) and v is not None else None)
+                if isinstance(v, pd.Series):
+                    v = v.iloc[0]
+                row.append(float(v) if v is not None and pd.notna(v) else None)
             ws_raw.append(row); raw_rows.append(row)
     n_raw = len(raw_rows) + 1
     tbl   = Table(displayName="AsReportedLabels", ref=f"A1:{col(3+n_fy)}{n_raw}")
