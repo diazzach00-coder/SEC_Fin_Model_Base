@@ -583,3 +583,33 @@ def test_beginning_cash_never_shares_the_ending_cash_row():
     other = "us-gaap_CashAndCashEquivalentsAtCarryingValue"
     cf2 = mstmt("CF", cf.rows + [mrow(other, "Cash at beginning of period", {"FY2023": 1.0, "FY2024": 9.0})])
     assert resolve({"CF": cf2})["CFBeginningCash"]["FY2024"].row_key == other
+
+
+def test_supplier_label_match_beats_tag_match_in_another_filings_row():
+    # JPM FY2016: its supplier (FY2017 10-K) reports cash as "Cash and due from banks ... at
+    # the end of the period" (CashAndDueFromBanks, not a CF cash tag); the FY2018 10-K adds a
+    # CashAndCashEquivalentsAtCarryingValue row on a broader basis. The year must resolve
+    # from its supplier (label fallback) rather than mix in the other filing's row.
+    from sec_model.types import SourceRec
+    sup, other, fy = "0000019617-18-000057", "0000019617-19-000054", "FY2024"
+
+    def r(key, label, value, accn, tag=None):
+        x = mrow(key, label, {"FY2023": None, fy: value}, tag=tag)
+        x.value_src = {fy: accn}
+        return x
+    cf = mstmt("CF", [
+        r("us-gaap_CashAndDueFromBanks", "Cash and due from banks at the beginning of the period", 20490.0, sup),
+        r("us-gaap_CashAndDueFromBanks|Cash and due from banks at the end of the period",
+          "Cash and due from banks at the end of the period", 23873.0, sup,
+          tag="us-gaap_CashAndDueFromBanks"),
+        r("us-gaap_CashAndCashEquivalentsAtCarryingValue",
+          "Cash and deposits with banks at the beginning of the period", 361683.0, other),
+        r("us-gaap_CashAndCashEquivalentsAtCarryingValue|Cash and deposits with banks at the end of the period",
+          "Cash and deposits with banks at the end of the period", 391154.0, other,
+          tag="us-gaap_CashAndCashEquivalentsAtCarryingValue"),
+    ])
+    cf.sources = {fy: SourceRec(sup, "10-K", None, "u", "")}
+    out = resolve({"CF": cf})
+    assert out["CFBeginningCash"][fy].value == 20490.0
+    assert out["CFEndingCash"][fy].value == 23873.0
+

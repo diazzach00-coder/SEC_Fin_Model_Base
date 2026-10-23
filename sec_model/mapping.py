@@ -129,19 +129,21 @@ def _supplied_view(stmt: MergedStatement, fy: str) -> MergedStatement | None:
 
 def _resolve_one(c: Concept, statements: dict[str, MergedStatement], fy: str) -> ConceptValue:
     """Tag matching across all of the concept's statements (in order) first, then
-    label fallback across them; the first hit wins. Each pass looks first at the rows the
-    year's source filing supplied: rows only an older filing has (another entity's history
-    after a predecessor recast, e.g. KNTK) are used only when that finds nothing."""
+    label fallback across them; the first hit wins. Both passes run first on the rows the
+    year's source filing supplied, so a year resolves from one filing: rows only another
+    filing has (another entity's history after a predecessor recast, e.g. KNTK; an older
+    presentation's cash rows, e.g. JPM/ENB FY2016) are used only when that finds nothing."""
     present = [(t, statements[t]) for t in c.stypes if t in statements]
     views = [(t, v) for t, s in present if (v := _supplied_view(s, fy)) is not None]
-    for _, stmt in views + present:
-        cv = _resolve_by_tag(c, stmt, fy)
-        if cv is not None:
-            return _add_on(c, stmt, fy, cv)
-    for _, stmt in views + present:
-        cv = _resolve_by_label(c, stmt, fy)
-        if cv is not None:
-            return cv
+    for group in (views, present):
+        for _, stmt in group:
+            cv = _resolve_by_tag(c, stmt, fy)
+            if cv is not None:
+                return _add_on(c, stmt, fy, cv)
+        for _, stmt in group:
+            cv = _resolve_by_label(c, stmt, fy)
+            if cv is not None:
+                return cv
     return _unmapped(c.name, fy)
 
 
