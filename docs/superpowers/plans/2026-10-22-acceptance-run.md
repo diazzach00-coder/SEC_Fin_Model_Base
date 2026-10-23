@@ -1,4 +1,4 @@
-# Acceptance run: 2026-10-22 (round 2, after the coordinator's rulings)
+# Acceptance run: 2026-10-22/23 (final, after the coordinator's rulings)
 
 Command (warm `.cache/`, after all fixes below):
 
@@ -7,9 +7,9 @@ python scripts/regress.py --excel --ua "SEC-Model-Framework regression admin@sec
     OKE EPD ET KMI WMB MPLX TRGP KNTK ENB AAPL CVX JPM TRP XOM
 ```
 
-Result: **12 of 14 pass.** XOM is a documented failure (reported as KNOWN, see section 4).
-**MPLX fails** with 3 cash roll-forward FAILs. These come from MPLX's own filings, and the
-ruled fix does not apply to them (section 4). The exit code is 1 because of MPLX.
+Result: **13 of 14 pass; exit code 0.** XOM is a documented failure, reported as KNOWN
+(section 4). Every cash roll-forward on the list passes; the only exception is TRGP
+FY2016, which is SKIP because an input is missing.
 
 `regress.py` now asserts the following by default, in addition to the brief's assertions:
 - The default interest rate is 0-15%. JPM, a bank, gets a NOTE instead of a failure.
@@ -29,18 +29,18 @@ multiple from Excel, with no price entered (equity weight 55%).
 
 | Ticker | Result | Years | Cur | Stmts | P/W/F/S | cov | bal | s | KB | value/unit |
 |---|---|---|---|---|---|---|---|---|---|---|
-| OKE | ok | 10 FY2016-FY2025 | USD | 10/10 | 160/0/0/93 | 0 | 1.5e-11 | 7.6 | 77 | 169.79 / 158.18 |
-| EPD | ok | 10 FY2016-FY2025 | USD | 10/10 | 150/10/0/123 | 0 | 1.5e-11 | 6.8 | 74 | 25.01 / 20.48 |
-| ET | ok | 10 FY2016-FY2025 | USD | 10/10 | 160/0/0/105 | 0 | 2.9e-11 | 8.9 | 81 | 27.54 / 17.20 |
-| KMI | ok | 10 FY2016-FY2025 | USD | 10/10 | 151/9/0/135 | 0 | 1.5e-11 | 8.5 | 78 | 20.35 / 15.29 |
-| WMB | ok | 10 FY2016-FY2025 | USD | 10/10 | 160/0/0/70 | 0 | 7.3e-12 | 8.3 | 75 | 39.84 / 38.45 |
-| MPLX | **FAIL** | 10 FY2016-FY2025 | USD | 10/10 | 155/2/**3**/142 | 0 | 7.3e-12 | 9.4 | 96 | 130.15 / 73.17 |
-| TRGP | ok | 10 FY2016-FY2025 | USD | 10/10 | 159/0/0/99 | 0 | 3.6e-12 | 8.2 | 77 | 37.90 / 69.88 |
-| KNTK | ok | 9 FY2017-FY2025 | USD | 9/9 | 143/1/0/90 | 0 | 3.6e-12 | 8.5 | 83 | -1.30 / 94.25 |
-| ENB | ok | 10 FY2016-FY2025 | CAD | 10/10 | 147/10/0/100 | 0 | 2.9e-11 | 7.4 | 77 | 71.78 / 67.76 |
-| AAPL | ok | 10 FY2016-FY2025 | USD | 10/10 | 155/5/0/88 | 0 | 1.2e-10 | 6.4 | 70 | 260.70 / 111.20 |
-| CVX | ok | 10 FY2016-FY2025 | USD | 10/10 | 137/19/0/104 | 1 (Cash) | 5.8e-11 | 7.0 | 72 | 104.80 / 99.70 |
-| JPM | ok | 10 FY2016-FY2025 | USD | 10/10 | 121/29/0/90 | 1 (Revenue) | 0.0 | 8.3 | 77 | -199.32 / -199.32 |
+| OKE | ok | 10 FY2016-FY2025 | USD | 10/10 | 160/0/0/93 | 0 | 1.5e-11 | 7.7 | 77 | 169.81 / 158.20 |
+| EPD | ok | 10 FY2016-FY2025 | USD | 10/10 | 150/10/0/123 | 0 | 1.5e-11 | 6.8 | 74 | 25.02 / 20.49 |
+| ET | ok | 10 FY2016-FY2025 | USD | 10/10 | 160/0/0/105 | 0 | 2.9e-11 | 8.6 | 81 | 27.55 / 17.20 |
+| KMI | ok | 10 FY2016-FY2025 | USD | 10/10 | 151/9/0/135 | 0 | 1.5e-11 | 8.7 | 78 | 20.35 / 15.29 |
+| WMB | ok | 10 FY2016-FY2025 | USD | 10/10 | 160/0/0/70 | 0 | 7.3e-12 | 8.4 | 75 | 39.85 / 38.45 |
+| MPLX | ok | 10 FY2016-FY2025 | USD | 10/10 | 158/2/0/142 | 0 | 7.3e-12 | 9.6 | 95 | 130.16 / 73.17 |
+| TRGP | ok | 10 FY2016-FY2025 | USD | 10/10 | 159/0/0/99 | 0 | 3.6e-12 | 8.3 | 77 | 37.90 / 69.89 |
+| KNTK | ok | 9 FY2017-FY2025 | USD | 9/9 | 143/1/0/90 | 0 | 3.6e-12 | 11.5 | 83 | -1.29 / 94.28 |
+| ENB | ok | 10 FY2016-FY2025 | CAD | 10/10 | 147/10/0/100 | 0 | 2.9e-11 | 7.5 | 77 | 71.79 / 67.77 |
+| AAPL | ok | 10 FY2016-FY2025 | USD | 10/10 | 155/5/0/88 | 0 | 1.2e-10 | 6.5 | 70 | 260.74 / 111.22 |
+| CVX | ok | 10 FY2016-FY2025 | USD | 10/10 | 137/19/0/104 | 1 (Cash) | 5.8e-11 | 6.9 | 72 | 104.80 / 99.70 |
+| JPM | ok | 10 FY2016-FY2025 | USD | 10/10 | 121/29/0/90 | 1 (Revenue) | 0.0 | 8.3 | 77 | -199.01 / -199.01 |
 | TRP | ok (40-F message, as expected) | - | - | - | - | - | - | 0.0 | - | - |
 | XOM | KNOWN (documented) | - | - | - | - | - | - | 0.0 | - | - |
 
@@ -79,11 +79,12 @@ Round 2:
 | KNTK | Cash roll-forward FAIL FY2020-21. FY2021 revenue was Altus's 160.6, not BCP's recast 662.0. | **Fix (ruling 2):** each year has one designated supplier, the newest filing with 12-month IS and CF columns and a BS column for that year (`merge.designated_suppliers`). Its values come first, other filings fill only keys it lacks, and `sources[fy]` is that filing. `MergedRow.value_src` records which filing supplied each value. The literal rule still let Altus-only keys win the mapping, so I extended it: tag and label resolution now run on the supplier's rows before anyone else's. | `merge`, `types`, `mapping`, `pipeline` | `test_designated_supplier_is_newest_filing_covering_all_three_statements`, `test_supplier_filing_values_first_and_lacking_keys_from_others`, `test_mapping_prefers_rows_supplied_by_the_years_source_filing` |
 | KNTK | After the supplier rule: API cross-check FAIL for NetIncome and OCF in FY2020 (Altus 81.7 vs companyfacts' newest, BCP's recast -1,155.8). | A year's supplier need not be the newest filing. `fy_values(..., accessions)` now prefers the fact from the year's supplier accession and falls back to the newest one. | `companyfacts`, `pipeline` | `test_api_cross_check_reads_the_fact_from_the_years_supplier_filing` |
 | ENB, JPM | After the supplier rule: cash roll FAIL FY2016. | Their supplier filings' cash rows use tags outside the CF cash lists (ENB `...IncludingDiscontinuedOperations`, JPM `CashAndDueFromBanks`). Beginning and ending cash therefore came from another filing on a different basis. **Fix:** both the tag and label passes run on the supplier's rows first. | `mapping` | `test_supplier_label_match_beats_tag_match_in_another_filings_row` |
-| MPLX (ruling 3) | - | If CFBeginningCash and CFEndingCash resolve to the same row key, the beginning is re-resolved without that row. If they still coincide, the check is SKIP "beginning and ending cash share one row". This does not change MPLX (section 4). | `mapping`, `checks` | `test_beginning_cash_never_shares_the_ending_cash_row`, `test_cash_roll_forward_skips_when_both_ends_share_one_row` |
+| MPLX (ruling 3, kept) | - | If CFBeginningCash and CFEndingCash resolve to the same row key, the beginning is re-resolved without that row. If they still coincide, the check is SKIP "beginning and ending cash share one row". This does not change MPLX (section 4). | `mapping`, `checks` | `test_beginning_cash_never_shares_the_ending_cash_row`, `test_cash_roll_forward_skips_when_both_ends_share_one_row` |
 | CVX (new) | Sanity: default interest rate 45%. | Total debt was 977 (short-term only). CVX/JPM tag long-term debt as `...IncludingCurrentMaturities`, which was missing from the long-term sum group. Long-term totals now close that group and skip the current-maturities group. A one-row sum keeps its As-Reported link. CVX total debt is 40,758. | `concepts`, `mapping` | `test_total_debt_long_term_including_current_plus_short_term_borrowings` |
 | JPM | Sanity: default interest rate -162%. | FY2024+ "Interest expense" is `InterestExpenseOperating`, which was missing, so "Net interest income" was taken with sign -1. **Fix:** add it before the net-interest elements. | `concepts` | `test_interest_expense_operating_before_net_interest_income` |
 | TRGP, AAPL | Value/unit 793 and 699. Default operating cost was -1.3% (TRGP) and 12% (AAPL) of revenue. | `OperatingExpenses` / `OperatingCostsAndExpenses` were taken as total costs, but they were one line (TRGP) or opex excluding COGS (AAPL). **Fix:** total costs more than 10% away from revenue - operating income are UNMAPPED, so the Model derives cost from revenue - operating income. After the fix: TRGP 37.90 / 69.88, AAPL 260.70 / 111.20. | `mapping` | `test_total_costs_that_do_not_reconcile_to_revenue_less_operating_income_are_dropped` |
-| MPLX | InterestExpense UNMAPPED, so the cost of debt was 0% and the perpetuity value 232. | "Net interest and other financial costs" is `InterestAndDebtExpense`. **Fix:** add it to the tag list. Value per unit is now 130.15 / 73.17. | `concepts` | `test_interest_and_debt_expense_maps_to_interest_expense` |
+| MPLX | InterestExpense UNMAPPED, so the cost of debt was 0% and the perpetuity value 232. | "Net interest and other financial costs" is `InterestAndDebtExpense`. **Fix:** add it to the tag list. Value per unit is now 130.16 / 73.17. | `concepts` | `test_interest_and_debt_expense_maps_to_interest_expense` |
+| MPLX, then KMI/ENB/CVX/JPM/KNTK (ruling: option c) | MPLX FY2017-FY2019 cash roll FAIL: its FY2018-FY2020 10-Ks render the "beginning" row with end-of-period values. Applied literally (opening = prior year's mapped CFEndingCash), the rule turned FY2017 into a FAIL for KMI, ENB, CVX, JPM and MPLX, and FY2021 for KNTK. In those years the ending cash is on a different basis from the prior year's mapped close: restricted cash added by ASU 2016-18 in the FY2018 10-Ks, or KNTK's recast. | The opening balance is the prior fiscal year's ending cash whenever a prior year is in the run. It is read from the **same row** as this year's ending cash (its prior-year comparative, so on the same basis), falling back to the prior year's mapped CFEndingCash. The reported beginning-cash row is used only for the first year. If the prior close does not tie but the year's own reported opening does, the result is WARN ("cash basis changed between source filings"). FAIL only when neither ties. Tolerance, FAIL level and the same-row guard are unchanged. | `checks` | `test_cash_roll_opening_is_prior_year_ending_cash` (beginning row = end values, passes), `test_cash_roll_genuine_mismatch_in_year_two_still_fails`, `test_cash_roll_basis_change_between_source_filings_is_warn_not_fail`, `test_cash_roll_prior_close_read_from_this_years_ending_cash_row` |
 | XOM (ruling 4) | - | `build(..., cik_override=)`, the app sidebar input "CIK override (advanced)" (0 = none), and `regress.py --cik TICKER=CIK`. | `pipeline`, `edgar`, `app` | `test_cik_override_skips_ticker_resolution`, `test_cik_override_unknown_cik_user_facing`, `test_cik_override_zero_means_none_and_value_is_passed` |
 
 ## 3. Manual Excel check (COM, `Visible=False`, `CalculateFull`, closed without saving)
@@ -103,38 +104,24 @@ Both workbooks: no repair, **zero error cells** after all three recalculations.
 | Model Total debt | 32,816.00 | 32,816.00 (input) | 34,395.00 | 34,395.00 |
 | Model Revolver | 0.00 | 0.00 | 1,481.81 | 1,417.65 (down: repays) |
 | Balance check | 0.00 | 0.00 | 0.00 | 0.00 |
-| DCF value/unit, perpetuity | 169.79 | 190.78 (up) | 25.01 | 28.69 (up) |
-| DCF value/unit, exit | 158.18 | 178.50 (up) | 20.48 | 23.86 (up) |
+| DCF value/unit, perpetuity | 169.81 | 190.80 (up) | 25.02 | 28.70 (up) |
+| DCF value/unit, exit | 158.20 | 178.52 (up) | 20.49 | 23.86 (up) |
 
-With no price, WACC is 7.80% for OKE (pre-tax Kd 5.50%, tax 1.50%) and 7.26% for EPD.
+With no price, WACC is 7.80% for OKE (pre-tax Kd 5.50%, tax 1.50%) and 7.26% for EPD. The
+valuation date is `TODAY()`, so values move slightly from day to day.
 
 After typing a price, "% over / (under) valued" (= price / value - 1) changed from "enter
 price" to a number. These readings are taken after the +10% revenue edit, and the price
 also moves WACC to market weights:
-- OKE at $95: WACC 8.21%, value/unit 172.62 / 214.88, over/under -45.0% / -55.8%.
-- EPD at $32: WACC 7.95%, value/unit 23.19 / 25.78, over/under +38.0% / +24.1%.
+- OKE at $95: WACC 8.21%, value/unit 172.65 / 214.92, over/under -45.0% / -55.8%.
+- EPD at $32: WACC 7.95%, value/unit 23.20 / 25.78, over/under +38.0% / +24.1%.
 
 ## 4. Remaining failures and limitations
 
-**MPLX: the ruled fix does not apply (FAIL is correct detection).** Cash roll-forward
-FAILs in FY2017, FY2018 and FY2019. Under the supplier rule, those years come from the
-FY2018, FY2019 and FY2020 10-Ks. FY2016 now comes from the FY2017 10-K and passes.
-
-I checked those CF pages. They have **two distinct rows**: "Cash, cash equivalents and
-restricted cash at beginning of period" (the bare tag) and "... at end of period"
-(tag|label). Both show the **end-of-period** values in every column. For example, the
-FY2020 10-K R8 shows 15 / 15 / 85 on both rows while the net change is 0 / -70 / 76. This
-is a filer XBRL presentation error.
-
-The ruling's premise (both ends resolve to one row key) does not hold, so the new SKIP
-does not trigger. Options for the coordinator:
-- (a) Accept MPLX as a documented failure in `KNOWN_FAILURES`.
-- (b) Also SKIP when the beginning and ending rows carry identical values in a year whose
-  net change is non-zero. This is broader than the ruling and could hide a parse error.
-- (c) Check the roll-forward against the prior year's ending cash, which would pass
-  FY2018-19.
-
-The model is unaffected: cash comes from the BS and the CF uses the net change.
+**MPLX: resolved (ruling: option c).** The FY2018-FY2020 10-Ks render the "beginning"
+cash row with end-of-period values. That is a filer XBRL presentation error, verified in
+the raw R-pages. The roll-forward now opens from the prior year's close, so the broken row
+is not used and all ten years pass.
 
 **XOM: documented limitation.** The ticker now resolves to ExxonMobil Holdings Corp
 (CIK 2115436). It became the successor issuer on 2026-07-01 (Form 8-K12B) and has filed no
