@@ -653,3 +653,11 @@ def test_total_costs_that_do_not_reconcile_to_revenue_less_operating_income_are_
         mrow("us-gaap_OperatingIncomeLoss", "Operating income", {"FY2023": 7338.0, "FY2024": 7266.0}),
     ])
     assert resolve({"IS": epd})["TotalCostsAndExpenses"]["FY2024"].value == 45691.0
+
+
+def test_interest_and_debt_expense_maps_to_interest_expense():
+    # MPLX: "Net interest and other financial costs" (InterestAndDebtExpense); it was UNMAPPED,
+    # giving a 0% default interest rate and a 0% pre-tax cost of debt on the WACC sheet.
+    is_ = mstmt("IS", [mrow("us-gaap_InterestAndDebtExpense", "Net interest and other financial costs",
+                            {"FY2023": 921.0, "FY2024": 983.0})])
+    assert resolve({"IS": is_})["InterestExpense"]["FY2024"].value == 983.0
