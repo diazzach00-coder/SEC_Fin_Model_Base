@@ -213,6 +213,7 @@ def resolve(statements: dict[str, MergedStatement]) -> dict[str, dict[str, Conce
         out[c.name] = {fy: _resolve_one(c, statements, fy) for fy in years}
     _separate_cash_ends(out, statements)
     _separate_distributions(out)
+    _apply_gates(out, statements)
     _reconcile_total_costs(out)
     return out
 
@@ -237,6 +238,20 @@ def _reconcile_total_costs(out: dict) -> None:
         implied = abs(rev.value - oi.value)
         if abs(abs(tc.value) - implied) > TOTAL_COST_TOLERANCE * max(implied, 1.0):
             out["TotalCostsAndExpenses"][fy] = _unmapped("TotalCostsAndExpenses", fy)
+
+
+def _apply_gates(out: dict, statements: dict[str, MergedStatement]) -> None:
+    """A gated concept-year whose gate concept has no value is re-resolved without the
+    gated tags and with the ungated label regex (UNMAPPED if nothing else matches)."""
+    for c in CONCEPTS:
+        if c.gate is None:
+            continue
+        ungated = replace(c, tags=tuple(t for t in c.tags if t not in c.gated_tags),
+                          label_re=c.ungated_label_re, gate=None, gated_tags=())
+        for fy, cv in list(out.get(c.name, {}).items()):
+            g = out.get(c.gate, {}).get(fy)
+            if cv.status != "UNMAPPED" and (g is None or g.value is None):
+                out[c.name][fy] = _resolve_one(ungated, statements, fy)
 
 
 _NCI_LABEL = re.compile(r"noncontrolling|minority", re.IGNORECASE)

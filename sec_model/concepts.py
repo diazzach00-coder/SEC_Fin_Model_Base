@@ -4,7 +4,8 @@ Data only. ``tags`` are written without the ``us-gaap_`` prefix and are tried in
 order; ``label_re`` (case-insensitive ``re.search``) is the fallback for custom
 tags. ``sign`` is -1 only where the as-reported sign is opposite to the model's
 convention. ``sum_groups`` means the concept is the sum of several rows. ``stypes`` lists
-the statements searched, in order.
+the statements searched, in order. ``gate`` names a concept that must be mapped in the same
+year before ``gated_tags`` (and any label match outside ``ungated_label_re``) may be used.
 """
 from dataclasses import dataclass
 
@@ -37,6 +38,12 @@ class Concept:
     # (tag, sign) for tags whose XBRL sign is opposite to the concept's convention, e.g. an
     # income-positive "interest, net" element mapped to InterestExpense (expense positive).
     tag_signs: tuple[tuple[str, int], ...] = ()
+    # Broad tags that mean this concept only for some filers: accepted only when the
+    # ``gate`` concept is mapped (non-None) in the same year; otherwise the concept is
+    # re-resolved without them and with ``ungated_label_re`` (mapping._apply_gates).
+    gate: str | None = None
+    gated_tags: tuple[str, ...] = ()
+    ungated_label_re: str | None = None
 
     def tag_sign(self, tag: str | None) -> int:
         bare = (tag or "").removeprefix("us-gaap_")
@@ -179,10 +186,16 @@ CONCEPTS: list[Concept] = [
             r"^(?!.*(affiliat|related))(accounts )?receivables?\b"),
     Concept("Inventory", ("BS",), ("InventoryNet",), r"^inventor(y|ies)"),
     Concept("NetPPE", ("BS",), ("PropertyPlantAndEquipmentNet",), r"property, plant"),
+    # KMI and ENB tag equity investments as LongTermInvestments ("Investments", "Long-term
+    # investments"), WMB as Investments. Those elements also hold securities portfolios,
+    # so they count only for a filer that reports equity earnings that year.
     Concept("EquityInvestments", ("BS",),
             ("EquityMethodInvestments",
-             "InvestmentsInAffiliatesSubsidiariesAssociatesAndJointVentures"),
-            r"investments in unconsolidated"),
+             "InvestmentsInAffiliatesSubsidiariesAssociatesAndJointVentures",
+             "LongTermInvestments", "Investments"),
+            r"investments in unconsolidated|^investments$",
+            gate="EquityEarnings", gated_tags=("LongTermInvestments", "Investments"),
+            ungated_label_re=r"investments in unconsolidated"),
     Concept("TotalAssets", ("BS",), ("Assets",), r"^total assets"),
     Concept("Payables", ("BS",),
             ("AccountsPayableCurrent", "AccountsPayableTradeCurrent",

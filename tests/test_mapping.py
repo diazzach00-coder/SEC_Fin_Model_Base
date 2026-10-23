@@ -856,3 +856,37 @@ def test_pretax_and_net_income_are_required():
     assert {"PretaxIncome", "NetIncome"} <= set(REQUIRED)
     is_ = mstmt("IS", [mrow("us-gaap_Revenues", "Revenue", {"FY2023": 1.0, "FY2024": 2.0})])
     assert "PretaxIncome: UNMAPPED in FY2024" in coverage_warnings(resolve({"IS": is_}))
+
+
+def _kmi_shaped(equity_earnings: bool):
+    is_rows = [mrow("us-gaap_Revenues", "Revenues", {"FY2023": 15000.0, "FY2024": 16000.0})]
+    if equity_earnings:
+        is_rows.append(mrow("us-gaap_IncomeLossFromEquityMethodInvestments",
+                            "Earnings from equity investments", {"FY2023": 840.0, "FY2024": 896.0}))
+    bs = mstmt("BS", [mrow("us-gaap_LongTermInvestments", "Investments",
+                           {"FY2023": 7845.0, "FY2024": 7532.0})])
+    return {"IS": mstmt("IS", is_rows), "BS": bs}
+
+
+def test_long_term_investments_are_equity_investments_when_equity_earnings_mapped():
+    cv = resolve(_kmi_shaped(True))["EquityInvestments"]["FY2024"]
+    assert (cv.status, cv.value, cv.tag) == ("OK", 7532.0, "us-gaap_LongTermInvestments")
+
+
+def test_long_term_investments_unmapped_without_equity_earnings():
+    out = resolve(_kmi_shaped(False))
+    assert out["EquityInvestments"]["FY2024"].status == "UNMAPPED"
+    # the "^investments$" label alternative is gated too
+    st = _kmi_shaped(False)
+    st["BS"] = mstmt("BS", [mrow("x_Investments", "Investments", {"FY2023": 1.0, "FY2024": 2.0})])
+    assert resolve(st)["EquityInvestments"]["FY2024"].status == "UNMAPPED"
+    st = _kmi_shaped(True)
+    st["BS"] = mstmt("BS", [mrow("x_Investments", "Investments", {"FY2023": 1.0, "FY2024": 2.0})])
+    assert resolve(st)["EquityInvestments"]["FY2024"].value == 2.0
+    # an ungated tag is still used without equity earnings
+    st = _kmi_shaped(False)
+    st["BS"] = mstmt("BS", [mrow("us-gaap_EquityMethodInvestments", "Equity investments",
+                                 {"FY2023": 5.0, "FY2024": 6.0}),
+                            mrow("us-gaap_LongTermInvestments", "Investments",
+                                 {"FY2023": 7.0, "FY2024": 8.0})])
+    assert resolve(st)["EquityInvestments"]["FY2024"].value == 6.0
