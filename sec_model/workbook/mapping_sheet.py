@@ -80,7 +80,7 @@ def write_mapping(wb, mapping: dict, stmt_sheets: dict[str, str],
             if stmt is None or sheet is None or fy not in stmt.fy_labels:
                 continue                          # no source statement/year: no formula
             sc = S.col(S.DSC + stmt.fy_labels.index(fy))
-            sign = "-" if concept.sign == -1 else ""
+            sign = "-" if concept.sign * (cv.sign if cv is not None else 1) == -1 else ""
             ref = (f"INDEX('{sheet}'!{sc}:{sc}, "
                    f"MATCH({kcell.coordinate}, '{sheet}'!$A:$A, 0))")
             # A blank source cell must stay "" (INDEX of a blank would read as 0 and enter AVERAGE).

@@ -250,3 +250,19 @@ def test_mapping_sheet_shared_key_uses_concept_scope_not_dict_order():
     ws = wb["Mapping"]
     assert "'CF (As Reported)'!" in ws.cell(5, info["value_cols"]["FY2024"]).value
     assert ws.cell(5, 3).value == "CF (As Reported)"
+
+
+def test_mapping_sheet_applies_per_year_cell_sign():
+    # A negated-label year (cv.sign == -1) gets "-INDEX(...)"; a normal year does not.
+    from dataclasses import replace
+    wb = Workbook()
+    statements = {"IS": _stmt("IS", ["X"]), "BS": _stmt("BS", ["Cash"]), "CF": _stmt("CF", ["Capex"])}
+    for st, sheet in SHEET_NAMES.items():
+        write_as_reported(wb, statements[st], sheet)
+    c = Concept("Interest", ("IS",), ("X",), None)
+    mapping = {c.name: {"FY2023": _cv(c.name, "FY2023", 2.0, "X"),
+                        "FY2024": replace(_cv(c.name, "FY2024", 3.0, "X"), sign=-1)}}
+    info = write_mapping(wb, mapping, dict(SHEET_NAMES), statements, FYS, concepts=[c])
+    ws, r = wb["Mapping"], info["rows"][c.name]
+    assert ',"",INDEX(' in ws.cell(r, info["value_cols"]["FY2023"]).value
+    assert ',"",-INDEX(' in ws.cell(r, info["value_cols"]["FY2024"]).value

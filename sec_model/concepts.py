@@ -34,6 +34,13 @@ class Concept:
     # (trigger tag, tags to add): when the concept resolved via the trigger tag and
     # any of the add-on rows is present in the same statement, the value is their sum.
     add_when: tuple[str, tuple[str, ...]] | None = None
+    # (tag, sign) for tags whose XBRL sign is opposite to the concept's convention, e.g. an
+    # income-positive "interest, net" element mapped to InterestExpense (expense positive).
+    tag_signs: tuple[tuple[str, int], ...] = ()
+
+    def tag_sign(self, tag: str | None) -> int:
+        bare = (tag or "").removeprefix("us-gaap_")
+        return next((s for t, s in self.tag_signs if t == bare), 1)
 
 
 CONCEPTS: list[Concept] = [
@@ -63,9 +70,13 @@ CONCEPTS: list[Concept] = [
             r"gain.*(sale|disposition)"),
     Concept("EquityEarnings", ("IS",), ("IncomeLossFromEquityMethodInvestments",),
             r"equity (in )?(net )?(earnings|income)"),
+    # KMI reports only "Interest, net" (InterestIncomeExpenseNonoperatingNet, income-positive).
     Concept("InterestExpense", ("IS",),
-            ("InterestExpense", "InterestExpenseNonoperating", "InterestExpenseDebt"),
-            r"interest expense"),
+            ("InterestExpense", "InterestExpenseNonoperating", "InterestExpenseDebt",
+             "InterestIncomeExpenseNonoperatingNet", "InterestIncomeExpenseNet"),
+            r"interest expense",
+            tag_signs=(("InterestIncomeExpenseNonoperatingNet", -1),
+                       ("InterestIncomeExpenseNet", -1))),
     Concept("PretaxIncome", ("IS",),
             ("IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest",
              "IncomeLossFromContinuingOperationsBeforeIncomeTaxesMinorityInterestAndIncomeLossFromEquityMethodInvestments",

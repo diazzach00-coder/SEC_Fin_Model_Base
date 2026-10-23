@@ -468,3 +468,74 @@ def test_pretax_income_newer_before_tax_element():
     out = resolve({"IS": is_})
     assert out["PretaxIncome"]["FY2024"].value == 6058.0
     assert out["NIToNCI"]["FY2024"].status == "UNMAPPED"
+
+
+# ---- expense sign normalisation (companyfacts is the sign authority) ----
+def _facts(table):
+    return lambda tag: table.get(tag, {})
+
+
+def test_negated_label_expense_flipped_to_xbrl_sign():
+    # OKE: "Interest expense (1,783)" and "Income taxes (1,028)" on the R-page; XBRL positive.
+    is_ = mstmt("IS", [
+        mrow("us-gaap_InterestExpenseNonoperating", "Interest expense", {"FY2023": -1371.0, "FY2024": -1783.0}),
+        mrow("us-gaap_IncomeTaxExpenseBenefit", "Income taxes", {"FY2023": -998.0, "FY2024": -1028.0}),
+    ])
+    facts = _facts({"InterestExpenseNonoperating": {"FY2023": 1371.0, "FY2024": 1783.0},
+                    "IncomeTaxExpenseBenefit": {"FY2023": 998.0, "FY2024": 1028.0}})
+    out = mapping.normalize_expense_signs(resolve({"IS": is_}), facts)
+    cv = out["InterestExpense"]["FY2024"]
+    assert cv.value == 1783.0 and cv.sign == -1
+    assert out["IncomeTax"]["FY2023"].value == 998.0 and out["IncomeTax"]["FY2023"].sign == -1
+
+
+def test_tax_benefit_matching_fact_sign_is_kept():
+    is_ = mstmt("IS", [mrow("us-gaap_IncomeTaxExpenseBenefit", "Income tax benefit",
+                            {"FY2023": -50.0, "FY2024": 40.0})])
+    facts = _facts({"IncomeTaxExpenseBenefit": {"FY2023": -50.0, "FY2024": 40.0}})
+    out = mapping.normalize_expense_signs(resolve({"IS": is_}), facts)["IncomeTax"]
+    assert (out["FY2023"].value, out["FY2023"].sign) == (-50.0, 1)
+    assert (out["FY2024"].value, out["FY2024"].sign) == (40.0, 1)
+
+
+def test_custom_tag_without_fact_flipped_only_for_never_negative_concepts():
+    is_ = mstmt("IS", [
+        mrow("x_InterestCost", "Interest expense", {"FY2023": -10.0, "FY2024": -12.0}),
+        mrow("x_Taxes", "Provision for income taxes", {"FY2023": -3.0, "FY2024": -4.0}),
+    ])
+    out = mapping.normalize_expense_signs(resolve({"IS": is_}), _facts({}))
+    assert out["InterestExpense"]["FY2024"].value == 12.0
+    assert out["InterestExpense"]["FY2024"].sign == -1
+    assert out["IncomeTax"]["FY2024"].value == -4.0       # a benefit is possible: left alone
+
+
+def test_interest_net_tag_is_income_positive():
+    # KMI: only "Interest, net" (InterestIncomeExpenseNonoperatingNet, XBRL -1,801 = expense).
+    is_ = mstmt("IS", [mrow("us-gaap_InterestIncomeExpenseNonoperatingNet", "Interest, net",
+                            {"FY2023": -1844.0, "FY2024": -1801.0})])
+    res = resolve({"IS": is_})
+    assert res["InterestExpense"]["FY2024"].value == 1801.0
+    assert res["InterestExpense"]["FY2024"].sign == -1
+    facts = _facts({"InterestIncomeExpenseNonoperatingNet": {"FY2023": -1844.0, "FY2024": -1801.0}})
+    out = mapping.normalize_expense_signs(res, facts)["InterestExpense"]["FY2024"]
+    assert (out.value, out.sign) == (1801.0, -1)
+
+
+def test_normalisation_leaves_other_concepts_and_input_untouched():
+    is_ = mstmt("IS", [mrow("us-gaap_Revenues", "Revenues", {"FY2023": -1.0, "FY2024": -2.0}),
+                       mrow("us-gaap_InterestExpense", "Interest", {"FY2023": -1.0, "FY2024": -2.0})])
+    res = resolve({"IS": is_})
+    out = mapping.normalize_expense_signs(res, _facts({}))
+    assert out["Revenue"]["FY2024"].value == -2.0
+    assert res["InterestExpense"]["FY2024"].value == -2.0 and out["InterestExpense"]["FY2024"].value == 2.0
+
+
+def test_label_fallback_on_other_us_gaap_element_left_as_reported():
+    # KMI: Impairments falls back by label to GainLossOnSalesOfAssetsAndAssetImpairmentCharges,
+    # a gain-positive element; -32 is a net gain and must not become a +32 impairment.
+    is_ = mstmt("IS", [mrow("us-gaap_GainLossOnSalesOfAssetsAndAssetImpairmentCharges",
+                            "(Gain) loss on divestitures and impairments, net",
+                            {"FY2023": -32.0, "FY2024": -15.0})])
+    facts = _facts({"GainLossOnSalesOfAssetsAndAssetImpairmentCharges": {"FY2023": 32.0, "FY2024": 15.0}})
+    out = mapping.normalize_expense_signs(resolve({"IS": is_}), facts)["Impairments"]["FY2024"]
+    assert (out.value, out.sign) == (-15.0, 1)

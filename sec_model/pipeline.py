@@ -15,7 +15,7 @@ from .edgar import (choose_source_filing, list_annual_filings, resolve_ticker,
                     select_filings_by_fy)
 from .forecast import compute, driver_defaults, scalar_defaults
 from .http import SecClient
-from .mapping import coverage_warnings, resolve
+from .mapping import coverage_warnings, normalize_expense_signs, resolve
 from .merge import merge_statements
 from .model_spec import build_spec
 from .rfile import parse_rfile
@@ -113,7 +113,8 @@ class _Run:
                       for st in STYPES}
         currency = statements["IS"].currency
 
-        mapping = resolve(statements)
+        mapping = normalize_expense_signs(
+            resolve(statements), lambda tag: fy_values(facts, tag, currency))
         for concept, tags in FILL_TAGS.items():
             mapping[concept] = fill_from_facts(mapping, facts, concept, tags, "shares")
         coverage = coverage_warnings(mapping)

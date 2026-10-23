@@ -1,5 +1,7 @@
 """Resolve each model concept to one as-reported row per fiscal year."""
 import re
+from collections.abc import Callable
+from dataclasses import replace
 
 from .concepts import CONCEPTS, Concept
 from .types import ConceptValue, MergedRow, MergedStatement
@@ -29,7 +31,9 @@ def _unmapped(concept: str, fy: str) -> ConceptValue:
 
 
 def _ok(c: Concept, fy: str, r: MergedRow) -> ConceptValue:
-    return ConceptValue(c.name, fy, c.sign * r.values[fy], r.key, r.tag, r.label, "OK")
+    ts = c.tag_sign(r.tag)
+    return ConceptValue(c.name, fy, c.sign * ts * r.values[fy], r.key, r.tag, r.label, "OK",
+                        sign=ts)
 
 
 def _resolve_sum(c: Concept, rows: list[MergedRow], fy: str) -> ConceptValue | None:
@@ -151,3 +155,59 @@ def coverage_warnings(mapping: dict[str, dict[str, ConceptValue]]) -> list[str]:
         if by_fy[fy].status == "UNMAPPED":
             warnings.append(f"{name}: UNMAPPED in {fy}")
     return warnings
+
+
+# Model convention for these is "expense positive" (NIToNCI: positive = NCI's share of
+# income), which is also the XBRL sign of their us-gaap tags. R-pages show the filer's
+# presentation sign, so a negated-label row ("Interest expense (1,783)") arrives negative.
+EXPENSE_CONCEPTS = ("TotalCostsAndExpenses", "DA", "Impairments", "InterestExpense",
+                    "IncomeTax", "NIToNCI")
+# Without an XBRL fact only these are flipped when negative: a tax benefit or a loss
+# attributable to NCI is legitimately negative.
+_NEVER_NEGATIVE = ("TotalCostsAndExpenses", "DA", "Impairments", "InterestExpense")
+_STD_TAG = re.compile(r"us-gaap_\w+")
+
+
+def normalize_expense_signs(mapping: dict[str, dict[str, ConceptValue]],
+                            fact_values: Callable[[str], dict[str, float]]
+                            ) -> dict[str, dict[str, ConceptValue]]:
+    """Return ``mapping`` with the expense concepts in the model's "expense positive" sign.
+
+    ``fact_values(tag)`` gives companyfacts ``{fy: value}`` for a bare us-gaap tag; it is
+    the sign authority per (tag, year): a value whose sign differs from ``cv.sign * fact``
+    is negated (and ``cv.sign`` flipped, so the Mapping sheet negates that cell). This uses
+    only tags in the concept's own tag list. Custom tags, derived sums and listed tags with
+    no fact for the year are flipped only when negative, and only for concepts that cannot
+    be negative. A label-fallback hit on another us-gaap element is left as reported. The
+    input mapping is not modified.
+    """
+    cache: dict[str, dict[str, float]] = {}
+
+    def fact(tag: str, fy: str) -> float | None:
+        if tag not in cache:
+            cache[tag] = fact_values(tag) or {}
+        return cache[tag].get(fy)
+
+    concepts = {c.name: c for c in CONCEPTS}
+    out = dict(mapping)
+    for name in EXPENSE_CONCEPTS:
+        if name not in mapping or name not in concepts:
+            continue
+        listed = set(concepts[name].tags)
+        fixed = {}
+        for fy, cv in mapping[name].items():
+            flip = False
+            if cv.value and cv.status != "UNMAPPED":
+                std = bool(cv.tag and _STD_TAG.fullmatch(cv.tag))
+                bare = (cv.tag or "").removeprefix("us-gaap_")
+                f = fact(bare, fy) if std and bare in listed else None
+                if f:
+                    flip = (cv.value > 0) != (cv.sign * f > 0)
+                elif not std or bare in listed:
+                    flip = cv.value < 0 and name in _NEVER_NEGATIVE
+                # else: a label-fallback hit on some other us-gaap element, whose XBRL sign
+                # need not match the concept (KMI "(Gain) loss on divestitures and
+                # impairments"): left as reported.
+            fixed[fy] = replace(cv, value=-cv.value, sign=-cv.sign) if flip else cv
+        out[name] = fixed
+    return out

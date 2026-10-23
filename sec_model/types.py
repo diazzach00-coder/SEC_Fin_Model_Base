@@ -90,6 +90,10 @@ class ConceptValue:
     tag: str | None
     label: str | None
     status: str             # "OK" | "UNMAPPED" | "DERIVED"
+    # Per-cell sign applied to the As-Reported value (on top of the concept's sign): -1 for an
+    # income-positive tag mapped to an expense concept, or a negated-label row whose
+    # presentation sign is opposite to the XBRL fact. The Mapping sheet applies it per year.
+    sign: int = 1
 
 
 @dataclass
