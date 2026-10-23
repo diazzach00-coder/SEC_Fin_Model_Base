@@ -52,6 +52,10 @@ INT_RATE_RANGE, TAX_RATE_RANGE, UNITS_RATIO = (0.0, 0.15), (0.0, 0.40), (0.5, 2.
 # ExxonMobil Holdings Corp (CIK 2115436), a successor issuer with no 10-K yet; the history
 # is under Exxon Mobil Corp, CIK 34088 (``--cik XOM=34088`` builds it).
 KNOWN_FAILURES = {"XOM": "No 10-K filings found for XOM"}
+# Banks: interest expense is mostly on deposits, so interest / total debt is not a cost of
+# debt and the INT_RATE range is reported as a NOTE instead of asserted. (The model is not
+# built for banks; JPM is in the list to show the build does not assume an industrial IS.)
+BANKS = {"JPM"}
 XL_ERRORS = {-2146826288: "#NULL!", -2146826281: "#DIV/0!", -2146826273: "#VALUE!",
              -2146826265: "#REF!", -2146826259: "#NAME?", -2146826252: "#NUM!",
              -2146826246: "#N/A"}
@@ -106,7 +110,11 @@ def sanity_checks(res, ua: str) -> tuple[list[str], list[str]]:
     for key, (lo, hi) in (("INT_RATE", INT_RATE_RANGE), ("TAX_RATE", TAX_RATE_RANGE)):
         v = _first(res.driver_defaults.get(key))
         if isinstance(v, (int, float)) and not lo <= v <= hi:
-            bad.append(f"default {key} {v:.2%} outside {lo:.0%}-{hi:.0%}")
+            msg = f"default {key} {v:.2%} outside {lo:.0%}-{hi:.0%}"
+            if key == "INT_RATE" and res.ticker in BANKS:
+                notes.append(msg + " (bank: deposit interest; not asserted)")
+            else:
+                bad.append(msg)
     latest = res.fy_labels[-1]
     for concept in ("InterestExpense", "PretaxIncome"):
         cv = res.mapping.get(concept, {}).get(latest)
