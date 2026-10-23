@@ -333,3 +333,18 @@ def test_choose_source_filing_none_when_no_filing_has_all_three():
     amend = make_filing_at("0000000007-26-000010", "10-K/A")
     client = TextClient({folder(amend) + "FilingSummary.xml": summary_xml([("Cover", "Cover", "R1.htm")])})
     assert choose_source_filing(client, [amend]) is None
+
+
+def test_locate_statements_accepts_pre_asc606_sales_revenue_net_anchor():
+    # AAPL FY2016 10-K: the income statement's only revenue element is SalesRevenueNet.
+    f = make_filing_at("0000000007-26-000020")
+    xml = summary_xml([("CONSOLIDATED STATEMENTS OF OPERATIONS", "Statements", "R2.htm"),
+                       ("CONSOLIDATED BALANCE SHEETS", "Statements", "R4.htm"),
+                       ("CONSOLIDATED STATEMENTS OF CASH FLOWS", "Statements", "R6.htm")])
+    client = TextClient({
+        folder(f) + "FilingSummary.xml": xml,
+        folder(f) + "R2.htm": '<tr onclick="x \'defref_us-gaap_SalesRevenueNet\'">',
+        folder(f) + "R4.htm": BS_HTML,
+        folder(f) + "R6.htm": CF_HTML,
+    })
+    assert locate_statements(client, f)["IS"].html_file == "R2.htm"

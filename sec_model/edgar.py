@@ -116,8 +116,10 @@ _BROAD = {
     "CF": ["cash"],
 }
 _ANCHORS = {
+    # SalesRevenueNet: the pre-ASC 606 revenue element (AAPL's FY2016-FY2017 10-Ks).
     "IS": ("us-gaap_Revenues", "us-gaap_RevenueFromContractWithCustomerExcludingAssessedTax",
-           "us-gaap_CostsAndExpenses", "us-gaap_InterestAndDividendIncomeOperating"),
+           "us-gaap_SalesRevenueNet", "us-gaap_CostsAndExpenses",
+           "us-gaap_InterestAndDividendIncomeOperating"),
     "BS": ("us-gaap_Assets",),
     "CF": ("us-gaap_NetCashProvidedByUsedInOperatingActivities",),
 }
