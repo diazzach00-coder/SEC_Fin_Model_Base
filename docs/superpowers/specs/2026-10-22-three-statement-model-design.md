@@ -287,7 +287,8 @@ magic number:
 - D&A as % of opening net PP&E (fallback: % of revenue if PP&E unmapped)
 - Capex as % of revenue
 - Interest rate on opening total debt (= last year interest / avg debt)
-- Cash tax rate (= tax / pretax income, clamped 0–35%; partnerships will come
+- Effective tax rate (= tax / pretax income, clamped 0–35%; a "cash tax rate"
+  that subtracts deferred taxes is shown as an information line only; partnerships will come
   out near 0)
 - Distributions/dividends: per-unit amount per year (last declared × growth
   input, default growth = 3-year CAGR) × units outstanding
