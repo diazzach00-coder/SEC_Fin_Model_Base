@@ -343,3 +343,19 @@ def test_cash_roll_prior_close_read_from_this_years_ending_cash_row():
               years=("FY2023", "FY2024"))
     c = result(run_checks({"CF": cf}, m, {}), "Cash roll-forward", "FY2024")
     assert c.status == "PASS" and c.lhs == 9.0
+
+
+def test_shared_row_skip_only_without_prior_close():
+    # Later years are still checked against the prior close when both ends share one row.
+    from dataclasses import replace
+    m = mp(CFBeginningCash={"FY2023": 50.0, "FY2024": 20.0},
+           NetChangeInCash={"FY2023": -30.0, "FY2024": 5.0},
+           CFEndingCash={"FY2023": 20.0, "FY2024": 25.0})
+    for c in ("CFBeginningCash", "CFEndingCash"):
+        for fy in ("FY2023", "FY2024"):
+            m[c][fy] = replace(m[c][fy], row_key="us-gaap_Cash")
+    res = run_checks({}, m, {})
+    assert result(res, "Cash roll-forward", "FY2023").status == "SKIP"     # first year
+    assert result(res, "Cash roll-forward", "FY2024").status == "PASS"     # 20 + 5 = 25
+    m["CFEndingCash"]["FY2024"] = replace(m["CFEndingCash"]["FY2024"], value=40.0)
+    assert result(run_checks({}, m, {}), "Cash roll-forward", "FY2024").status == "FAIL"

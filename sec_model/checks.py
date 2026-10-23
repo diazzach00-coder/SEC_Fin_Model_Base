@@ -75,11 +75,12 @@ def _cash_roll(fy: str, mapping: dict, prior: str | None = None,
     name = "Cash roll-forward"
     b = (mapping.get("CFBeginningCash") or {}).get(fy)
     e = (mapping.get("CFEndingCash") or {}).get(fy)
-    if b is not None and e is not None and b.row_key is not None and b.row_key == e.row_key:
-        return _skip(name, fy, "beginning and ending cash share one row")
+    shared = (b is not None and e is not None and b.row_key is not None
+              and b.row_key == e.row_key)
     opening = _prior_close(mapping, cf, fy, prior) if prior is not None else None
-    own = _tie_check(name, fy, mapping, ("CFBeginningCash", "NetChangeInCash"),
-                     "CFEndingCash", "FAIL")
+    own = (_skip(name, fy, "beginning and ending cash share one row") if shared else
+           _tie_check(name, fy, mapping, ("CFBeginningCash", "NetChangeInCash"),
+                      "CFEndingCash", "FAIL"))
     if opening is None:
         return own
     gone = _missing(mapping, fy, "NetChangeInCash", "CFEndingCash")
