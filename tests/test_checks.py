@@ -209,8 +209,11 @@ def test_fy_values_per_share_unscaled():
 
 def test_dei_shares_outstanding():
     facts = facts_with("EntityCommonStockSharesOutstanding", "shares",
-                       [entry("2025-01-31", 215_000_000, "2025-02-20")], taxonomy="dei")
-    assert dei_shares_outstanding(facts) == {"FY2025": 215.0}
+                       [entry("2025-02-14", 214_000_000, "2025-02-15", fy=2024),
+                        entry("2025-02-20", 215_000_000, "2025-02-21", fy=2024),  # newest filed
+                        entry("2024-02-15", 200_000_000, "2024-02-16", fy=2023)],
+                       taxonomy="dei")
+    assert dei_shares_outstanding(facts) == {"FY2023": 200.0, "FY2024": 215.0}
     assert dei_shares_outstanding({"facts": {}}) == {}
 
 
@@ -256,10 +259,26 @@ def test_fill_from_facts_fills_only_unmapped_years():
 
 def test_fill_from_facts_dei_and_missing_concept():
     facts = facts_with("EntityCommonStockSharesOutstanding", "shares",
-                       [entry("2024-12-31", 50e6, "2025-02-20")], taxonomy="dei")
+                       [entry("2025-02-14", 50e6, "2025-02-20", fy=2024)], taxonomy="dei")
     m = mp(Revenue={"FY2024": 1.0, "FY2025": 2.0})
     out = fill_from_facts(m, facts, "UnitsOutstanding",
                           ["dei:EntityCommonStockSharesOutstanding"], "shares")
     assert out["FY2024"].value == 50.0 and out["FY2024"].tag == \
         "companyfacts:dei:EntityCommonStockSharesOutstanding"
     assert "FY2025" not in out
+
+
+def test_fill_from_facts_first_tag_wins_and_falls_through():
+    gaap = {"WeightedAverageLimitedPartnershipUnitsOutstandingDiluted": {"units": {"shares": [
+                entry("2024-12-31", 10e6, "2025-02-20", start="2024-01-01")]}},
+            "WeightedAverageNumberOfDilutedSharesOutstanding": {"units": {"shares": [
+                entry("2023-12-31", 7e6, "2024-02-20", start="2023-01-01"),
+                entry("2024-12-31", 99e6, "2025-02-20", start="2024-01-01")]}}}
+    facts = {"facts": {"us-gaap": gaap}}
+    m = mp(DilutedUnits={"FY2023": None, "FY2024": None})
+    out = fill_from_facts(m, facts, "DilutedUnits",
+                          ["WeightedAverageLimitedPartnershipUnitsOutstandingDiluted",
+                           "WeightedAverageNumberOfDilutedSharesOutstanding"], "shares")
+    assert out["FY2024"].value == 10.0           # first tag has the year: it wins
+    assert out["FY2024"].tag == "companyfacts:WeightedAverageLimitedPartnershipUnitsOutstandingDiluted"
+    assert out["FY2023"].value == 7.0            # first tag lacks the year: next tag used
