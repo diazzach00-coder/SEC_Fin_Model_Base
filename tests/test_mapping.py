@@ -403,3 +403,18 @@ def test_fixture_da_tags():
         cv = list(_load(co)["DA"].values())[-1]
         assert cv.tag == tag, co
     assert list(_load("ORCL")["DA"].values())[-1].status == "DERIVED"
+
+
+def test_net_income_prefers_continuing_ops_incl_nci_over_controlling_interest():
+    # ENB FY2016-FY2019: consolidated "Earnings" is tagged as continuing operations including
+    # NCI (no ProfitLoss); NetIncomeLoss is "Earnings attributable to controlling interests".
+    is_ = mstmt("IS", [
+        mrow("us-gaap_IncomeLossFromContinuingOperationsIncludingPortionAttributableToNoncontrollingInterest",
+             "Earnings", {"FY2023": 2309.0, "FY2024": 3266.0}),
+        mrow("us-gaap_NetIncomeLoss", "Earnings attributable to controlling interests",
+             {"FY2023": 2069.0, "FY2024": 2859.0}),
+    ])
+    assert resolve({"IS": is_})["NetIncome"]["FY2024"].value == 3266.0
+    both = mstmt("IS", [mrow("us-gaap_ProfitLoss", "Net income", {"FY2023": 1.0, "FY2024": 2.0})]
+                 + is_.rows)
+    assert resolve({"IS": both})["NetIncome"]["FY2024"].value == 2.0

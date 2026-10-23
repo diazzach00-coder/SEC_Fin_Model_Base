@@ -72,7 +72,12 @@ CONCEPTS: list[Concept] = [
             r"before income tax"),
     # The lookahead keeps "Income before income taxes" from matching.
     Concept("IncomeTax", ("IS",), ("IncomeTaxExpenseBenefit",), r"^(?!.*before).*income tax"),
-    Concept("NetIncome", ("IS",), ("ProfitLoss", "NetIncomeLoss"), None),
+    # Consolidated net income. Filers without ProfitLoss but with NCI (ENB to FY2019) tag
+    # it as continuing operations including NCI; NetIncomeLoss excludes NCI, so it is last.
+    Concept("NetIncome", ("IS",),
+            ("ProfitLoss", "IncomeLossFromContinuingOperationsIncludingPortionAttributableToNoncontrollingInterest",
+             "NetIncomeLoss"),
+            None),
     Concept("NIToNCI", ("IS",), ("NetIncomeLossAttributableToNoncontrollingInterest",),
             r"noncontrolling"),
     Concept("DilutedUnits", ("IS",),
@@ -87,7 +92,10 @@ CONCEPTS: list[Concept] = [
             ("NetCashProvidedByUsedInOperatingActivities",
              "NetCashProvidedByUsedInOperatingActivitiesContinuingOperations"),
             None),
-    Concept("CFNetIncome", ("CF",), ("ProfitLoss", "NetIncomeLoss"), None),
+    Concept("CFNetIncome", ("CF",),
+            ("ProfitLoss", "IncomeLossFromContinuingOperationsIncludingPortionAttributableToNoncontrollingInterest",
+             "NetIncomeLoss"),
+            None),
     Concept("DeferredTax", ("CF",), ("DeferredIncomeTaxExpenseBenefit",), r"deferred (income )?tax"),
     Concept("DistributionsFromAffiliates", ("CF",), ("EquityMethodInvestmentDividendsOrDistributions",),
             r"distributions received"),
