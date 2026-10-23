@@ -11,8 +11,10 @@ Enter a ticker and a User-Agent (name and email). The app then:
 1. Resolves the ticker to a CIK and lists the company's 10-K / 10-K/A / 10-KT filings.
 2. Reads the income statement, balance sheet and cash flow statement of each fiscal year
    from the filing's XBRL "R" pages (the as-reported presentation, in reported order).
-3. Merges the filings into one history (the latest filing that reports a year wins, so
-   restatements are picked up) and maps the as-reported lines to the model's concepts.
+3. Merges the filings into one history and maps the as-reported lines to the model's
+   concepts. Each fiscal year's three statements come from one filing: the newest that
+   covers that year; restatements that appear only in a later filing's comparatives are
+   not used.
 4. Runs data checks (below), builds a forecast, and writes the workbook.
 5. Shows a progress log, the checks table, previews of each statement and the mapping,
    and a download button for `{TICKER}_3Stmt_{YYYY-MM-DD}.xlsx`.
@@ -89,7 +91,7 @@ Edit the yellow input cells (Asset Inputs, Drivers, WACC, DCF) and everything do
 
 ## Limitations
 
-- **Annual only.** Quarterly (10-Q) history is not built; see `SEC_10Q_Builder.ipynb`.
+- **Annual only.** Quarterly (10-Q) history is not built.
 - **40-F and 20-F filers** (for example TC Energy, Pembina) have no US-GAAP XBRL statements;
   the app says so and stops.
 - **Non-USD filers (for example Enbridge, CAD) are not converted.** The currency is detected
