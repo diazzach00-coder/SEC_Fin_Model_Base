@@ -42,15 +42,9 @@ def unit_hint_from_facts(facts: dict) -> Callable[[str], str | None]:
     return hint
 
 
-def fy_values(facts: dict, tag: str, currency: str) -> dict[str, float]:
-    """``fy_label -> value`` for one tag, labelled by the entry's period end year.
-
-    ``currency`` is the companyfacts unit key (``"USD"``, ``"CAD"``, ``"shares"``,
-    ``"USD/shares"``). Money and share counts are returned in millions; per-share
-    units are unscaled. Only annual (``fp == "FY"``) 10-K-family entries are used;
-    duration entries must span 350-380 days, instant entries are kept as-is. Among
-    duplicates for a year the newest ``filed`` wins.
-    """
+def _collect(facts: dict, tag: str, currency: str, by_fy_field: bool) -> dict[str, float]:
+    """Shared reader. Labels by the entry's end year, or by its ``fy`` field when
+    ``by_fy_field`` (cover-page counts, which are dated after year end)."""
     entries = _concept_block(facts, tag).get("units", {}).get(currency)
     if not entries:
         return {}
@@ -65,9 +59,11 @@ def fy_values(facts: dict, tag: str, currency: str) -> dict[str, float]:
                 if not 350 <= days <= 380:
                     continue
             val = float(e["val"])
+            if by_fy_field:
+                int(e["fy"])
         except (KeyError, TypeError, ValueError):
             continue
-        fy = "FY" + str(end.year)
+        fy = "FY" + str(e["fy"] if by_fy_field else end.year)
         filed = e.get("filed") or ""
         if fy not in best or filed >= best[fy][0]:
             best[fy] = (filed, val)
@@ -75,9 +71,25 @@ def fy_values(facts: dict, tag: str, currency: str) -> dict[str, float]:
     return {fy: v * scale for fy, (_, v) in sorted(best.items())}
 
 
+def fy_values(facts: dict, tag: str, currency: str) -> dict[str, float]:
+    """``fy_label -> value`` for one tag, labelled by the entry's period end year.
+
+    ``currency`` is the companyfacts unit key (``"USD"``, ``"CAD"``, ``"shares"``,
+    ``"USD/shares"``). Money and share counts are returned in millions; per-share
+    units are unscaled. Only annual (``fp == "FY"``) 10-K-family entries are used;
+    duration entries must span 350-380 days, instant entries are kept as-is. Among
+    duplicates for a year the newest ``filed`` wins.
+    """
+    return _collect(facts, tag, currency, by_fy_field=False)
+
+
 def dei_shares_outstanding(facts: dict) -> dict[str, float]:
-    """Cover-page shares outstanding in millions, labelled by the entry's end date year."""
-    return fy_values(facts, "dei:EntityCommonStockSharesOutstanding", "shares")
+    """Cover-page shares outstanding in millions, labelled by the entry's ``fy`` field.
+
+    The cover count is as of ~6 weeks after year end, so it belongs to that filing's
+    fiscal year rather than to the year of its date.
+    """
+    return _collect(facts, "dei:EntityCommonStockSharesOutstanding", "shares", by_fy_field=True)
 
 
 def fill_from_facts(mapping: dict[str, dict[str, ConceptValue]], facts: dict, concept: str,
@@ -91,7 +103,7 @@ def fill_from_facts(mapping: dict[str, dict[str, ConceptValue]], facts: dict, co
     """
     existing = dict(mapping.get(concept) or {})
     years = sorted({fy for by_fy in mapping.values() for fy in by_fy} | set(existing))
-    by_tag = {t: fy_values(facts, t, unit) for t in tags}
+    by_tag = {t: _collect(facts, t, unit, by_fy_field=t.startswith("dei:")) for t in tags}
     out = dict(existing)
     for fy in years:
         cur = existing.get(fy)
