@@ -169,8 +169,14 @@ CONCEPTS: list[Concept] = [
              "CashCashEquivalentsRestrictedCashAndRestrictedCashEquivalents", "Cash",
              "CashAndDueFromBanks"),
             None),
-    Concept("Receivables", ("BS",), ("AccountsReceivableNetCurrent", "ReceivablesNetCurrent"),
-            r"^(accounts )?receivables?\b"),
+    # ENB: "Trade receivables and unbilled revenues" / "Trade payables and accrued
+    # liabilities" use the broader elements; its affiliate rows matched the bare label
+    # fallback. Tags reported only by member (EPD, ET) resolve via mapping's member sum.
+    # CVX: "Accounts and notes receivable".
+    Concept("Receivables", ("BS",),
+            ("AccountsReceivableNetCurrent", "ReceivablesNetCurrent",
+             "AccountsAndOtherReceivablesNetCurrent", "AccountsNotesAndLoansReceivableNetCurrent"),
+            r"^(?!.*(affiliat|related))(accounts )?receivables?\b"),
     Concept("Inventory", ("BS",), ("InventoryNet",), r"^inventor(y|ies)"),
     Concept("NetPPE", ("BS",), ("PropertyPlantAndEquipmentNet",), r"property, plant"),
     Concept("EquityInvestments", ("BS",),
@@ -178,8 +184,11 @@ CONCEPTS: list[Concept] = [
              "InvestmentsInAffiliatesSubsidiariesAssociatesAndJointVentures"),
             r"investments in unconsolidated"),
     Concept("TotalAssets", ("BS",), ("Assets",), r"^total assets"),
-    Concept("Payables", ("BS",), ("AccountsPayableCurrent", "AccountsPayableTradeCurrent"),
-            r"^accounts payable"),
+    Concept("Payables", ("BS",),
+            ("AccountsPayableCurrent", "AccountsPayableTradeCurrent",
+             "AccountsPayableAndOtherAccruedLiabilitiesCurrent",
+             "AccountsPayableAndAccruedLiabilitiesCurrent"),
+            r"^(?!.*(affiliat|related))accounts payable"),
     Concept("DebtCurrent", ("BS",), ("DebtCurrent", "LongTermDebtCurrent"),
             r"current (portion|maturities)"),
     Concept("LongTermDebt", ("BS",),

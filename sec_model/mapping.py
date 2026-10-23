@@ -57,6 +57,59 @@ def _resolve_sum(c: Concept, rows: list[MergedRow], fy: str) -> ConceptValue | N
         " + ".join(r.label for r in used), "DERIVED")
 
 
+def _member_axes(stmt: MergedStatement) -> dict[str, str]:
+    """member -> axis, from the parser's dimension header rows (key ``<axis>=<member>``)."""
+    out = {}
+    for r in stmt.rows:
+        axis, eq, member = r.key.partition("=")
+        if eq and r.is_abstract and "|" not in r.key:
+            out[member] = axis
+    return out
+
+
+def _member_of(r: MergedRow) -> str | None:
+    """The member of a dimensional row (key ``tag|label|member[|n]``), else None."""
+    prefix = f"{r.tag}|{r.label}|"
+    if _is_undimensioned(r) or not r.key.startswith(prefix):
+        return None
+    return re.sub(r"\|\d+$", "", r.key[len(prefix):]) or None
+
+
+def _resolve_by_members(c: Concept, stmt: MergedStatement, fy: str) -> ConceptValue | None:
+    """A listed tag reported only by axis member (EPD/ET: accounts receivable split into
+    related and nonrelated party, no consolidated row): the sum of its member rows for the
+    year. Runs only after no listed tag has a usable undimensioned row, and only when every
+    member is declared under one axis by a dimension header (members of different axes
+    overlap). Money rows only: share counts by class (MPLX common + Series B preferred
+    units) are not additive. One member keeps its row link (status OK), like a one-row
+    sum."""
+    axes = _member_axes(stmt)
+    for t in c.tags:
+        full = f"us-gaap_{t}"
+        if any(r.tag == full and _is_undimensioned(r) and _usable(r, fy) for r in stmt.rows):
+            continue                      # the tag has a consolidated row: not by member
+        hits: dict[str, MergedRow] = {}
+        for r in stmt.rows:
+            m = (_member_of(r) if r.tag == full and r.unit == "money" and _usable(r, fy)
+                 else None)
+            if m is not None:
+                hits.setdefault(m, r)
+        if not hits:
+            continue
+        if any(m not in axes for m in hits) or len({axes[m] for m in hits}) != 1:
+            continue
+        used = list(hits.values())
+        if len(used) == 1:
+            return _ok(c, fy, used[0])
+        sign = c.sign * c.tag_sign(full)
+        return ConceptValue(
+            c.name, fy, sign * sum(r.values[fy] for r in used), None,
+            f"SUM({full} members)",
+            " + ".join(f"{r.label} [{m.split('_', 1)[-1]}]" for m, r in hits.items()),
+            "DERIVED", sign=c.tag_sign(full))
+    return None
+
+
 def _resolve_by_tag(c: Concept, stmt: MergedStatement, fy: str) -> ConceptValue | None:
     rows = stmt.rows
     label_re = re.compile(c.label_re, re.IGNORECASE) if c.label_re else None
@@ -88,7 +141,8 @@ def _resolve_by_tag(c: Concept, stmt: MergedStatement, fy: str) -> ConceptValue 
                 r = same[0] if c.name == "CFBeginningCash" else same[-1]
                 if r.values.get(fy) is not None:
                     return _ok(c, fy, r)
-    return None
+        return None
+    return _resolve_by_members(c, stmt, fy)
 
 
 def _add_on(c: Concept, stmt: MergedStatement, fy: str, cv: ConceptValue) -> ConceptValue:
@@ -217,8 +271,17 @@ def _separate_cash_ends(out: dict, statements: dict[str, MergedStatement]) -> No
         out["CFBeginningCash"][fy] = _resolve_one(begin, {"CF": view}, fy)
 
 
-def coverage_warnings(mapping: dict[str, dict[str, ConceptValue]]) -> list[str]:
-    """One line per REQUIRED concept that is UNMAPPED in the latest year."""
+# Working-capital concepts are not REQUIRED, but an UNMAPPED one while the balance sheet
+# shows such a row usually means a tagging gap (EPD/ET/ENB before member sums).
+_WC_LABELS = (("Receivables", re.compile(r"receivable", re.IGNORECASE)),
+              ("Payables", re.compile(r"payable", re.IGNORECASE)))
+
+
+def coverage_warnings(mapping: dict[str, dict[str, ConceptValue]],
+                      statements: dict[str, MergedStatement] | None = None) -> list[str]:
+    """One line per REQUIRED concept that is UNMAPPED in the latest year, plus Receivables /
+    Payables UNMAPPED in the latest year while the balance sheet has a non-abstract row
+    labelled receivable / payable."""
     warnings = []
     for name in REQUIRED:
         by_fy = mapping.get(name) or {}
@@ -228,6 +291,16 @@ def coverage_warnings(mapping: dict[str, dict[str, ConceptValue]]) -> list[str]:
         fy = list(by_fy)[-1]
         if by_fy[fy].status == "UNMAPPED":
             warnings.append(f"{name}: UNMAPPED in {fy}")
+    bs = (statements or {}).get("BS")
+    for name, label_re in _WC_LABELS:
+        by_fy = mapping.get(name) or {}
+        if bs is None or not by_fy:
+            continue
+        fy = list(by_fy)[-1]
+        rows = [r.label for r in bs.rows if not r.is_abstract and label_re.search(r.label)]
+        if by_fy[fy].status == "UNMAPPED" and rows:
+            warnings.append(f"{name}: UNMAPPED in {fy} although the balance sheet has "
+                            f"\"{rows[0]}\"")
     return warnings
 
 

@@ -729,3 +729,124 @@ def test_distributions_and_nci_never_share_one_row():
     out = resolve({"CF": cf})
     assert out["Distributions"]["FY2024"].value == -6.0
     assert out["DistributionsToNCI"]["FY2024"].status == "UNMAPPED"
+
+
+def _hdr(axis, member, label):
+    return mrow(f"{axis}={member}", label, {"FY2023": None, "FY2024": None},
+                tag=f"{axis}={member}", abstract=True)
+
+
+_RP_AXIS = "us-gaap_RelatedPartyTransactionsByRelatedPartyAxis"
+
+
+def test_receivables_reported_only_by_member_resolve_as_member_sum():
+    # EPD-shaped: AR and AP appear only under the related-party axis.
+    ar, ap = "us-gaap_AccountsReceivableNetCurrent", "us-gaap_AccountsPayableCurrent"
+    bs = mstmt("BS", [
+        mrow(ar, "Accounts receivable - trade", {"FY2023": None, "FY2024": None}),
+        _hdr(_RP_AXIS, "us-gaap_NonrelatedPartyMember", "Nonrelated Party"),
+        mrow(f"{ar}|Accounts receivable, net|us-gaap_NonrelatedPartyMember",
+             "Accounts receivable, net", {"FY2023": 9236.0, "FY2024": 6494.0}, tag=ar),
+        mrow(f"{ap}|Accounts payable|us-gaap_NonrelatedPartyMember", "Accounts payable",
+             {"FY2023": 1227.0, "FY2024": 1021.0}, tag=ap),
+        _hdr(_RP_AXIS, "us-gaap_RelatedPartyMember", "Related Party"),
+        mrow(f"{ar}|Accounts receivable, net|us-gaap_RelatedPartyMember",
+             "Accounts receivable, net", {"FY2023": 4.0, "FY2024": 1.0}, tag=ar),
+        mrow(f"{ap}|Accounts payable|us-gaap_RelatedPartyMember", "Accounts payable",
+             {"FY2023": 198.0, "FY2024": 217.0}, tag=ap),
+    ])
+    out = resolve({"BS": bs})
+    cv = out["Receivables"]["FY2024"]
+    assert (cv.status, cv.value, cv.row_key, cv.tag) == (
+        "DERIVED", 6495.0, None, f"SUM({ar} members)")
+    assert "NonrelatedPartyMember" in cv.label and "RelatedPartyMember" in cv.label
+    assert out["Payables"]["FY2024"].value == 1238.0
+    assert out["Payables"]["FY2023"].value == 1425.0
+    assert coverage_warnings(out, {"BS": bs}) == [
+        w for w in coverage_warnings(out) if not w.startswith(("Receivables", "Payables"))]
+
+
+def test_member_rows_ignored_when_the_tag_has_a_consolidated_row_or_axes_differ():
+    ar = "us-gaap_AccountsReceivableNetCurrent"
+    member = mrow(f"{ar}|AR|us-gaap_RelatedPartyMember", "AR", {"FY2023": 4.0, "FY2024": 1.0},
+                  tag=ar)
+    hdr = _hdr(_RP_AXIS, "us-gaap_RelatedPartyMember", "Related Party")
+    total = mrow(ar, "Accounts receivable", {"FY2023": 50.0, "FY2024": 60.0})
+    assert resolve({"BS": mstmt("BS", [total, hdr, member])})["Receivables"]["FY2024"].value \
+        == 60.0
+    # members of two different axes overlap: no sum
+    other = mrow(f"{ar}|AR|srt_ProductMember", "AR", {"FY2023": 3.0, "FY2024": 3.0}, tag=ar)
+    bs = mstmt("BS", [hdr, member, _hdr("srt_ProductOrServiceAxis", "srt_ProductMember", "P"),
+                      other])
+    assert resolve({"BS": bs})["Receivables"]["FY2024"].status == "UNMAPPED"
+    # one member: kept linked to its row
+    cv = resolve({"BS": mstmt("BS", [hdr, member])})["Receivables"]["FY2024"]
+    assert (cv.status, cv.value, cv.row_key) == ("OK", 1.0, member.key)
+
+
+def test_enb_shaped_affiliate_row_skipped_for_real_receivables_and_payables():
+    bs = mstmt("BS", [
+        mrow("enb_AccountsReceivablesAndOtherAmountsNetCurrent",
+             "Accounts receivable and other", {"FY2023": None, "FY2024": None}),
+        mrow("us-gaap_AccountsAndOtherReceivablesNetCurrent",
+             "Trade receivables and unbilled revenues", {"FY2023": 6920.0, "FY2024": 7081.0}),
+        mrow("us-gaap_OtherReceivablesNetCurrent", "Accounts receivable from affiliates",
+             {"FY2023": 90.0, "FY2024": None}),
+        mrow("us-gaap_AccountsPayableAndOtherAccruedLiabilitiesCurrent",
+             "Trade payables and accrued liabilities", {"FY2023": 7060.0, "FY2024": 7555.0}),
+        mrow("us-gaap_OtherAccountsPayableAndAccruedLiabilities",
+             "Accounts payable to affiliates", {"FY2023": 22.0, "FY2024": None}),
+    ])
+    out = resolve({"BS": bs})
+    for fy, ar, ap in (("FY2023", 6920.0, 7060.0), ("FY2024", 7081.0, 7555.0)):
+        assert out["Receivables"][fy].value == ar
+        assert out["Payables"][fy].value == ap
+    # the label fallback no longer takes affiliate / related-party rows
+    bs = mstmt("BS", [mrow("x_DueFromAffiliates", "Accounts receivable from affiliates",
+                           {"FY2023": 90.0, "FY2024": 86.0}),
+                      mrow("x_DueToRelated", "Accounts payable - related parties",
+                           {"FY2023": 22.0, "FY2024": 38.0})])
+    out = resolve({"BS": bs})
+    assert out["Receivables"]["FY2024"].status == "UNMAPPED"
+    assert out["Payables"]["FY2024"].status == "UNMAPPED"
+
+
+def test_coverage_warns_when_working_capital_unmapped_but_bs_shows_it():
+    bs = mstmt("BS", [mrow("x_DueFromAffiliates", "Accounts receivable from affiliates",
+                           {"FY2023": 90.0, "FY2024": 86.0}),
+                      mrow("x_Abs", "Payables:", {"FY2023": None, "FY2024": None},
+                           abstract=True)])
+    out = resolve({"BS": bs})
+    warnings = coverage_warnings(out, {"BS": bs})
+    assert any(w.startswith("Receivables: UNMAPPED in FY2024") for w in warnings)
+    assert not any(w.startswith("Payables") for w in warnings)   # abstract row only
+    assert not any(w.startswith(("Receivables", "Payables")) for w in coverage_warnings(out))
+
+
+def test_fixture_epd_working_capital_resolves_from_members():
+    m = _load("EPD")
+    ar, ap = m["Receivables"]["FY2025"], m["Payables"]["FY2025"]
+    assert (ar.status, ar.value) == ("DERIVED", 6495.0)
+    assert (ap.status, ap.value) == ("DERIVED", 1238.0)
+
+
+def test_member_sum_only_for_money_rows():
+    # MPLX: units outstanding by class (common + Series B preferred) must not be added.
+    tag = "us-gaap_LimitedPartnersCapitalAccountUnitsOutstanding"
+    axis = "us-gaap_StatementClassOfStockAxis"
+    rows = [_hdr(axis, "us-gaap_CommonMember", "Common"),
+            mrow(f"{tag}|Units|us-gaap_CommonMember", "Units", {"FY2023": 600.0, "FY2024": 600.0},
+                 tag=tag),
+            _hdr(axis, "us-gaap_SeriesBPreferredStockMember", "Series B"),
+            mrow(f"{tag}|Units|us-gaap_SeriesBPreferredStockMember", "Units",
+                 {"FY2023": 0.6, "FY2024": 0.6}, tag=tag)]
+    for r in rows:
+        r.unit = "shares" if not r.is_abstract else r.unit
+    out = resolve({"BS": mstmt("BS", rows)})
+    assert out["UnitsOutstanding"]["FY2024"].status == "UNMAPPED"
+
+
+def test_cvx_accounts_and_notes_receivable_tag():
+    bs = mstmt("BS", [mrow("us-gaap_AccountsNotesAndLoansReceivableNetCurrent",
+                           "Accounts and notes receivable", {"FY2023": 20684.0, "FY2024": 18075.0})])
+    assert resolve({"BS": bs})["Receivables"]["FY2024"].value == 18075.0

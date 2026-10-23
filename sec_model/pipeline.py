@@ -131,7 +131,7 @@ class _Run:
             resolve(statements), lambda tag: fy_values(facts, tag, currency))
         for concept, tags in FILL_TAGS.items():
             mapping[concept] = fill_from_facts(mapping, facts, concept, tags, "shares")
-        coverage = coverage_warnings(mapping)
+        coverage = coverage_warnings(mapping, statements)
         self.say(f"Mapping: {len(coverage)} coverage warning{'' if len(coverage) == 1 else 's'}")
 
         checks = run_checks(statements, mapping,
