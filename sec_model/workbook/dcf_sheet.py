@@ -18,7 +18,7 @@ from openpyxl.chart import BarChart, Reference
 
 from sec_model.types import MarketInputs
 from . import styles as S
-from .inputs_sheets import FONT_NOTE, _input, section_header
+from .inputs_sheets import FONT_NOTE, _input, add_toggle_validation, section_header
 from .model_sheet import ModelLayout
 from .wacc_sheet import (
     STEPS, WaccLayout, absref, currency_note, formula, headers, label, offset,
@@ -123,6 +123,7 @@ def _header(ws, wacc: WaccLayout, market: MarketInputs, last_fye: date, company:
     label(ws, 8, 6, "Mid-year convention (1 = on)")
     _input(ws.cell(8, 8), 0, None)
     ws.cell(8, 8).number_format = "0"
+    add_toggle_validation(ws, MID_C.replace("$", ""))
 
 
 def _terminal_value(ws, row: dict, last: str, wacc: WaccLayout, top: int) -> None:

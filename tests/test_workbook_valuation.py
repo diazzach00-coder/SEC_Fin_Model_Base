@@ -392,3 +392,24 @@ def test_formula_validity_scan():
                 assert target.value is not None or _is_input(target) or sheet == "Model", \
                     (where, sheet, target.coordinate)
         assert n > 150
+
+
+def _validations(ws):
+    out = {}
+    for dv in ws.data_validations.dataValidation:
+        for rng in dv.sqref.ranges:
+            out[rng.coord] = dv
+    return out
+
+
+def test_toggles_have_one_zero_list_validation():
+    wb, layout, _, _ = _build()
+    drivers = _validations(wb["Drivers"])
+    for key in ("JV_TOGGLE", "WC_HOLD"):
+        coord = layout.scalar_cell[key].split("!")[1].replace("$", "")
+        dv = drivers[coord]
+        assert (dv.type, dv.formula1, dv.allow_blank) == ("list", '"1,0"', False), key
+    assert layout.scalar_cell["MIN_CASH"].split("!")[1].replace("$", "") not in drivers
+    dv = _validations(wb["DCF"])["H8"]
+    assert wb["DCF"]["F8"].value == "Mid-year convention (1 = on)"
+    assert (dv.type, dv.formula1, dv.allow_blank) == ("list", '"1,0"', False)

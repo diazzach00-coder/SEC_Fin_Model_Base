@@ -13,6 +13,7 @@ qualified=True)`), so `Hist` renders ``AVERAGE(Model!$..$)`` over the Model rati
 the analyst may overwrite them. Constant defaults (OTHER_OP, JV_TOGGLE, ...) are values.
 """
 from openpyxl.styles import Alignment, Font
+from openpyxl.worksheet.datavalidation import DataValidation
 from openpyxl.workbook.defined_name import DefinedName
 
 from sec_model.formula import Const, Expr, RenderContext, to_excel
@@ -28,6 +29,8 @@ NUMBER_FORMATS = {"money": S.FMT_MONEY, "pct": S.FMT_PCT, "units": S.FMT_UNITS,
                   "perunit": S.FMT_PERUNIT, "days": S.FMT_DAYS, "multiple": S.FMT_X}
 _UNITS = {"pct": "%", "units": "MM units", "perunit": "per unit", "days": "days",
           "multiple": "x"}
+# 0/1 switches: the cell gets a 1/0 dropdown so a typo cannot silently change the model.
+TOGGLE_SCALARS = ("JV_TOGGLE", "WC_HOLD")
 FONT_NOTE = Font(name=S.FONT_NAME, size=9, italic=True, color="808080")
 FONT_FORMULA_BOLD = Font(name=S.FONT_NAME, size=10, bold=True, color="000000")
 
@@ -60,6 +63,14 @@ def section_header(ws, row: int, text: str, last_col: int) -> None:
     ws.cell(row, 2, text).font = S.FONT_BOLD
     for c in range(2, last_col + 1):
         ws.cell(row, c).fill = S.FILL_SECTION
+
+
+def add_toggle_validation(ws, coord: str) -> None:
+    """Restrict ``coord`` on ``ws`` to 1 or 0 (in-cell dropdown, no blank)."""
+    dv = DataValidation(type="list", formula1='"1,0"', allow_blank=False)
+    dv.error, dv.errorTitle = "Enter 1 (on) or 0 (off).", "Switch"
+    dv.add(coord)
+    ws.add_data_validation(dv)
 
 
 def _input(cell, value, fmt: str | None, formula: bool = False) -> None:
@@ -128,6 +139,8 @@ def write_drivers(wb, ws, spec, fy_labels, fcst_labels, driver_defaults: dict,
         scalar_cell[s.key] = ref
         ws.cell(r, 2, s.label).font = S.FONT_BASE
         _input(ws.cell(r, 3), _default_cell(s.default, ctx, scalar_defaults.get(s.key)), s.fmt)
+        if s.key in TOGGLE_SCALARS:
+            add_toggle_validation(ws, f"C{r}")
         ws.cell(r, 4, s.note).font = FONT_NOTE
         wb.defined_names[s.key] = DefinedName(s.key, attr_text=ref)
     if (driver_row, scalar_cell) != plan_drivers(spec):
