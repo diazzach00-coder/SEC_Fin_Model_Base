@@ -176,17 +176,23 @@ CONCEPTS: list[Concept] = [
     Concept("LongTermDebt", ("BS",),
             ("LongTermDebtNoncurrent", "LongTermDebt", "LongTermDebtAndCapitalLeaseObligations"),
             r"^long-term debt"),
-    # Noncurrent + current + short-term, first-present within the first two groups so
-    # overlapping tags are not double counted; else the first of ``tags`` (total
-    # debt reported as one line).
+    # Long-term + current + short-term, first-present within the first two groups so
+    # overlapping tags are not double counted. A long-term total that already includes
+    # current maturities (LongTermDebt, ...IncludingCurrentMaturities) is a long-term
+    # component too, so short-term borrowings are still added (CVX, JPM); it then skips the
+    # current-maturities group.
     Concept("TotalDebt", ("BS",),
             ("LongTermDebt", "LongTermDebtAndCapitalLeaseObligationsIncludingCurrentMaturities"),
             None,
             sum_groups=(
                 SumGroup(("LongTermDebtNoncurrent", "LongTermDebtAndCapitalLeaseObligations",
-                          "LongTermNotesAndLoans", "OtherLongTermDebtNoncurrent")),
+                          "LongTermNotesAndLoans", "OtherLongTermDebtNoncurrent",
+                          "LongTermDebt",
+                          "LongTermDebtAndCapitalLeaseObligationsIncludingCurrentMaturities")),
                 SumGroup(("DebtCurrent", "LongTermDebtCurrent",
-                          "LongTermDebtAndCapitalLeaseObligationsCurrent", "NotesPayableCurrent")),
+                          "LongTermDebtAndCapitalLeaseObligationsCurrent", "NotesPayableCurrent"),
+                         skip_if=("LongTermDebt",
+                                  "LongTermDebtAndCapitalLeaseObligationsIncludingCurrentMaturities")),
                 # DebtCurrent already includes short-term borrowings and commercial paper.
                 SumGroup(("ShortTermBorrowings", "CommercialPaper"), mode="all",
                          skip_if=("DebtCurrent",)),

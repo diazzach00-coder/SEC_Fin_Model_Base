@@ -613,3 +613,17 @@ def test_supplier_label_match_beats_tag_match_in_another_filings_row():
     assert out["CFBeginningCash"][fy].value == 20490.0
     assert out["CFEndingCash"][fy].value == 23873.0
 
+
+def test_total_debt_long_term_including_current_plus_short_term_borrowings():
+    # CVX/JPM: "Short-term debt" (ShortTermBorrowings) + "Long-term debt" tagged
+    # ...IncludingCurrentMaturities. Total debt was the short-term line alone (977 vs 40,758).
+    tag = "us-gaap_LongTermDebtAndCapitalLeaseObligationsIncludingCurrentMaturities"
+    bs = mstmt("BS", [
+        mrow("us-gaap_ShortTermBorrowings", "Short-term debt", {"FY2023": 4406.0, "FY2024": 977.0}),
+        mrow(tag, "Long-term debt", {"FY2023": 20135.0, "FY2024": 39781.0}),
+        mrow("us-gaap_LongTermDebtCurrent", "Current maturities (already included)",
+             {"FY2023": 1.0, "FY2024": 2.0}),
+    ])
+    cv = resolve({"BS": bs})["TotalDebt"]["FY2024"]
+    assert cv.value == 40758.0 and cv.status == "DERIVED"
+    assert "LongTermDebtCurrent" not in cv.tag

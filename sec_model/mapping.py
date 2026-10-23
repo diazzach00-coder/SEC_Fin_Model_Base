@@ -49,6 +49,8 @@ def _resolve_sum(c: Concept, rows: list[MergedRow], fy: str) -> ConceptValue | N
                     break
     if not used:
         return None
+    if len(used) == 1:                    # one row: keep it linked like a tag match
+        return _ok(c, fy, used[0])
     return ConceptValue(
         c.name, fy, c.sign * sum(r.values[fy] for r in used), None,
         "SUM(" + "+".join(r.tag for r in used) + ")",
