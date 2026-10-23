@@ -125,8 +125,12 @@ def test_wacc_formula_references_weights_and_costs():
     assert _is_input(ws.cell(r_debt, 9))
     assert ws.cell(r_debt, 10).value == f'=IF(I{r_debt}<>"",I{r_debt},H{r_debt})'
     assert ws.cell(_row_of(ws, "Less: cash", 7), 8).value == f"=N(Model!{F}{lr['CASH']})"
-    assert ws.cell(_row_of(ws, "Less: equity investments", 7), 8).value == \
-        f"=N(Model!{F}{lr['EQ_INV']})"
+    jv = layout.scalar_cell["JV_TOGGLE"]
+    r_eqi = _row_of(ws, "Less: equity investments", 7)
+    assert ws.cell(r_eqi, 8).value == f"=(1-{jv})*N(Model!{F}{lr['EQ_INV']})"
+    assert ws.cell(r_eqi, 10).value == f'=IF(I{r_eqi}<>"",I{r_eqi},H{r_eqi})'
+    assert ws.cell(r_eqi, 11).value == \
+        "JVs valued at book when excluded from EBITDA; via distributions when included"
     assert ws.cell(_row_of(ws, "Noncontrolling interests", 7), 8).value == \
         f"=N(Model!{F}{lr['NCI_BS']})"
     r_nd = int(nd[1:])
@@ -154,8 +158,11 @@ def test_basic_units_fall_back_to_model_and_currency_note():
     wb, layout, wl, _ = _build(currency="CAD", basic_units=None)
     ws = wb["WACC"]
     F = S.col(layout.first_fcst_col - 1)
-    assert ws.cell(_row_of(ws, "Basic units (MM)", 7), 10).value == \
-        f"=N(Model!{F}{layout.line_row['UNITS']})"
+    r_u = _row_of(ws, "Diluted units (Model) \u2014 basic unavailable", 7)
+    assert ws.cell(r_u, 10).value == f"=N(Model!{F}{layout.line_row['UNITS']})"
+    assert "keep the dilution inputs below at 0" in ws.cell(r_u, 11).value
+    with pytest.raises(AssertionError):
+        _row_of(ws, "Basic units (MM)", 7)
     for name in ("WACC", "DCF"):
         note = wb[name]["B4"]
         assert note.value == "All figures in CAD MM. Enter share price in CAD."
@@ -181,10 +188,17 @@ def test_dcf_ufcf_rows_link_to_model():
                           ("DWC", "CF_DWC"), ("CAPEX", "CAPEX")):
             assert ws.cell(rows[key], c).value == f"=Model!{mc}{lr[line]}", (key, c)
         assert ws.cell(rows["TAX_RATE"], c).value == f"=Drivers!{mc}{dr['TAX_RATE']}"
-        assert ws.cell(rows["TAX"], c).value == f"={L}{rows['EBIT']}*{L}{rows['TAX_RATE']}"
-        assert ws.cell(rows["NOPAT"], c).value == f"={L}{rows['EBIT']}-{L}{rows['TAX']}"
+        # JV value counted once: accrual reversed, distributions added when JV_TOGGLE = 1
+        assert ws.cell(rows["EQ_EARN"], c).value == f"=-Model!{mc}{lr['EQ_EARN']}"
+        assert ws.cell(rows["JV_DIST"], c).value == \
+            f"={layout.scalar_cell['JV_TOGGLE']}*Model!{mc}{lr['CF_DIST_AFF']}"
+        assert ws.cell(rows["TAX"], c).value == \
+            f"=({L}{rows['EBIT']}+{L}{rows['EQ_EARN']})*{L}{rows['TAX_RATE']}"
+        assert ws.cell(rows["NOPAT"], c).value == \
+            f"={L}{rows['EBIT']}+{L}{rows['EQ_EARN']}-{L}{rows['TAX']}"
         assert ws.cell(rows["UFCF"], c).value == \
-            f"={L}{rows['NOPAT']}+{L}{rows['DA']}+{L}{rows['DWC']}+{L}{rows['CAPEX']}"
+            (f"={L}{rows['NOPAT']}+{L}{rows['DA']}+{L}{rows['DWC']}+{L}{rows['CAPEX']}"
+             f"+{L}{rows['JV_DIST']}")
         # discounting
         assert ws.cell(rows["T"], c).value == f"=({L}{rows['DISC_DATE']}-$D$10)/365"
         assert ws.cell(rows["DF"], c).value == f"=1/(1+$H$6)^{L}{rows['T']}"
@@ -198,7 +212,9 @@ def test_dcf_ufcf_rows_link_to_model():
     # actual column: last history year, blank-safe where used in arithmetic
     Fm = S.col(layout.first_fcst_col - 1)
     assert ws.cell(rows["EBITDA"], 4).value == f"=Model!{Fm}{lr['EBITDA']}"
-    assert ws.cell(rows["NOPAT"], 4).value == f"=N(D{rows['EBIT']})-D{rows['TAX']}"
+    assert ws.cell(rows["NOPAT"], 4).value == \
+        f"=N(D{rows['EBIT']})+D{rows['EQ_EARN']}-D{rows['TAX']}"
+    assert ws.cell(rows["EQ_EARN"], 4).value == f"=-N(Model!{Fm}{lr['EQ_EARN']})"
     # header: real dates, today, stub, links to WACC
     assert isinstance(ws["D8"].value, datetime) and ws["D8"].value.date() == LAST_FYE
     assert "yy" in ws["D8"].number_format
@@ -300,7 +316,8 @@ def test_exit_multiple_default_falls_back_without_price():
     assert em.value == (f'=IFERROR(IF({p}="",10,({wl.market_cap_cell}+{wl.net_debt_cell})'
                         f'/N($D${dl.row["EBITDA"]})),10)')
     for method, col in (("perpetuity", "C"), ("exit", "D")):
-        up = wb["DCF"][f"{col}{dl.row['UPSIDE']}"].value
+        up = _at(wb, dl.over_under_cells[method]).value
+        assert _addr(dl.over_under_cells[method]) == f"{col}{dl.row['OVER_UNDER']}"
         assert up == (f'=IF({p}="","enter price",'
                       f'IFERROR({p}/{_addr(dl.value_per_unit_cells[method])}-1,"n/a"))')
     with_price, _, wl2, _ = _build(price=30.0)

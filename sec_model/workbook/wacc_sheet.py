@@ -22,6 +22,7 @@ from .model_sheet import ModelLayout
 WACC_SHEET = "WACC"
 FONT_CCY_NOTE = Font(name=S.FONT_NAME, size=10, italic=True, color="C00000")
 N_PEERS = 6
+BASIC_UNAVAILABLE = "Diluted units (Model) — basic unavailable"
 STEPS = (-2, -1, 0, 1, 2)          # sensitivity offsets, in units of the grid's step
 
 
@@ -104,11 +105,12 @@ def _units_and_net_debt(ws, layout: ModelLayout, market: MarketInputs, currency:
     _input(ws.cell(6, 10), market.price, "perunit")
     if market.price is None:
         ws.cell(6, 11, "enter price").font = FONT_CCY_NOTE
-    label(ws, 7, 7, "Basic units (MM)")
     if basic_units is None:
+        label(ws, 7, 7, BASIC_UNAVAILABLE)
         formula(ws, 7, 10, f"={model('UNITS')}", S.FMT_UNITS)
-        ws.cell(7, 11, "Model diluted units, last reported year").font = FONT_NOTE
+        ws.cell(7, 11, "Already diluted: keep the dilution inputs below at 0").font = FONT_NOTE
     else:
+        label(ws, 7, 7, "Basic units (MM)")
         cell = ws.cell(7, 10, basic_units)
         cell.font, cell.number_format = S.FONT_INPUT, S.FMT_UNITS
         ws.cell(7, 11, "dei cover-page units outstanding").font = FONT_NOTE
@@ -127,12 +129,15 @@ def _units_and_net_debt(ws, layout: ModelLayout, market: MarketInputs, currency:
               ("Preferred equity", 0),
               ("Noncontrolling interests", f"={model('NCI_BS')}"),
               ("Less: cash", f"={model('CASH')}"),
-              ("Less: equity investments", f"={model('EQ_INV')}"))
+              ("Less: equity investments",
+               f"=(1-{layout.scalar_cell['JV_TOGGLE']})*{model('EQ_INV')}"))
     for r, (text, value) in enumerate(bridge, start=17):
         label(ws, r, 7, text)
         formula(ws, r, 8, value, S.FMT_MONEY)
         _input(ws.cell(r, 9), None, "money")
         formula(ws, r, 10, f'=IF(I{r}<>"",I{r},H{r})', S.FMT_MONEY)
+    ws.cell(21, 11, "JVs valued at book when excluded from EBITDA; via distributions "
+                    "when included").font = FONT_NOTE
     label(ws, 22, 7, "Net debt", bold=True)
     formula(ws, 22, 10, "=J17+J18+J19-J20-J21", S.FMT_MONEY, bold=True)
     ws.cell(22, 10).border = S.BORDER_TOP
