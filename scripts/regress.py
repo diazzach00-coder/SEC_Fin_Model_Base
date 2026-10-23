@@ -12,11 +12,15 @@ filers in ``EXPECT_40F``; at least ``--min-years`` fiscal years; IS, BS and CF f
 kept year; zero FAIL checks; max |BAL_CHECK| < 1e-6; the file reopens with openpyxl;
 no ``#REF!`` in any cell.
 
-Sanity assertions: default interest rate on debt within 0-15%; default cash tax rate
-within 0-40%; last-year diluted units (UNITS) within 0.5x-2x of the dei shares
-outstanding when both exist; no expense concept whose latest mapped value has the opposite
-sign to the companyfacts value for its tag and year. NOTE lines (not asserted): interest
-expense / pretax income unmapped in the latest year.
+Sanity assertions: default interest rate on debt within 0-15%; default tax rate
+within 0-40%; for filers whose last-3-year effective rate (sum of tax / sum of pretax) is
+above 10%, the default tax rate within 10 points of it; last-year diluted units (UNITS)
+within 0.5x-2x of the dei shares outstanding when both exist; no expense concept whose
+latest mapped value has the opposite sign to the companyfacts value for its tag and year;
+Distributions and DistributionsToNCI not on the same row in the latest year; Receivables
+and Payables mapped in the latest year when the balance sheet has a receivable / payable
+row (banks: NOTE). NOTE lines (not asserted): interest expense / pretax income unmapped in
+the latest year.
 
 ``--excel`` recalculates each workbook in Excel (COM), asserts no error cells and prints
 the DCF value per unit (perpetuity / exit) for eyeballing. ``--cik TICKER=CIK`` builds a
@@ -25,6 +29,7 @@ KNOWN and not counted in the exit code while the failure text still matches.
 """
 import argparse
 import logging
+import re
 import sys
 import time
 from dataclasses import dataclass, field
@@ -48,6 +53,10 @@ BAL_TOL = 1e-6
 # share of income), which is also the XBRL sign of their us-gaap tags.
 SIGN_CONCEPTS = ("TotalCostsAndExpenses", "InterestExpense", "IncomeTax", "NIToNCI", "DA")
 INT_RATE_RANGE, TAX_RATE_RANGE, UNITS_RATIO = (0.0, 0.15), (0.0, 0.40), (0.5, 2.0)
+# Default TAX_RATE vs the last-3-year effective rate, for filers taxed above EFF_TAX_MIN.
+EFF_TAX_MIN, EFF_TAX_GAP = 0.10, 0.10
+WC_LABELS = (("Receivables", re.compile(r"receivable", re.I)),
+             ("Payables", re.compile(r"payable", re.I)))
 # ticker -> text the failure must contain. XOM: since 2026-07-01 the ticker maps to
 # ExxonMobil Holdings Corp (CIK 2115436), a successor issuer with no 10-K yet; the history
 # is under Exxon Mobil Corp, CIK 34088 (``--cik XOM=34088`` builds it).
@@ -116,6 +125,20 @@ def sanity_checks(res, ua: str) -> tuple[list[str], list[str]]:
             else:
                 bad.append(msg)
     latest = res.fy_labels[-1]
+    bad.extend(_tax_vs_effective(res))
+    d = res.mapping.get("Distributions", {}).get(latest)
+    n = res.mapping.get("DistributionsToNCI", {}).get(latest)
+    if d is not None and n is not None and d.row_key and d.row_key == n.row_key:
+        bad.append(f"Distributions and DistributionsToNCI share row {d.row_key} in {latest}")
+    bs = res.statements.get("BS")
+    for name, label_re in WC_LABELS:
+        cv = res.mapping.get(name, {}).get(latest)
+        hit = next((r.label for r in (bs.rows if bs else [])
+                    if not r.is_abstract and label_re.search(r.label)), None)
+        if hit and (cv is None or cv.status == "UNMAPPED"):
+            msg = f"{name} UNMAPPED in {latest} although the BS has {hit!r}"
+            (notes if res.ticker in BANKS else bad).append(
+                msg + (" (bank; not asserted)" if res.ticker in BANKS else ""))
     for concept in ("InterestExpense", "PretaxIncome"):
         cv = res.mapping.get(concept, {}).get(latest)
         if cv is None or cv.status == "UNMAPPED":
@@ -144,6 +167,26 @@ def sanity_checks(res, ua: str) -> tuple[list[str], list[str]]:
             bad.append(f"{name} {latest} mapped {cv.value:,.1f} but XBRL {cv.tag} = "
                        f"{fact:,.1f} (negated label carried into the model)")
     return bad, notes
+
+
+def _tax_vs_effective(res) -> list[str]:
+    """Default TAX_RATE within EFF_TAX_GAP of sum(tax) / sum(pretax) over the last three
+    years, for filers whose effective rate exceeds EFF_TAX_MIN."""
+    rate = _first(res.driver_defaults.get("TAX_RATE"))
+    years = res.fy_labels[-3:]
+    tax = [res.mapping.get("IncomeTax", {}).get(fy) for fy in years]
+    pre = [res.mapping.get("PretaxIncome", {}).get(fy) for fy in years]
+    if not isinstance(rate, (int, float)) or any(
+            cv is None or cv.value is None for cv in tax + pre):
+        return []
+    total_pre = sum(cv.value for cv in pre)
+    if total_pre <= 0:
+        return []
+    eff = sum(cv.value for cv in tax) / total_pre
+    if eff > EFF_TAX_MIN and abs(rate - eff) >= EFF_TAX_GAP:
+        return [f"default TAX_RATE {rate:.2%} vs last-3-year effective rate {eff:.2%} "
+                f"(gap >= {EFF_TAX_GAP:.0%})"]
+    return []
 
 
 def excel_check(path: Path) -> tuple[str, list[str]]:
