@@ -120,3 +120,49 @@ def test_same_filing_date_tie_breaks_by_accession():
     m = merge_statements([(fb, b), (fa, a)], ["FY2025"], FY_ENDS)
     assert m.rows[0].values == {"FY2025": 2.0}
     assert m.sources["FY2025"].form == "10-K/A"
+
+
+def test_dropped_row_value_comes_from_older_filing_for_its_year():
+    old = stmt(cols(2024), [row("A", "A", [1.0]), row("B", "B", [2.0]), row("C", "C", [3.0])])
+    new = stmt(cols(2025, 2024), [row("A", "A", [10.0, 1.5]), row("C", "C", [30.0, 3.5])])
+    m = merge_statements([(filing(2024), old), (filing(2025), new)],
+                         ["FY2024", "FY2025"], FY_ENDS)
+    b = next(r for r in m.rows if r.key == "B")
+    assert b.values == {"FY2024": 2.0, "FY2025": None}
+    # primary supplier for FY2024 is still the newest filing with that column
+    assert m.sources["FY2024"].accession == filing(2025).accession
+    assert next(r for r in m.rows if r.key == "A").values["FY2024"] == 1.5
+
+
+def test_overlapping_year_newer_value_wins_when_both_have_key():
+    old = stmt(cols(2024), [row("A", "A", [1.0])])
+    new = stmt(cols(2025, 2024), [row("A", "A", [10.0, 1.5])])
+    m = merge_statements([(filing(2024), old), (filing(2025), new)],
+                         ["FY2024", "FY2025"], FY_ENDS)
+    assert m.rows[0].values == {"FY2024": 1.5, "FY2025": 10.0}
+
+
+def test_none_cell_in_newer_filing_does_not_fall_through():
+    old = stmt(cols(2024), [row("A", "A", [1.0])])
+    new = stmt(cols(2025, 2024), [row("A", "A", [10.0, None])])
+    m = merge_statements([(filing(2024), old), (filing(2025), new)],
+                         ["FY2024", "FY2025"], FY_ENDS)
+    assert m.rows[0].values["FY2024"] is None
+
+
+def test_empty_parsed_raises():
+    with pytest.raises(UserFacingError, match="No parsed statements to merge."):
+        merge_statements([], ["FY2025"], FY_ENDS)
+
+
+def test_label_missing_from_fy_ends_yields_none_and_no_source():
+    s = stmt(cols(2025), [row("A", "A", [1.0])])
+    m = merge_statements([(filing(2025), s)], ["FY2025", "FY2026"], FY_ENDS)
+    assert m.rows[0].values == {"FY2025": 1.0, "FY2026": None}
+    assert "FY2026" not in m.sources
+
+
+def test_short_row_values_yield_none():
+    s = stmt(cols(2025, 2024), [row("A", "A", [1.0])])
+    m = merge_statements([(filing(2025), s)], ["FY2024", "FY2025"], FY_ENDS)
+    assert m.rows[0].values == {"FY2024": None, "FY2025": 1.0}
