@@ -4,9 +4,18 @@ Both sheets use the Model's column letters for the same fiscal year (history fro
 forecast right after), so `Driver(key)` renders as ``Drivers!<same column><row>`` and
 `Block(key)` as the Asset Inputs total cell in the same column. History columns are
 left empty here.
+
+Year-1 driver cells and Expr scalar defaults are formulas, not pasted numbers (spec 7.2:
+nothing is a magic number): each is ``to_excel(default, ctx)`` with ``ctx`` the Model's
+last-history-column context, sheet-qualified (`model_sheet.render_context(...,
+qualified=True)`), so `Hist` renders ``AVERAGE(Model!$..$)`` over the Model ratio row and
+`Line` the Model's last history cell. They keep the input style (blue on yellow) because
+the analyst may overwrite them. Constant defaults (OTHER_OP, JV_TOGGLE, ...) are values.
 """
 from openpyxl.styles import Alignment, Font
 from openpyxl.workbook.defined_name import DefinedName
+
+from sec_model.formula import Const, Expr, RenderContext, to_excel
 
 from .asreported import unit_note
 from . import styles as S
@@ -62,10 +71,32 @@ def _input(cell, value, fmt: str | None, formula: bool = False) -> None:
         cell.number_format = NUMBER_FORMATS.get(fmt, S.FMT_MONEY)
 
 
+def plan_drivers(spec) -> tuple[dict, dict]:
+    """(driver_row {key: row}, scalar_cell {key: "Drivers!$C$<row>"}) as `write_drivers`
+    lays them out, so the Model layout exists before the sheet is written."""
+    driver_row = {d.key: 5 + i for i, d in enumerate(spec.drivers)}
+    first = 5 + len(spec.drivers) + 2
+    scalar_cell = {s.key: f"{DRIVERS_SHEET}!$C${first + i}" for i, s in enumerate(spec.scalars)}
+    return driver_row, scalar_cell
+
+
+def _default_cell(default, ctx: RenderContext, value):
+    """A Const default is written as its value; any other Expr as its formula."""
+    if isinstance(default, Const):
+        return default.value
+    if isinstance(default, Expr):
+        return to_excel(default, ctx)
+    return value
+
+
 def write_drivers(wb, ws, spec, fy_labels, fcst_labels, driver_defaults: dict,
-                  scalar_defaults: dict, currency: str) -> tuple[dict, dict]:
-    """One row per driver (year 1 = default value, later years ``=prev``), then scalars.
-    Returns (driver_row {key: row}, scalar_cell {key: "Drivers!$C$<row>"})."""
+                  scalar_defaults: dict, currency: str,
+                  ctx: RenderContext) -> tuple[dict, dict]:
+    """One row per driver (year 1 = the default as a formula over the Model, later years
+    ``=prev``), then scalars. ``ctx`` renders defaults in the last history column (see the
+    module docstring); ``driver_defaults`` / ``scalar_defaults`` supply the values of
+    non-Expr defaults. Returns (driver_row {key: row}, scalar_cell {key:
+    "Drivers!$C$<row>"}), equal to `plan_drivers(spec)`."""
     note_col = S.DSC + len(fy_labels) + len(fcst_labels)
     last_col = frame(ws, "Drivers",
                      "Yellow = input. Year 1 defaults come from the company's own history; "
@@ -81,7 +112,8 @@ def write_drivers(wb, ws, spec, fy_labels, fcst_labels, driver_defaults: dict,
         ws.cell(r, 3, unit_for(d.fmt, currency)).font = S.FONT_BASE
         for c in range(first_fcst, last_col + 1):
             if c == first_fcst:
-                _input(ws.cell(r, c), driver_defaults.get(d.key), d.fmt)
+                _input(ws.cell(r, c), _default_cell(d.default, ctx, driver_defaults.get(d.key)),
+                       d.fmt)
             else:
                 _input(ws.cell(r, c), f"={S.col(c - 1)}{r}", d.fmt, formula=True)
         ws.cell(r, note_col, d.note).font = FONT_NOTE
@@ -95,9 +127,11 @@ def write_drivers(wb, ws, spec, fy_labels, fcst_labels, driver_defaults: dict,
         ref = f"{DRIVERS_SHEET}!$C${r}"
         scalar_cell[s.key] = ref
         ws.cell(r, 2, s.label).font = S.FONT_BASE
-        _input(ws.cell(r, 3), scalar_defaults.get(s.key), s.fmt)
+        _input(ws.cell(r, 3), _default_cell(s.default, ctx, scalar_defaults.get(s.key)), s.fmt)
         ws.cell(r, 4, s.note).font = FONT_NOTE
         wb.defined_names[s.key] = DefinedName(s.key, attr_text=ref)
+    if (driver_row, scalar_cell) != plan_drivers(spec):
+        raise RuntimeError("plan_drivers is out of sync with write_drivers")
     return driver_row, scalar_cell
 
 

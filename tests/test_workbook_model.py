@@ -5,7 +5,7 @@ from openpyxl import Workbook, load_workbook
 
 from sec_model.concepts import CONCEPTS
 from sec_model.forecast import driver_defaults, scalar_defaults
-from sec_model.formula import to_excel
+from sec_model.formula import Const, Expr, to_excel
 from sec_model.model_spec import build_spec
 from sec_model.workbook import styles as S
 from sec_model.workbook.model_sheet import ModelLayout, render_context, write_model
@@ -118,10 +118,14 @@ def test_driver_first_col_value_and_chain():
     assert [ws.cell(layout.driver_row[d.key], 2).value for d in spec.drivers] == \
         [d.label for d in spec.drivers]
     assert layout.driver_row[spec.drivers[0].key] == 5
+    ctx = render_context(layout, spec, F, qualified=True)     # last history column
     for d in spec.drivers:
         r = layout.driver_row[d.key]
         first = ws.cell(r, G)
-        assert first.value == pytest.approx(dd[d.key], rel=1e-12)  # xlsx float text
+        if isinstance(d.default, Const):                       # OTHER_OP, DEBT_ISSUE
+            assert first.value == d.default.value == dd[d.key]
+        else:                                                  # spec 7.2: a formula
+            assert first.value == to_excel(d.default, ctx), d.key
         assert first.font.color.rgb.endswith(S.BLUE)
         assert first.fill.start_color.rgb.endswith("FFF2CC")
         for c in range(H, 12):
@@ -135,11 +139,20 @@ def test_driver_first_col_value_and_chain():
         row = int(ref.rsplit("$", 1)[1])
         assert ref == f"Drivers!$C${row}"
         assert ws.cell(row, 2).value == s.label
-        assert ws.cell(row, 3).value == pytest.approx(sd[s.key], rel=1e-12)
+        if isinstance(s.default, Expr):
+            assert ws.cell(row, 3).value == to_excel(s.default, ctx)
+        else:
+            assert ws.cell(row, 3).value == pytest.approx(sd[s.key], rel=1e-12)
         assert ws.cell(row, 3).fill.start_color.rgb.endswith("FFF2CC")
         assert ws.cell(row, 4).value == s.note
         assert wb.defined_names[s.key].attr_text == ref
     assert sd["MIN_CASH"] == 130.0
+    capex = ws.cell(layout.driver_row["CAPEX_PCT"], G).value
+    assert capex == f"=AVERAGE(Model!$D${layout.line_row['CAPEX_PCT_HIST']}:$F$"         f"{layout.line_row['CAPEX_PCT_HIST']})"
+    assert "AVERAGE(" in capex and "Model!" in capex
+    assert ws.cell(layout.driver_row["UNITS"], G).value == f"=N(Model!F{layout.line_row['UNITS']})"
+    min_cash = layout.scalar_cell["MIN_CASH"].rsplit("$", 1)[1]
+    assert ws.cell(int(min_cash), 3).value == f"=N(Model!F{layout.line_row['CASH']})"
 
 
 def test_asset_block_total_feeds_revenue():

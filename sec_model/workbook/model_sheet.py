@@ -20,7 +20,7 @@ from sec_model.model_spec import ModelSpec
 from . import styles as S
 from .inputs_sheets import (
     ASSETS_SHEET, DRIVERS_SHEET, FONT_FORMULA_BOLD, FONT_NOTE, NUMBER_FORMATS, frame,
-    section_header, unit_for, write_assets, write_drivers,
+    plan_drivers, section_header, unit_for, write_assets, write_drivers,
 )
 
 MODEL_SHEET = "Model"
@@ -60,19 +60,23 @@ def _plan_rows(spec: ModelSpec) -> tuple[dict[str, int], list[tuple[str, int]]]:
     return line_row, headers
 
 
-def render_context(layout: ModelLayout, spec: ModelSpec, col: int) -> RenderContext:
-    """The context the Model writer renders column ``col`` with (see module docstring)."""
+def render_context(layout: ModelLayout, spec: ModelSpec, col: int,
+                   qualified: bool = False) -> RenderContext:
+    """The context the Model writer renders column ``col`` with (see module docstring).
+    ``qualified``: line cells and history ranges carry the ``Model!`` prefix, for formulas
+    on other sheets (the Drivers year-1 defaults)."""
     concept_lines = {ld.key for ld in spec.lines if isinstance(ld.hist, str)}
+    pre = f"{layout.sheet}!" if qualified else ""
 
     def line_cell(key: str, c: int) -> str:
-        ref = f"{S.col(c)}{layout.line_row[key]}"
+        ref = f"{pre}{S.col(c)}{layout.line_row[key]}"
         return f"N({ref})" if key in concept_lines and c < layout.first_fcst_col else ref
 
     def hist_range(key: str, n: int) -> str:
         last = layout.first_fcst_col - 1
         first = max(layout.first_hist_col, last - n + 1)
         r = layout.line_row[key]
-        return f"${S.col(first)}${r}:${S.col(last)}${r}"
+        return f"{pre}${S.col(first)}${r}:${S.col(last)}${r}"
 
     return RenderContext(
         col=col,
@@ -142,8 +146,10 @@ def write_model(wb, spec: ModelSpec, mapping_rows: dict[str, int],
 
     ``mapping_rows`` / ``mapping_value_cols`` are `write_mapping`'s ``rows`` (concept ->
     row) and ``value_cols`` (fy -> column). A concept or year missing from them leaves
-    the history cell blank. ``driver_defaults`` / ``scalar_defaults`` are written as values
-    (`forecast.driver_defaults` / `forecast.scalar_defaults`).
+    the history cell blank. Driver year-1 cells and Expr scalar defaults are written as
+    formulas over this sheet (`inputs_sheets` module docstring); ``driver_defaults`` /
+    ``scalar_defaults`` (`forecast.driver_defaults` / `forecast.scalar_defaults`) supply
+    only the constant defaults.
     """
     if not fy_labels:
         raise ValueError("at least one history year is required")
@@ -151,8 +157,7 @@ def write_model(wb, spec: ModelSpec, mapping_rows: dict[str, int],
     wa = S.get_sheet(wb, ASSETS_SHEET)
     wd = S.get_sheet(wb, DRIVERS_SHEET)
     line_row, headers = _plan_rows(spec)
-    driver_row, scalar_cell = write_drivers(wb, wd, spec, fy_labels, fcst_labels,
-                                            driver_defaults, scalar_defaults, currency)
+    driver_row, scalar_cell = plan_drivers(spec)
     total_row = write_assets(wa, fy_labels, fcst_labels, MODEL_SHEET, line_row, driver_row)
 
     first_fcst = S.DSC + len(fy_labels)
@@ -164,6 +169,8 @@ def write_model(wb, spec: ModelSpec, mapping_rows: dict[str, int],
                           for k, row in total_row.items() for i, fy in enumerate(fcst_labels)},
         asset_total_row=total_row,
     )
+    write_drivers(wb, wd, spec, fy_labels, fcst_labels, driver_defaults, scalar_defaults,
+                  currency, render_context(layout, spec, first_fcst - 1, qualified=True))
 
     note_col = last_col + 2
     frame(ws, "3-Statement Model",
