@@ -129,15 +129,20 @@ CONCEPTS: list[Concept] = [
             ("NetCashProvidedByUsedInInvestingActivities",
              "NetCashProvidedByUsedInInvestingActivitiesContinuingOperations"),
             None),
+    # Label fallback excludes NCI rows (TRGP's custom "Distributions to noncontrolling
+    # interests" came before "Dividends paid to common shareholders") and admits
+    # "dividends paid". mapping._separate_distributions guards the two sharing one row.
     Concept("Distributions", ("CF",),
             ("PaymentsOfDividendsCommonStock", "PaymentsOfDividends",
              "DistributionMadeToLimitedPartnerCashDistributionsPaid",
              "DistributionMadeToMemberOrLimitedPartnerCashDistributionsPaid",
              "PaymentsOfCapitalDistribution"),
-            r"distributions? (paid|to)"),
+            r"^(?!.*(noncontrolling|minority)).*(distributions?|dividends?) (paid|to)"),
+    # The label must name a payout: TRGP FY2024 "Contributions from noncontrolling
+    # interests" precedes the distributions row.
     Concept("DistributionsToNCI", ("CF",),
             ("PaymentsOfDividendsMinorityInterest", "PaymentsOfDistributionsToAffiliates"),
-            r"noncontrolling"),
+            r"(distribution|dividend|payment).*(noncontrolling|minority)"),
     Concept("FinancingCF", ("CF",),
             ("NetCashProvidedByUsedInFinancingActivities",
              "NetCashProvidedByUsedInFinancingActivitiesContinuingOperations"),

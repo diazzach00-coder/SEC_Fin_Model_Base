@@ -691,3 +691,41 @@ def test_total_debt_single_component_sum_keeps_the_row_link():
     cv = resolve({"BS": bs})["TotalDebt"]["FY2024"]
     assert (cv.status, cv.value, cv.row_key, cv.tag) == (
         "OK", 120.0, "us-gaap_LongTermDebtNoncurrent", "us-gaap_LongTermDebtNoncurrent")
+
+
+def test_trgp_shaped_distributions_skip_the_nci_row():
+    # TRGP: both payout rows are custom tags, so both concepts resolve by label. The NCI
+    # row came first and was taken as common distributions; "Contributions from
+    # noncontrolling interests" (an inflow) was taken as distributions to NCI.
+    cf = mstmt("CF", [
+        mrow("us-gaap_ProceedsFromMinorityShareholders",
+             "Contributions from noncontrolling interests", {"FY2024": 12.0, "FY2025": 5.0}),
+        mrow("trgp_PaymentsOfDividendsToNoncontrollingInterests",
+             "Distributions to noncontrolling interests", {"FY2024": -232.6, "FY2025": -33.5}),
+        mrow("trgp_PaymentsOfOrdinaryDividendsCommonAndPreferredShareholders",
+             "Dividends paid to common shareholders", {"FY2024": -615.5, "FY2025": -818.3}),
+    ], years=("FY2024", "FY2025"))
+    out = resolve({"CF": cf})
+    d, n = out["Distributions"]["FY2025"], out["DistributionsToNCI"]["FY2025"]
+    assert (d.value, d.row_key) == (
+        -818.3, "trgp_PaymentsOfOrdinaryDividendsCommonAndPreferredShareholders")
+    assert (n.value, n.row_key) == (-33.5, "trgp_PaymentsOfDividendsToNoncontrollingInterests")
+    assert out["DistributionsToNCI"]["FY2024"].value == -232.6
+
+
+def test_distributions_and_nci_never_share_one_row():
+    # A us-gaap distributions tag on an NCI-labelled row: the NCI label fallback hits the
+    # same row. It stays with DistributionsToNCI; Distributions is UNMAPPED.
+    cf = mstmt("CF", [mrow("us-gaap_PaymentsOfDividends",
+                           "Distributions to noncontrolling interests",
+                           {"FY2023": -5.0, "FY2024": -6.0})])
+    out = resolve({"CF": cf})
+    assert out["Distributions"]["FY2024"].status == "UNMAPPED"
+    assert out["DistributionsToNCI"]["FY2024"].value == -6.0
+    # The reverse: an NCI tag on a row labelled as common distributions stays common.
+    cf = mstmt("CF", [mrow("us-gaap_PaymentsOfDividendsMinorityInterest",
+                           "Distributions paid to unitholders",
+                           {"FY2023": -5.0, "FY2024": -6.0})])
+    out = resolve({"CF": cf})
+    assert out["Distributions"]["FY2024"].value == -6.0
+    assert out["DistributionsToNCI"]["FY2024"].status == "UNMAPPED"

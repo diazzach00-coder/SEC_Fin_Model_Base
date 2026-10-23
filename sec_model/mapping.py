@@ -158,6 +158,7 @@ def resolve(statements: dict[str, MergedStatement]) -> dict[str, dict[str, Conce
         years = first.fy_labels if first is not None else fallback_years
         out[c.name] = {fy: _resolve_one(c, statements, fy) for fy in years}
     _separate_cash_ends(out, statements)
+    _separate_distributions(out)
     _reconcile_total_costs(out)
     return out
 
@@ -182,6 +183,23 @@ def _reconcile_total_costs(out: dict) -> None:
         implied = abs(rev.value - oi.value)
         if abs(abs(tc.value) - implied) > TOTAL_COST_TOLERANCE * max(implied, 1.0):
             out["TotalCostsAndExpenses"][fy] = _unmapped("TotalCostsAndExpenses", fy)
+
+
+_NCI_LABEL = re.compile(r"noncontrolling|minority", re.IGNORECASE)
+
+
+def _separate_distributions(out: dict) -> None:
+    """Distributions and DistributionsToNCI must be two rows. Where both resolved to one
+    row in a year, it stays with DistributionsToNCI if its label names noncontrolling /
+    minority interests (Distributions is then UNMAPPED), else with Distributions."""
+    for fy, d in list(out.get("Distributions", {}).items()):
+        n = out.get("DistributionsToNCI", {}).get(fy)
+        if n is None or d.row_key is None or d.row_key != n.row_key:
+            continue
+        if _NCI_LABEL.search(d.label or ""):
+            out["Distributions"][fy] = _unmapped("Distributions", fy)
+        else:
+            out["DistributionsToNCI"][fy] = _unmapped("DistributionsToNCI", fy)
 
 
 def _separate_cash_ends(out: dict, statements: dict[str, MergedStatement]) -> None:
