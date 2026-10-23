@@ -3,143 +3,172 @@
 Data only. ``tags`` are written without the ``us-gaap_`` prefix and are tried in
 order; ``label_re`` (case-insensitive ``re.search``) is the fallback for custom
 tags. ``sign`` is -1 only where the as-reported sign is opposite to the model's
-convention. ``sum_tags`` means the concept is the sum of several rows.
+convention. ``sum_groups`` means the concept is the sum of several rows. ``stypes`` lists
+the statements searched, in order.
 """
 from dataclasses import dataclass
 
 
 @dataclass(frozen=True)
+class SumGroup:
+    """One component of a derived (summed) concept.
+
+    mode "first": use the first tag present (so overlapping tags are not double
+    counted); mode "all": add every tag present. The group is skipped entirely
+    when any tag in ``skip_if`` supplied an earlier group (it already includes
+    this group's items).
+    """
+    tags: tuple[str, ...]
+    mode: str = "first"
+    skip_if: tuple[str, ...] = ()
+
+
+@dataclass(frozen=True)
 class Concept:
     name: str
-    stype: str                       # "IS" | "BS" | "CF": the only statement searched
+    stypes: tuple[str, ...]          # statements searched, in order: "IS" | "BS" | "CF"
     tags: tuple[str, ...]
     label_re: str | None
     sign: int = 1
-    sum_tags: tuple[str, ...] = ()
+    sum_groups: tuple[SumGroup, ...] = ()
 
 
 CONCEPTS: list[Concept] = [
     # ---- Income statement ----
-    Concept("Revenue", "IS",
+    Concept("Revenue", ("IS",),
             ("Revenues", "RevenueFromContractWithCustomerExcludingAssessedTax",
              "RevenueFromContractWithCustomerIncludingAssessedTax", "SalesRevenueNet"),
             r"^total revenues?"),
-    Concept("TotalCostsAndExpenses", "IS",
+    Concept("TotalCostsAndExpenses", ("IS",),
             ("CostsAndExpenses", "OperatingExpenses", "OperatingCostsAndExpenses"),
             r"total costs and expenses"),
-    Concept("OperatingIncome", "IS", ("OperatingIncomeLoss",), r"operating income"),
-    Concept("DA", "IS",
+    Concept("OperatingIncome", ("IS",), ("OperatingIncomeLoss",), r"operating income"),
+    # D&A is on the IS for some filers, only on the CF for others (EPD, ORCL).
+    Concept("DA", ("IS", "CF"),
             ("DepreciationDepletionAndAmortization", "DepreciationAndAmortization",
              "DepreciationAmortizationAndAccretionNet", "Depreciation"),
             r"depreciation"),
-    Concept("Impairments", "IS",
+    Concept("Impairments", ("IS",),
             ("AssetImpairmentCharges", "OtherAssetImpairmentCharges", "GoodwillImpairmentLoss",
              "ImpairmentOfLongLivedAssetsHeldForUse"),
             r"impairment"),
     # IS-reported gains are already positive = gain.
-    Concept("Gains", "IS",
+    Concept("Gains", ("IS",),
             ("GainLossOnDispositionOfAssets", "GainLossOnDispositionOfAssets1",
              "GainLossOnSaleOfBusiness"),
             r"gain.*(sale|disposition)"),
-    Concept("EquityEarnings", "IS", ("IncomeLossFromEquityMethodInvestments",),
+    Concept("EquityEarnings", ("IS",), ("IncomeLossFromEquityMethodInvestments",),
             r"equity (in )?(net )?(earnings|income)"),
-    Concept("InterestExpense", "IS",
+    Concept("InterestExpense", ("IS",),
             ("InterestExpense", "InterestExpenseNonoperating", "InterestExpenseDebt"),
             r"interest expense"),
-    Concept("PretaxIncome", "IS",
+    Concept("PretaxIncome", ("IS",),
             ("IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest",
              "IncomeLossFromContinuingOperationsBeforeIncomeTaxesMinorityInterestAndIncomeLossFromEquityMethodInvestments"),
             r"before income tax"),
     # The lookahead keeps "Income before income taxes" from matching.
-    Concept("IncomeTax", "IS", ("IncomeTaxExpenseBenefit",), r"^(?!.*before).*income tax"),
-    Concept("NetIncome", "IS", ("ProfitLoss", "NetIncomeLoss"), None),
-    Concept("NIToNCI", "IS", ("NetIncomeLossAttributableToNoncontrollingInterest",),
+    Concept("IncomeTax", ("IS",), ("IncomeTaxExpenseBenefit",), r"^(?!.*before).*income tax"),
+    Concept("NetIncome", ("IS",), ("ProfitLoss", "NetIncomeLoss"), None),
+    Concept("NIToNCI", ("IS",), ("NetIncomeLossAttributableToNoncontrollingInterest",),
             r"noncontrolling"),
-    Concept("DilutedUnits", "IS",
+    Concept("DilutedUnits", ("IS",),
             ("WeightedAverageNumberOfDilutedSharesOutstanding",
+             "WeightedAverageNumberOfSharesOutstandingDiluted",
              "WeightedAverageLimitedPartnershipUnitsOutstandingDiluted"),
-            None),
+            # "per" excluded so "Diluted earnings per common unit" is not taken.
+            r"^(?!.*\bper\b).*diluted.*(units?|shares?)"),
 
     # ---- Cash flow ----
-    Concept("OperatingCashFlow", "CF",
+    Concept("OperatingCashFlow", ("CF",),
             ("NetCashProvidedByUsedInOperatingActivities",
              "NetCashProvidedByUsedInOperatingActivitiesContinuingOperations"),
             None),
-    Concept("CFNetIncome", "CF", ("ProfitLoss", "NetIncomeLoss"), None),
-    Concept("DeferredTax", "CF", ("DeferredIncomeTaxExpenseBenefit",), r"deferred (income )?tax"),
-    Concept("DistributionsFromAffiliates", "CF", ("EquityMethodInvestmentDividendsOrDistributions",),
+    Concept("CFNetIncome", ("CF",), ("ProfitLoss", "NetIncomeLoss"), None),
+    Concept("DeferredTax", ("CF",), ("DeferredIncomeTaxExpenseBenefit",), r"deferred (income )?tax"),
+    Concept("DistributionsFromAffiliates", ("CF",), ("EquityMethodInvestmentDividendsOrDistributions",),
             r"distributions received"),
-    Concept("Capex", "CF",
+    Concept("Capex", ("CF",),
             ("PaymentsToAcquirePropertyPlantAndEquipment", "PaymentsToAcquireProductiveAssets",
              "PaymentsForCapitalImprovements"),
             r"capital expenditures"),
-    Concept("InvestingCF", "CF",
+    Concept("InvestingCF", ("CF",),
             ("NetCashProvidedByUsedInInvestingActivities",
              "NetCashProvidedByUsedInInvestingActivitiesContinuingOperations"),
             None),
-    Concept("Distributions", "CF",
+    Concept("Distributions", ("CF",),
             ("PaymentsOfDividendsCommonStock", "PaymentsOfDividends",
              "DistributionMadeToLimitedPartnerCashDistributionsPaid",
              "DistributionMadeToMemberOrLimitedPartnerCashDistributionsPaid",
              "PaymentsOfCapitalDistribution"),
             r"distributions? (paid|to)"),
-    Concept("DistributionsToNCI", "CF",
+    Concept("DistributionsToNCI", ("CF",),
             ("PaymentsOfDividendsMinorityInterest", "PaymentsOfDistributionsToAffiliates"),
             r"noncontrolling"),
-    Concept("FinancingCF", "CF",
+    Concept("FinancingCF", ("CF",),
             ("NetCashProvidedByUsedInFinancingActivities",
              "NetCashProvidedByUsedInFinancingActivitiesContinuingOperations"),
             None),
-    Concept("NetChangeInCash", "CF",
+    Concept("NetChangeInCash", ("CF",),
             ("CashCashEquivalentsRestrictedCashAndRestrictedCashEquivalentsPeriodIncreaseDecreaseIncludingExchangeRateEffect",
              "CashAndCashEquivalentsPeriodIncreaseDecrease"),
             None),
     # Beginning and ending cash share tags; the label regex tells them apart.
-    Concept("CFBeginningCash", "CF",
+    Concept("CFBeginningCash", ("CF",),
             ("CashCashEquivalentsRestrictedCashAndRestrictedCashEquivalents",
              "CashAndCashEquivalentsAtCarryingValue", "Cash"),
             r"beginning"),
-    Concept("CFEndingCash", "CF",
+    Concept("CFEndingCash", ("CF",),
             ("CashCashEquivalentsRestrictedCashAndRestrictedCashEquivalents",
              "CashAndCashEquivalentsAtCarryingValue", "Cash"),
             r"end of|ending"),
 
     # ---- Balance sheet ----
-    Concept("Cash", "BS",
+    Concept("Cash", ("BS",),
             ("CashAndCashEquivalentsAtCarryingValue",
-             "CashCashEquivalentsRestrictedCashAndRestrictedCashEquivalents", "Cash"),
+             "CashCashEquivalentsRestrictedCashAndRestrictedCashEquivalents", "Cash",
+             "CashAndDueFromBanks"),
             None),
-    Concept("Receivables", "BS", ("AccountsReceivableNetCurrent", "ReceivablesNetCurrent"),
+    Concept("Receivables", ("BS",), ("AccountsReceivableNetCurrent", "ReceivablesNetCurrent"),
             r"^(accounts )?receivables?\b"),
-    Concept("Inventory", "BS", ("InventoryNet",), r"^inventor(y|ies)"),
-    Concept("NetPPE", "BS", ("PropertyPlantAndEquipmentNet",), r"property, plant"),
-    Concept("EquityInvestments", "BS",
+    Concept("Inventory", ("BS",), ("InventoryNet",), r"^inventor(y|ies)"),
+    Concept("NetPPE", ("BS",), ("PropertyPlantAndEquipmentNet",), r"property, plant"),
+    Concept("EquityInvestments", ("BS",),
             ("EquityMethodInvestments",
              "InvestmentsInAffiliatesSubsidiariesAssociatesAndJointVentures"),
             r"investments in unconsolidated"),
-    Concept("TotalAssets", "BS", ("Assets",), r"^total assets"),
-    Concept("Payables", "BS", ("AccountsPayableCurrent", "AccountsPayableTradeCurrent"),
+    Concept("TotalAssets", ("BS",), ("Assets",), r"^total assets"),
+    Concept("Payables", ("BS",), ("AccountsPayableCurrent", "AccountsPayableTradeCurrent"),
             r"^accounts payable"),
-    Concept("DebtCurrent", "BS", ("DebtCurrent", "LongTermDebtCurrent"),
+    Concept("DebtCurrent", ("BS",), ("DebtCurrent", "LongTermDebtCurrent"),
             r"current (portion|maturities)"),
-    Concept("LongTermDebt", "BS",
+    Concept("LongTermDebt", ("BS",),
             ("LongTermDebtNoncurrent", "LongTermDebt", "LongTermDebtAndCapitalLeaseObligations"),
             r"^long-term debt"),
-    # Sum of components when any is present; otherwise the first of ``tags``.
-    Concept("TotalDebt", "BS",
-            ("LongTermDebt", "LongTermDebtAndCapitalLeaseObligations"), None,
-            sum_tags=("LongTermDebtNoncurrent", "LongTermDebtCurrent", "DebtCurrent",
-                      "CommercialPaper", "ShortTermBorrowings")),
-    Concept("LiabilitiesAndEquity", "BS",
+    # Noncurrent + current + short-term, first-present within the first two groups so
+    # overlapping tags are not double counted; else the first of ``tags`` (total
+    # debt reported as one line).
+    Concept("TotalDebt", ("BS",),
+            ("LongTermDebt", "LongTermDebtAndCapitalLeaseObligationsIncludingCurrentMaturities"),
+            None,
+            sum_groups=(
+                SumGroup(("LongTermDebtNoncurrent", "LongTermDebtAndCapitalLeaseObligations",
+                          "LongTermNotesAndLoans", "OtherLongTermDebtNoncurrent")),
+                SumGroup(("DebtCurrent", "LongTermDebtCurrent",
+                          "LongTermDebtAndCapitalLeaseObligationsCurrent", "NotesPayableCurrent")),
+                # DebtCurrent already includes short-term borrowings and commercial paper.
+                SumGroup(("ShortTermBorrowings", "CommercialPaper"), mode="all",
+                         skip_if=("DebtCurrent",)),
+            )),
+    Concept("LiabilitiesAndEquity", ("BS",),
             ("LiabilitiesAndStockholdersEquity", "LiabilitiesAndPartnersCapital"),
             r"^total liabilities and"),
-    Concept("EquityCommon", "BS", ("StockholdersEquity", "PartnersCapital"), None),
-    Concept("NCI", "BS", ("MinorityInterest",), None),
-    Concept("TotalEquityInclNCI", "BS",
+    Concept("EquityCommon", ("BS",), ("StockholdersEquity", "PartnersCapital"), None),
+    Concept("NCI", ("BS",), ("MinorityInterest",), None),
+    Concept("TotalEquityInclNCI", ("BS",),
             ("StockholdersEquityIncludingPortionAttributableToNoncontrollingInterest",
              "PartnersCapitalIncludingPortionAttributableToNoncontrollingInterest"),
             None),
-    Concept("UnitsOutstanding", "BS",
+    Concept("UnitsOutstanding", ("BS",),
             ("CommonStockSharesOutstanding", "LimitedPartnersCapitalAccountUnitsOutstanding"),
             None),
 ]

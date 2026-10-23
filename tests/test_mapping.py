@@ -1,10 +1,15 @@
 from dataclasses import replace
 from datetime import date
+from pathlib import Path
+
+import pytest
 
 import sec_model.mapping as mapping
 from sec_model.concepts import CONCEPTS
 from sec_model.mapping import REQUIRED, coverage_warnings, resolve
-from sec_model.types import MergedRow, MergedStatement
+from sec_model.merge import merge_statements
+from sec_model.rfile import parse_rfile
+from sec_model.types import Filing, MergedRow, MergedStatement
 
 CANONICAL = [
     "Revenue", "TotalCostsAndExpenses", "OperatingIncome", "DA", "Impairments", "Gains",
@@ -36,15 +41,17 @@ def test_every_canonical_concept_defined_once():
 
 
 def test_concept_statement_scopes():
-    by = {c.name: c.stype for c in CONCEPTS}
+    by = {c.name: c.stypes for c in CONCEPTS}
     cf = {"CFNetIncome", "DeferredTax", "DistributionsFromAffiliates", "Capex", "InvestingCF",
           "Distributions", "DistributionsToNCI", "FinancingCF", "NetChangeInCash",
           "CFBeginningCash", "CFEndingCash", "OperatingCashFlow"}
     bs = {"Cash", "Receivables", "Inventory", "NetPPE", "EquityInvestments", "TotalAssets",
           "Payables", "DebtCurrent", "LongTermDebt", "TotalDebt", "LiabilitiesAndEquity",
           "EquityCommon", "NCI", "TotalEquityInclNCI", "UnitsOutstanding"}
-    for name, stype in by.items():
-        assert stype == ("CF" if name in cf else "BS" if name in bs else "IS"), name
+    for name, stypes in by.items():
+        expected = ("IS", "CF") if name == "DA" else (
+            "CF" if name in cf else "BS" if name in bs else "IS",)
+        assert stypes == expected, name
 
 
 def test_tag_order_preferred_over_label():
@@ -211,3 +218,139 @@ def test_cf_cash_positional_fallback_when_labels_have_no_keyword():
     out = resolve({"CF": cf})
     assert out["CFBeginningCash"]["FY2024"].value == 2.0
     assert out["CFEndingCash"]["FY2024"].value == 3.0
+
+
+def test_da_resolves_from_cf_when_absent_from_is():
+    is_ = mstmt("IS", [mrow("us-gaap_Revenues", "Revenues", {"FY2023": 1.0, "FY2024": 2.0})])
+    cf = mstmt("CF", [mrow("epd_DepreciationAndAccretion", "Depreciation and accretion",
+                           {"FY2023": 30.0, "FY2024": 40.0})])
+    cv = resolve({"IS": is_, "CF": cf})["DA"]["FY2024"]
+    assert (cv.status, cv.value, cv.row_key) == ("OK", 40.0, "epd_DepreciationAndAccretion")
+
+
+def test_da_prefers_is_over_cf():
+    is_ = mstmt("IS", [mrow("us-gaap_DepreciationDepletionAndAmortization", "D&A",
+                            {"FY2023": 1.0, "FY2024": 2.0})])
+    cf = mstmt("CF", [mrow("us-gaap_DepreciationDepletionAndAmortization", "D&A",
+                           {"FY2023": 8.0, "FY2024": 9.0})])
+    assert resolve({"IS": is_, "CF": cf})["DA"]["FY2024"].value == 2.0
+
+
+def test_da_cf_only_statement_set():
+    cf = mstmt("CF", [mrow("us-gaap_Depreciation", "Depreciation", {"FY2023": 1.0, "FY2024": 2.0})])
+    da = resolve({"CF": cf})["DA"]
+    assert list(da) == ["FY2023", "FY2024"] and da["FY2024"].value == 2.0
+
+
+def test_total_debt_orcl_style_notes_payable():
+    bs = mstmt("BS", [
+        mrow("us-gaap_NotesPayableCurrent", "Notes payable, current", {"FY2023": 7.0, "FY2024": 8.0}),
+        mrow("us-gaap_LongTermNotesAndLoans", "Notes payable, non-current",
+             {"FY2023": 85.0, "FY2024": 122.0}),
+    ])
+    cv = resolve({"BS": bs})["TotalDebt"]["FY2024"]
+    assert (cv.status, cv.value, cv.row_key) == ("DERIVED", 130.0, None)
+    assert cv.tag == "SUM(us-gaap_LongTermNotesAndLoans+us-gaap_NotesPayableCurrent)"
+
+
+def test_total_debt_oke_style():
+    bs = mstmt("BS", [
+        mrow("us-gaap_LongTermDebtCurrent", "Current maturities", {"FY2023": 1.0, "FY2024": 2.0}),
+        mrow("us-gaap_ShortTermBorrowings", "Short-term borrowings", {"FY2023": 3.0, "FY2024": 4.0}),
+        mrow("us-gaap_LongTermDebtNoncurrent", "LTD", {"FY2023": 10.0, "FY2024": 20.0}),
+    ])
+    cv = resolve({"BS": bs})["TotalDebt"]["FY2024"]
+    assert (cv.status, cv.value) == ("DERIVED", 26.0)
+
+
+def test_total_debt_first_present_within_group():
+    bs = mstmt("BS", [
+        mrow("us-gaap_LongTermDebtNoncurrent", "LTD", {"FY2023": 10.0, "FY2024": 20.0}),
+        mrow("us-gaap_LongTermNotesAndLoans", "Notes", {"FY2023": 5.0, "FY2024": 5.0}),
+    ])
+    assert resolve({"BS": bs})["TotalDebt"]["FY2024"].value == 20.0
+
+
+def test_total_debt_commercial_paper_not_double_counted_with_debt_current():
+    bs = mstmt("BS", [
+        mrow("us-gaap_LongTermDebtNoncurrent", "LTD", {"FY2023": 10.0, "FY2024": 20.0}),
+        mrow("us-gaap_DebtCurrent", "Short-term debt", {"FY2023": 3.0, "FY2024": 4.0}),
+        mrow("us-gaap_CommercialPaper", "Commercial paper", {"FY2023": 1.0, "FY2024": 2.0}),
+    ])
+    cv = resolve({"BS": bs})["TotalDebt"]["FY2024"]
+    assert cv.value == 24.0
+    assert "CommercialPaper" not in cv.tag
+
+
+def test_total_debt_commercial_paper_added_without_debt_current():
+    bs = mstmt("BS", [
+        mrow("us-gaap_LongTermDebtNoncurrent", "LTD", {"FY2023": 10.0, "FY2024": 20.0}),
+        mrow("us-gaap_LongTermDebtCurrent", "Current", {"FY2023": 3.0, "FY2024": 4.0}),
+        mrow("us-gaap_CommercialPaper", "CP", {"FY2023": 1.0, "FY2024": 2.0}),
+        mrow("us-gaap_ShortTermBorrowings", "STB", {"FY2023": 1.0, "FY2024": 1.0}),
+    ])
+    assert resolve({"BS": bs})["TotalDebt"]["FY2024"].value == 27.0
+
+
+def test_total_debt_single_tag_fallbacks_and_unmapped():
+    bs = mstmt("BS", [mrow("us-gaap_LongTermDebt", "Debt", {"FY2023": 50.0, "FY2024": 60.0})])
+    cv = resolve({"BS": bs})["TotalDebt"]["FY2024"]
+    assert (cv.value, cv.tag) == (60.0, "us-gaap_LongTermDebt")
+    tag = "us-gaap_LongTermDebtAndCapitalLeaseObligationsIncludingCurrentMaturities"
+    bs2 = mstmt("BS", [mrow(tag, "Debt", {"FY2023": 1.0, "FY2024": 2.0})])
+    cv2 = resolve({"BS": bs2})["TotalDebt"]["FY2024"]
+    assert (cv2.value, cv2.tag) == (2.0, tag)
+    assert resolve({"BS": mstmt("BS", [])})["TotalDebt"]["FY2024"].status == "UNMAPPED"
+
+
+def test_diluted_units_tags_and_label_fallback_ignores_eps():
+    is_ = mstmt("IS", [
+        mrow("us-gaap_NetIncomeLossNetOfTaxPerOutstandingLimitedPartnershipUnitDiluted",
+             "Diluted earnings per common unit", {"FY2023": 2.0, "FY2024": 2.5}),
+    ])
+    assert resolve({"IS": is_})["DilutedUnits"]["FY2024"].status == "UNMAPPED"
+    is2 = mstmt("IS", [
+        mrow("epd_X", "Diluted earnings per unit", {"FY2023": 2.0, "FY2024": 2.5}),
+        mrow("epd_WeightedDiluted", "Diluted weighted-average common units outstanding",
+             {"FY2023": 2000.0, "FY2024": 2100.0}),
+    ])
+    cv = resolve({"IS": is2})["DilutedUnits"]["FY2024"]
+    assert (cv.status, cv.value, cv.row_key) == ("OK", 2100.0, "epd_WeightedDiluted")
+    is3 = mstmt("IS", [mrow("us-gaap_WeightedAverageLimitedPartnershipUnitsOutstandingDiluted",
+                            "Units", {"FY2023": 1.0, "FY2024": 2.0})])
+    assert resolve({"IS": is3})["DilutedUnits"]["FY2024"].value == 2.0
+
+
+# ---- fixture-backed smoke test ------------------------------------------------
+
+FIXTURES = Path(__file__).parent / "fixtures"
+
+
+def _load(co):
+    statements = {}
+    for st in ("IS", "BS", "CF"):
+        ps = parse_rfile((FIXTURES / co / f"{st}.htm").read_text(encoding="utf-8"), st, "u")
+        ends = sorted({c.end for c in ps.columns if c.months in (None, 12)})
+        fy_ends = {f"FY{e.year}": e for e in ends}
+        filing = Filing(1, "0000000001-26-000001", "10-K", date(2030, 1, 1), ends[-1], "x.htm")
+        statements[st] = merge_statements([(filing, ps)], list(fy_ends), fy_ends)
+    return resolve(statements)
+
+
+NON_BANK = ["OKE", "EPD", "ET", "KNTK", "ORCL"]
+SMOKE = ["Revenue", "NetIncome", "TotalAssets", "OperatingCashFlow", "Cash", "DA", "TotalDebt"]
+
+
+@pytest.mark.parametrize("co", NON_BANK)
+def test_fixture_smoke_non_bank(co):
+    m = _load(co)
+    for name in SMOKE:
+        cv = list(m[name].values())[-1]
+        assert cv.status in ("OK", "DERIVED") and cv.value is not None, (co, name)
+
+
+def test_fixture_smoke_jpm():
+    m = _load("JPM")
+    for name in ("NetIncome", "TotalAssets", "Cash"):
+        cv = list(m[name].values())[-1]
+        assert cv.status in ("OK", "DERIVED") and cv.value is not None, name

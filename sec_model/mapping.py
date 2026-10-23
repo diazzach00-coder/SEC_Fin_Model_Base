@@ -32,22 +32,33 @@ def _ok(c: Concept, fy: str, r: MergedRow) -> ConceptValue:
     return ConceptValue(c.name, fy, c.sign * r.values[fy], r.key, r.tag, r.label, "OK")
 
 
-def _resolve_one(c: Concept, stmt: MergedStatement, fy: str) -> ConceptValue:
+def _resolve_sum(c: Concept, rows: list[MergedRow], fy: str) -> ConceptValue | None:
+    used: list[MergedRow] = []
+    for g in c.sum_groups:
+        if any(r.tag.removeprefix("us-gaap_") in g.skip_if for r in used):
+            continue
+        for t in g.tags:
+            hit = next((r for r in rows if r.key == f"us-gaap_{t}" and _usable(r, fy)), None)
+            if hit is not None:
+                used.append(hit)
+                if g.mode == "first":
+                    break
+    if not used:
+        return None
+    return ConceptValue(
+        c.name, fy, c.sign * sum(r.values[fy] for r in used), None,
+        "SUM(" + "+".join(r.tag for r in used) + ")",
+        " + ".join(r.label for r in used), "DERIVED")
+
+
+def _resolve_in(c: Concept, stmt: MergedStatement, fy: str) -> ConceptValue:
     rows = stmt.rows
     label_re = re.compile(c.label_re, re.IGNORECASE) if c.label_re else None
 
-    if c.sum_tags:
-        found = []
-        for t in c.sum_tags:
-            for r in rows:
-                if r.key == f"us-gaap_{t}" and r.tag == r.key and _usable(r, fy):
-                    found.append(r)
-                    break
-        if found:
-            return ConceptValue(
-                c.name, fy, c.sign * sum(r.values[fy] for r in found), None,
-                "SUM(" + "+".join(r.tag for r in found) + ")",
-                " + ".join(r.label for r in found), "DERIVED")
+    if c.sum_groups:
+        derived = _resolve_sum(c, rows, fy)
+        if derived is not None:
+            return derived
 
     filtered = c.name in _LABEL_FILTERED
     for t in c.tags:
@@ -79,16 +90,26 @@ def _resolve_one(c: Concept, stmt: MergedStatement, fy: str) -> ConceptValue:
     return _unmapped(c.name, fy)
 
 
+def _resolve_one(c: Concept, statements: dict[str, MergedStatement], fy: str) -> ConceptValue:
+    """Try each of the concept's statements in order; the first hit wins."""
+    for stype in c.stypes:
+        stmt = statements.get(stype)
+        if stmt is None:
+            continue
+        cv = _resolve_in(c, stmt, fy)
+        if cv.status != "UNMAPPED":
+            return cv
+    return _unmapped(c.name, fy)
+
+
 def resolve(statements: dict[str, MergedStatement]) -> dict[str, dict[str, ConceptValue]]:
     """concept -> fiscal year (oldest first) -> ConceptValue."""
     out: dict[str, dict[str, ConceptValue]] = {}
     fallback_years = next((s.fy_labels for s in statements.values()), [])
     for c in CONCEPTS:
-        stmt = statements.get(c.stype)
-        years = stmt.fy_labels if stmt is not None else fallback_years
-        out[c.name] = {fy: (_resolve_one(c, stmt, fy) if stmt is not None
-                            else _unmapped(c.name, fy))
-                       for fy in years}
+        first = next((statements[t] for t in c.stypes if t in statements), None)
+        years = first.fy_labels if first is not None else fallback_years
+        out[c.name] = {fy: _resolve_one(c, statements, fy) for fy in years}
     return out
 
 
