@@ -3,7 +3,7 @@ from io import BytesIO
 
 from openpyxl import Workbook, load_workbook
 
-from sec_model.concepts import CONCEPTS
+from sec_model.concepts import CONCEPTS, Concept
 from sec_model.types import (CheckResult, ConceptValue, MergedRow, MergedStatement,
                              SourceRec)
 from sec_model.workbook import styles as S
@@ -101,7 +101,8 @@ def test_mapping_value_formula_points_at_key():
     f = ws.cell(r, vc).value
     keyref = ws.cell(r, kc).coordinate
     assert "MATCH(" in f and keyref in f and "'IS (As Reported)'!E:E" in f and "$A:$A" in f
-    assert f.startswith("=IFERROR(INDEX(")
+    idx = "INDEX('IS (As Reported)'!E:E, MATCH(" + keyref + ", 'IS (As Reported)'!$A:$A, 0))"
+    assert f == f'=IFERROR(IF({idx}="","",{idx}),"")'   # blank source stays "", never 0
     assert ws.cell(r, kc).value == "Revenues" and ws.cell(r, kc).fill.start_color.rgb.endswith("FFF2CC")
     assert ws.cell(r, 1).value == "Revenue" and ws.cell(r, 2).value == "OK"
     assert ws.cell(r, 3).value == "IS (As Reported)"
@@ -109,7 +110,7 @@ def test_mapping_value_formula_points_at_key():
     # unmapped: blank yellow key, still a formula; derived: hard-coded number + tag text
     g = info["rows"]["Gains"]
     assert ws.cell(g, info["key_cols"]["FY2024"]).value is None
-    assert ws.cell(g, info["value_cols"]["FY2024"]).value.startswith("=IFERROR(")
+    assert ws.cell(g, info["value_cols"]["FY2024"]).value.startswith("=IFERROR(IF(INDEX(")
     d = info["rows"]["OperatingIncome"]
     assert ws.cell(d, info["value_cols"]["FY2024"]).value == 7.0
     assert ws.cell(d, info["value_cols"]["FY2024"]).font.color.rgb.endswith("0000FF")
@@ -166,3 +167,86 @@ def test_workbook_reopens_without_error():
     assert sc.max_row == 3 and sc["A2"].value == "Income Statement" and sc["B3"].value == "FY2024"
     assert sc["F2"].hyperlink.target == "https://sec.gov/R2_FY2023.htm"
     assert sc["G2"].value == "In Millions"
+
+
+def _stmt(stype, keys):
+    rows = [_row(k, k, [1.0, 2.0]) for k in keys]
+    return MergedStatement(stype, "USD", FYS, {fy: date(int(fy[2:]), 12, 31) for fy in FYS}, rows,
+                           {fy: _src(fy) for fy in FYS})
+
+
+def test_mapping_sheet_follows_concept_stypes_order_for_shared_keys():
+    wb = Workbook()
+    statements = {"IS": _stmt("IS", ["DA", "Revenues"]), "BS": _stmt("BS", ["Cash"]),
+                  "CF": _stmt("CF", ["DA", "Capex"])}
+    for st, sheet in SHEET_NAMES.items():
+        write_as_reported(wb, statements[st], sheet)
+    da = next(c for c in CONCEPTS if c.name == "DA")
+    assert da.stypes == ("IS", "CF")
+    # concept resolved on the CF row, but "DA" also exists on the IS sheet
+    mapping = {"DA": {fy: _cv("DA", fy, 2.0, "DA") for fy in FYS}}
+    # stypes order picks IS first when both contain the key; make the CF row the only match
+    statements["IS"].rows = [r for r in statements["IS"].rows if r.key != "DA"]
+    info = write_mapping(wb, mapping, dict(SHEET_NAMES), statements, FYS)
+    ws = wb["Mapping"]
+    r = info["rows"]["DA"]
+    assert "'CF (As Reported)'!" in ws.cell(r, info["value_cols"]["FY2024"]).value
+    assert ws.cell(r, 3).value == "CF (As Reported)"
+    # a key present on both IS and CF resolves to the first of the concept's stypes
+    other = next(c for c in CONCEPTS if c.name == "Revenue")
+    statements["CF"].rows.append(_row("Revenues", "Revenues", [1.0, 2.0]))
+    mapping = {"Revenue": {fy: _cv("Revenue", fy, 2.0, "Revenues") for fy in FYS}}
+    wb2 = Workbook()
+    for st, sheet in SHEET_NAMES.items():
+        write_as_reported(wb2, statements[st], sheet)
+    info = write_mapping(wb2, mapping, dict(SHEET_NAMES), statements, FYS)
+    assert other.stypes == ("IS",)
+    assert "'IS (As Reported)'!" in wb2["Mapping"].cell(
+        info["rows"]["Revenue"], info["value_cols"]["FY2024"]).value
+
+
+def test_mapping_sheet_negative_sign_inside_blank_guard():
+    wb = Workbook()
+    statements = {"IS": _stmt("IS", ["X"]), "BS": _stmt("BS", ["Cash"]), "CF": _stmt("CF", ["Capex"])}
+    for st, sheet in SHEET_NAMES.items():
+        write_as_reported(wb, statements[st], sheet)
+    neg = Concept("NegCapex", ("CF",), ("Capex",), None, sign=-1)
+    mapping = {neg.name: {fy: _cv(neg.name, fy, -2.0, "Capex") for fy in FYS}}
+    info = write_mapping(wb, mapping, dict(SHEET_NAMES), statements, FYS, concepts=[neg])
+    f = wb["Mapping"].cell(info["rows"][neg.name], info["value_cols"]["FY2024"]).value
+    assert f.startswith("=IFERROR(IF(INDEX(") and ',"",-INDEX(' in f
+
+
+def test_mapping_sheet_tolerates_empty_years_and_missing_statements():
+    wb = Workbook()
+    info = write_mapping(wb, {}, {}, {}, [])
+    assert len(info["rows"]) == len(CONCEPTS) and info["value_cols"] == {} and info["key_cols"] == {}
+    ws = wb["Mapping"]
+    assert ws["B5"].value == "UNMAPPED"
+
+    wb = Workbook()
+    stmt = _is()
+    write_as_reported(wb, stmt, SHEET_NAMES["IS"])
+    mapping = {c.name: {fy: _cv(c.name, fy, 1.0, "Revenues") for fy in FYS} for c in CONCEPTS}
+    info = write_mapping(wb, mapping, {"IS": SHEET_NAMES["IS"]}, {"IS": stmt}, FYS)
+    ws = wb["Mapping"]
+    bs_concept = next(c for c in CONCEPTS if c.stypes[0] == "BS")
+    r = info["rows"][bs_concept.name]
+    assert ws.cell(r, 2).value == "UNMAPPED" and ws.cell(r, 3).value in ("", None)
+    for fy in FYS:
+        assert ws.cell(r, info["value_cols"][fy]).value is None
+    rev = info["rows"]["Revenue"]
+    assert str(ws.cell(rev, info["value_cols"]["FY2024"]).value).startswith("=IFERROR(")
+
+
+def test_mapping_sheet_shared_key_uses_concept_scope_not_dict_order():
+    wb = Workbook()
+    statements = {"IS": _stmt("IS", ["DA"]), "BS": _stmt("BS", ["Cash"]), "CF": _stmt("CF", ["DA"])}
+    for st, sheet in SHEET_NAMES.items():
+        write_as_reported(wb, statements[st], sheet)
+    cf_first = Concept("CfFirst", ("CF", "IS"), ("DA",), None)
+    mapping = {"CfFirst": {fy: _cv("CfFirst", fy, 2.0, "DA") for fy in FYS}}
+    info = write_mapping(wb, mapping, dict(SHEET_NAMES), statements, FYS, concepts=[cf_first])
+    ws = wb["Mapping"]
+    assert "'CF (As Reported)'!" in ws.cell(5, info["value_cols"]["FY2024"]).value
+    assert ws.cell(5, 3).value == "CF (As Reported)"

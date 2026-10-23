@@ -9,10 +9,12 @@ SHEET_NAME = "Mapping"
 
 
 def _sheet_for(cv, concept, statements: dict[str, MergedStatement]) -> str:
-    """Statement type a ConceptValue resolved on (via row_key), else the concept's first scope."""
+    """Statement type a ConceptValue resolved on: the first of the concept's ``stypes`` whose
+    statement contains ``row_key`` (bare-tag keys can exist on several statements), else stypes[0]."""
     if cv is not None and cv.row_key is not None:
-        for stype, stmt in statements.items():
-            if any(r.key == cv.row_key for r in stmt.rows):
+        for stype in concept.stypes:
+            stmt = statements.get(stype)
+            if stmt is not None and any(r.key == cv.row_key for r in stmt.rows):
                 return stype
     return concept.stypes[0]
 
@@ -46,19 +48,22 @@ def write_mapping(wb, mapping: dict, stmt_sheets: dict[str, str],
         S.set_widths(ws, {c: 24})
     ws.freeze_panes = "D5"
 
-    latest = fy_labels[-1]
+    latest = fy_labels[-1] if fy_labels else None
     rows: dict[str, int] = {}
     for r, concept in enumerate(concepts, start=5):
         rows[concept.name] = r
         per_fy = mapping.get(concept.name, {})
         cv_latest = per_fy.get(latest)
+        latest_stype = _sheet_for(cv_latest, concept, statements)
+        latest_ok = latest_stype in statements and latest_stype in stmt_sheets
         ws.cell(r, 1, concept.name).font = S.FONT_BOLD
-        ws.cell(r, 2, cv_latest.status if cv_latest else "UNMAPPED").font = S.FONT_BASE
-        ws.cell(r, 3, stmt_sheets[_sheet_for(cv_latest, concept, statements)]).font = S.FONT_BASE
+        ws.cell(r, 2, cv_latest.status if (cv_latest and latest_ok) else "UNMAPPED").font = S.FONT_BASE
+        ws.cell(r, 3, stmt_sheets[latest_stype] if latest_ok else "").font = S.FONT_BASE
         for fy in fy_labels:
             cv = per_fy.get(fy)
             stype = _sheet_for(cv, concept, statements)
-            stmt = statements[stype]
+            stmt = statements.get(stype)
+            sheet = stmt_sheets.get(stype)
             vcell = ws.cell(r, value_cols[fy])
             kcell = ws.cell(r, key_cols[fy])
             vcell.number_format = S.FMT_MONEY
@@ -72,14 +77,14 @@ def write_mapping(wb, mapping: dict, stmt_sheets: dict[str, str],
             kcell.font = S.FONT_INPUT
             if cv is not None and cv.row_key is not None:
                 kcell.value = cv.row_key
-            if fy not in stmt.fy_labels:
-                vcell.value = ""
-                continue
-            sheet = stmt_sheets[stype]
+            if stmt is None or sheet is None or fy not in stmt.fy_labels:
+                continue                          # no source statement/year: no formula
             sc = S.col(S.DSC + stmt.fy_labels.index(fy))
             sign = "-" if concept.sign == -1 else ""
-            vcell.value = (f"=IFERROR({sign}INDEX('{sheet}'!{sc}:{sc}, "
-                           f"MATCH({kcell.coordinate}, '{sheet}'!$A:$A, 0)), \"\")")
+            ref = (f"INDEX('{sheet}'!{sc}:{sc}, "
+                   f"MATCH({kcell.coordinate}, '{sheet}'!$A:$A, 0))")
+            # A blank source cell must stay "" (INDEX of a blank would read as 0 and enter AVERAGE).
+            vcell.value = f'=IFERROR(IF({ref}="","",{sign}{ref}),"")'
             vcell.font = S.FONT_FORMULA
         ws.cell(r, tag_col, (cv_latest.tag or "") if cv_latest else "").font = S.FONT_BASE
         ws.cell(r, label_col, (cv_latest.label or "") if cv_latest else "").font = S.FONT_BASE
