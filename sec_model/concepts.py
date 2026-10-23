@@ -78,8 +78,13 @@ CONCEPTS: list[Concept] = [
             ("ProfitLoss", "IncomeLossFromContinuingOperationsIncludingPortionAttributableToNoncontrollingInterest",
              "NetIncomeLoss"),
             None),
-    Concept("NIToNCI", ("IS",), ("NetIncomeLossAttributableToNoncontrollingInterest",),
-            r"noncontrolling"),
+    # ET (FY2025) and EPD tag NCI income as the "nonredeemable" element. The label fallback
+    # skips "Income (Loss), Including Portion Attributable to Noncontrolling Interest" rows
+    # (consolidated totals, not the NCI share).
+    Concept("NIToNCI", ("IS",),
+            ("NetIncomeLossAttributableToNoncontrollingInterest",
+             "NetIncomeLossAttributableToNonredeemableNoncontrollingInterest"),
+            r"^(?!.*including portion).*noncontrolling"),
     Concept("DilutedUnits", ("IS",),
             ("WeightedAverageNumberOfDilutedSharesOutstanding",
              "WeightedAverageNumberOfSharesOutstandingDiluted",

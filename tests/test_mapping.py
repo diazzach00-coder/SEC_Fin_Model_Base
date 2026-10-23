@@ -433,3 +433,21 @@ def test_net_change_in_cash_restricted_basis_excluding_fx_tag():
     ])
     out = resolve({"CF": cf})["NetChangeInCash"]
     assert out["FY2023"].value == 187.0 and out["FY2024"].value == 76.0
+
+
+def test_nci_income_nonredeemable_tag_and_label_skips_including_portion_total():
+    # ET FY2025: NetIncomeLossAttributableToNoncontrollingInterest is gone; the NCI share is
+    # tagged "Nonredeemable". The pretax row labelled "Income (Loss), Including Portion
+    # Attributable to Noncontrolling Interest" must never be taken as NCI income.
+    is_ = mstmt("IS", [
+        mrow("x_PretaxInclNCI", "Income (Loss), Including Portion Attributable to Noncontrolling Interest",
+             {"FY2023": 7106.0, "FY2024": 6058.0}),
+        mrow("us-gaap_NetIncomeLossAttributableToNonredeemableNoncontrollingInterest",
+             "Less: Net income attributable to noncontrolling interests",
+             {"FY2023": 1692.0, "FY2024": 1208.0}),
+    ])
+    assert resolve({"IS": is_})["NIToNCI"]["FY2024"].value == 1208.0
+    label_only = mstmt("IS", [is_.rows[0],
+                              mrow("x_NCI", "Less: Net income attributable to noncontrolling interests",
+                                   {"FY2023": 1.0, "FY2024": 2.0})])
+    assert resolve({"IS": label_only})["NIToNCI"]["FY2024"].value == 2.0
