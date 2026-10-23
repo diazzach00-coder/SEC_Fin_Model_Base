@@ -158,7 +158,27 @@ def resolve(statements: dict[str, MergedStatement]) -> dict[str, dict[str, Conce
         years = first.fy_labels if first is not None else fallback_years
         out[c.name] = {fy: _resolve_one(c, statements, fy) for fy in years}
     _separate_cash_ends(out, statements)
+    _reconcile_total_costs(out)
     return out
+
+
+TOTAL_COST_TOLERANCE = 0.10
+
+
+def _reconcile_total_costs(out: dict) -> None:
+    """TotalCostsAndExpenses must be the IS total: within 10% of revenue - operating income.
+    ``OperatingExpenses`` / ``OperatingCostsAndExpenses`` are often a single line or opex
+    excluding cost of sales (TRGP "Operating expenses" 1,298 of 13,697; AAPL opex excluding
+    COGS), which made the model's operating cost negative or far too small. Such a year is
+    set UNMAPPED, so the Model derives operating cost from revenue - operating income."""
+    for fy, tc in list(out.get("TotalCostsAndExpenses", {}).items()):
+        rev = out.get("Revenue", {}).get(fy)
+        oi = out.get("OperatingIncome", {}).get(fy)
+        if tc.value is None or rev is None or oi is None or rev.value is None or oi.value is None:
+            continue
+        implied = rev.value - oi.value
+        if abs(tc.value - implied) > TOTAL_COST_TOLERANCE * max(abs(implied), 1.0):
+            out["TotalCostsAndExpenses"][fy] = _unmapped("TotalCostsAndExpenses", fy)
 
 
 def _separate_cash_ends(out: dict, statements: dict[str, MergedStatement]) -> None:

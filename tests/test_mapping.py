@@ -636,3 +636,20 @@ def test_interest_expense_operating_before_net_interest_income():
     ])
     cv = resolve({"IS": is_})["InterestExpense"]["FY2024"]
     assert (cv.value, cv.tag) == (97898.0, "us-gaap_InterestExpenseOperating")
+
+
+def test_total_costs_that_do_not_reconcile_to_revenue_less_operating_income_are_dropped():
+    # TRGP: "Operating expenses" (OperatingCostsAndExpenses) is one line, not the total.
+    is_ = mstmt("IS", [
+        mrow("us-gaap_Revenues", "Total revenues", {"FY2023": 16381.5, "FY2024": 17028.3}),
+        mrow("us-gaap_OperatingCostsAndExpenses", "Operating expenses", {"FY2023": 1175.6, "FY2024": 1298.3}),
+        mrow("us-gaap_OperatingIncomeLoss", "Income from operations", {"FY2023": 2695.4, "FY2024": 3331.2}),
+    ])
+    assert resolve({"IS": is_})["TotalCostsAndExpenses"]["FY2024"].status == "UNMAPPED"
+    # EPD-style: total costs differ from revenue - operating income only by equity earnings.
+    epd = mstmt("IS", [
+        mrow("us-gaap_Revenues", "Revenues", {"FY2023": 56219.0, "FY2024": 52596.0}),
+        mrow("us-gaap_CostsAndExpenses", "Total costs and expenses", {"FY2023": 49289.0, "FY2024": 45691.0}),
+        mrow("us-gaap_OperatingIncomeLoss", "Operating income", {"FY2023": 7338.0, "FY2024": 7266.0}),
+    ])
+    assert resolve({"IS": epd})["TotalCostsAndExpenses"]["FY2024"].value == 45691.0
