@@ -71,8 +71,11 @@ CONCEPTS: list[Concept] = [
     Concept("EquityEarnings", ("IS",), ("IncomeLossFromEquityMethodInvestments",),
             r"equity (in )?(net )?(earnings|income)"),
     # KMI reports only "Interest, net" (InterestIncomeExpenseNonoperatingNet, income-positive).
+    # JPM's FY2024+ "Interest expense" is InterestExpenseOperating; without it the bank's
+    # "Net interest income" (InterestIncomeExpenseNet) was taken as negative interest expense.
     Concept("InterestExpense", ("IS",),
             ("InterestExpense", "InterestExpenseNonoperating", "InterestExpenseDebt",
+             "InterestExpenseOperating",
              "InterestIncomeExpenseNonoperatingNet", "InterestIncomeExpenseNet"),
             r"interest expense",
             tag_signs=(("InterestIncomeExpenseNonoperatingNet", -1),

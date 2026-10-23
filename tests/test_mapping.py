@@ -627,3 +627,12 @@ def test_total_debt_long_term_including_current_plus_short_term_borrowings():
     cv = resolve({"BS": bs})["TotalDebt"]["FY2024"]
     assert cv.value == 40758.0 and cv.status == "DERIVED"
     assert "LongTermDebtCurrent" not in cv.tag
+
+
+def test_interest_expense_operating_before_net_interest_income():
+    is_ = mstmt("IS", [
+        mrow("us-gaap_InterestExpenseOperating", "Interest expense", {"FY2023": 101350.0, "FY2024": 97898.0}),
+        mrow("us-gaap_InterestIncomeExpenseNet", "Net interest income", {"FY2023": 92583.0, "FY2024": 95443.0}),
+    ])
+    cv = resolve({"IS": is_})["InterestExpense"]["FY2024"]
+    assert (cv.value, cv.tag) == (97898.0, "us-gaap_InterestExpenseOperating")
