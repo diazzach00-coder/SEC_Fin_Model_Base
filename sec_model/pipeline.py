@@ -25,6 +25,8 @@ from .workbook.build import build_workbook, fye_text
 log = logging.getLogger(__name__)
 
 STYPES = ("IS", "BS", "CF")
+API_STATEMENT = {"Revenue": "IS", "NetIncome": "IS", "TotalAssets": "BS",
+                 "OperatingCashFlow": "CF"}
 TOO_FEW_YEARS = "Fewer than two fiscal years with full XBRL statements found."
 FILL_TAGS = {
     "DilutedUnits": ["WeightedAverageLimitedPartnershipUnitsOutstandingDiluted",
@@ -132,7 +134,8 @@ class _Run:
         coverage = coverage_warnings(mapping)
         self.say(f"Mapping: {len(coverage)} coverage warning{'' if len(coverage) == 1 else 's'}")
 
-        checks = run_checks(statements, mapping, _facts_values(mapping, facts, currency))
+        checks = run_checks(statements, mapping,
+                            _facts_values(mapping, facts, currency, statements))
         n = summarize(checks)
         self.say(f"Checks: {n['PASS']} PASS, {n['WARN']} WARN, {n['FAIL']} FAIL, {n['SKIP']} SKIP")
 
@@ -225,20 +228,26 @@ class _Run:
         return kept, {fy: qualified[fy] for fy in kept}, dropped
 
 
-def _facts_values(mapping: dict, facts: dict, currency: str) -> dict[str, dict[str, float]]:
+def _facts_values(mapping: dict, facts: dict, currency: str,
+                  statements: dict[str, MergedStatement] | None = None
+                  ) -> dict[str, dict[str, float]]:
     """companyfacts values for the API cross-check concepts: each year is read with the
     us-gaap tag the mapping chose for that year (a filer's tag can change, e.g. TRGP's
-    FY2016 revenue is ``RevenueFromContractWithCustomer...`` but ``Revenues`` later).
-    Custom, SUM(...) and companyfacts tags are skipped."""
+    FY2016 revenue is ``RevenueFromContractWithCustomer...`` but ``Revenues`` later), and
+    from the filing that supplied the year when companyfacts has it (a year's designated
+    supplier need not be the newest filing reporting it). Custom, SUM(...) and companyfacts
+    tags are skipped."""
     out: dict[str, dict[str, float]] = {}
-    by_tag: dict[str, dict[str, float]] = {}
     for concept in API_CONCEPTS:
+        stmt = (statements or {}).get(API_STATEMENT[concept])
+        accns = {fy: src.accession for fy, src in stmt.sources.items()} if stmt else None
+        by_tag: dict[str, dict[str, float]] = {}
         for fy, cv in (mapping.get(concept) or {}).items():
             tag = cv.tag if cv is not None else None
             if not tag or not re.fullmatch(r"us-gaap_\w+", tag):
                 continue
             if tag not in by_tag:
-                by_tag[tag] = fy_values(facts, tag.removeprefix("us-gaap_"), currency)
+                by_tag[tag] = fy_values(facts, tag.removeprefix("us-gaap_"), currency, accns)
             if fy in by_tag[tag]:
                 out.setdefault(concept, {})[fy] = by_tag[tag][fy]
     return out

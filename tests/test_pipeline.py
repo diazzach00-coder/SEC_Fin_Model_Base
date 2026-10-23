@@ -170,3 +170,27 @@ def test_cik_override_unknown_cik_user_facing():
     with pytest.raises(UserFacingError, match="CIK 999 not found"):
         build("XOM", "test admin@example.com", client=FakeClient(), progress=lambda m: None,
               cik_override=999)
+
+
+def test_api_cross_check_reads_the_fact_from_the_years_supplier_filing():
+    # KNTK FY2020: our value comes from Altus's FY2021 10-K (the year's designated supplier);
+    # companyfacts also holds the newer, recast predecessor (BCP) value from the FY2022 10-K.
+    from datetime import date
+    from sec_model.pipeline import _facts_values
+    from sec_model.types import ConceptValue, MergedStatement, SourceRec
+
+    def entry(val, accn, filed):
+        return {"start": "2020-01-01", "end": "2020-12-31", "val": val * 1e6, "fp": "FY",
+                "form": "10-K", "filed": filed, "accn": accn}
+    facts = {"facts": {"us-gaap": {"ProfitLoss": {"units": {"USD": [
+        entry(81.684, "0001784031-22-000008", "2022-02-22"),
+        entry(-1155.789, "0001692787-23-000009", "2023-02-28")]}}}}}
+    ni = {"FY2020": ConceptValue("NetIncome", "FY2020", 81.684, "k", "us-gaap_ProfitLoss",
+                                 "Net income", "OK")}
+    is_ = MergedStatement("IS", "USD", ["FY2020"], {"FY2020": date(2020, 12, 31)}, [],
+                          {"FY2020": SourceRec("0001784031-22-000008", "10-K",
+                                               date(2022, 2, 22), "u", "")})
+    out = _facts_values({"NetIncome": ni}, facts, "USD", {"IS": is_})
+    assert out["NetIncome"]["FY2020"] == pytest.approx(81.684)
+    newest = _facts_values({"NetIncome": ni}, facts, "USD")      # no provenance: newest filed
+    assert newest["NetIncome"]["FY2020"] == pytest.approx(-1155.789)

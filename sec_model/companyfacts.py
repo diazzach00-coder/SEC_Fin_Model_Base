@@ -42,9 +42,11 @@ def unit_hint_from_facts(facts: dict) -> Callable[[str], str | None]:
     return hint
 
 
-def _collect(facts: dict, tag: str, currency: str, by_fy_field: bool) -> dict[str, float]:
+def _collect(facts: dict, tag: str, currency: str, by_fy_field: bool,
+             accessions: dict[str, str] | None = None) -> dict[str, float]:
     """Shared reader. Labels by the entry's end year, or by its ``fy`` field when
-    ``by_fy_field`` (cover-page counts, which are dated after year end)."""
+    ``by_fy_field`` (cover-page counts, which are dated after year end). Among duplicates
+    for a year an entry from ``accessions[fy]`` wins, else the newest ``filed``."""
     entries = _concept_block(facts, tag).get("units", {}).get(currency)
     if not entries:
         return {}
@@ -64,23 +66,25 @@ def _collect(facts: dict, tag: str, currency: str, by_fy_field: bool) -> dict[st
         except (KeyError, TypeError, ValueError):
             continue
         fy = "FY" + str(e["fy"] if by_fy_field else end.year)
-        filed = e.get("filed") or ""
-        if fy not in best or filed >= best[fy][0]:
-            best[fy] = (filed, val)
+        rank = (e.get("accn") == (accessions or {}).get(fy), e.get("filed") or "")
+        if fy not in best or rank >= best[fy][0]:
+            best[fy] = (rank, val)
     scale = 1.0 if "/" in currency else 1 / _SCALED
     return {fy: v * scale for fy, (_, v) in sorted(best.items())}
 
 
-def fy_values(facts: dict, tag: str, currency: str) -> dict[str, float]:
+def fy_values(facts: dict, tag: str, currency: str,
+              accessions: dict[str, str] | None = None) -> dict[str, float]:
     """``fy_label -> value`` for one tag, labelled by the entry's period end year.
 
     ``currency`` is the companyfacts unit key (``"USD"``, ``"CAD"``, ``"shares"``,
     ``"USD/shares"``). Money and share counts are returned in millions; per-share
     units are unscaled. Only annual (``fp == "FY"``) 10-K-family entries are used;
     duration entries must span 350-380 days, instant entries are kept as-is. Among
-    duplicates for a year the newest ``filed`` wins.
+    duplicates for a year the entry from ``accessions[fy]`` (the filing that supplied our
+    value) wins, else the newest ``filed``.
     """
-    return _collect(facts, tag, currency, by_fy_field=False)
+    return _collect(facts, tag, currency, by_fy_field=False, accessions=accessions)
 
 
 def dei_shares_outstanding(facts: dict) -> dict[str, float]:
