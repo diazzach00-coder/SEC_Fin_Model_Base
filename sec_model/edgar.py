@@ -38,6 +38,15 @@ def resolve_ticker(client, ticker: str) -> tuple[int, str]:
     raise UserFacingError(f"Ticker '{t}' not found in SEC company list.")
 
 
+def company_for_cik(client, cik: int) -> str:
+    """Registrant name for a CIK (from its submissions file); for a manual CIK override."""
+    try:
+        sub = client.get_json(SUBMISSIONS_URL.format(name=f"CIK{cik:010d}.json"))
+    except requests.HTTPError:
+        raise UserFacingError(f"CIK {cik} not found on SEC EDGAR.") from None
+    return sub.get("name") or f"CIK {cik}"
+
+
 def _iter_forms(cik: int, arrays: dict):
     """Yield (form, Filing-or-None) per entry; Filing is None when dates are missing."""
     for i, form in enumerate(arrays.get("form", [])):

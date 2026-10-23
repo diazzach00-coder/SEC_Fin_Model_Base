@@ -151,3 +151,22 @@ def test_api_cross_check_reads_each_year_with_that_years_tag():
                                   "Total revenues", "OK")}
     out = _facts_values({"Revenue": rev}, facts, "USD")
     assert out["Revenue"] == pytest.approx({"FY2016": 6690.9, "FY2017": 8814.9})
+
+
+def test_cik_override_skips_ticker_resolution():
+    # XOM (2026): the ticker maps to a successor holding company with no 10-K; the history
+    # is under the predecessor CIK. The override uses the CIK directly, whatever the ticker.
+    client = FakeClient()
+    client.json[SUBMISSIONS_URL] = {**client.json[SUBMISSIONS_URL], "name": "ONEOK INC /NEW/"}
+    del client.json[TICKERS_URL]          # resolution must not be attempted
+    messages: list[str] = []
+    r = build("ZZZQ", "test admin@example.com", client=client, progress=messages.append,
+              cik_override=CIK)
+    assert r.cik == CIK and r.company == "ONEOK INC /NEW/" and r.ticker == "ZZZQ"
+    assert messages[0] == f"Using CIK override {CIK} -> ONEOK INC /NEW/ for ZZZQ"
+
+
+def test_cik_override_unknown_cik_user_facing():
+    with pytest.raises(UserFacingError, match="CIK 999 not found"):
+        build("XOM", "test admin@example.com", client=FakeClient(), progress=lambda m: None,
+              cik_override=999)

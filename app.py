@@ -88,12 +88,12 @@ def render_result(result) -> None:
 
 
 def run_build(ticker: str, user_agent: str, n_years: int, n_fcst: int,
-              market: MarketInputs) -> None:
+              market: MarketInputs, cik_override: int | None = None) -> None:
     """Build inside a live ``st.status`` and keep the result in session state."""
     with st.status("Building…", expanded=True) as status:
         try:
             result = pipeline.build(ticker, user_agent, n_years, n_fcst, market,
-                                    progress=lambda m: st.write(m))
+                                    progress=lambda m: st.write(m), cik_override=cik_override)
         except UserFacingError as e:
             status.update(label="Build failed", state="error")
             st.error(str(e))
@@ -127,6 +127,9 @@ def main() -> None:
             risk_free = st.number_input("Risk-free rate", value=0.0425, format="%.4f",
                                         key="risk_free")
             mrp = st.number_input("Market risk premium", value=0.055, format="%.4f", key="mrp")
+        cik = st.number_input("CIK override (advanced)", min_value=0, value=0, step=1,
+                              help="0 = none. Use when the ticker maps to a CIK without 10-K "
+                                   "history (e.g. a new successor holding company).", key="cik")
         build_clicked = st.button("Build model", type="primary", width="stretch",
                                   key="build")
         st.caption("The SEC's fair-access policy requires requests to identify you: use your "
@@ -138,7 +141,7 @@ def main() -> None:
             st.error(UA_ERROR)
         else:
             market = MarketInputs(price=price or None, beta=beta, risk_free=risk_free, mrp=mrp)
-            run_build(ticker, user_agent, n_years, n_fcst, market)
+            run_build(ticker, user_agent, n_years, n_fcst, market, int(cik) or None)
 
     if "result" in st.session_state:
         render_result(st.session_state["result"])

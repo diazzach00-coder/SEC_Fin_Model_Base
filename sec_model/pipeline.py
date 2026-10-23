@@ -11,8 +11,8 @@ import requests
 from .checks import API_CONCEPTS, run_checks, summarize
 from .companyfacts import (dei_shares_outstanding, fill_from_facts, fy_values,
                            load_companyfacts, unit_hint_from_facts)
-from .edgar import (choose_source_filing, list_annual_filings, resolve_ticker,
-                    select_filings_by_fy)
+from .edgar import (choose_source_filing, company_for_cik, list_annual_filings,
+                    resolve_ticker, select_filings_by_fy)
 from .forecast import compute, driver_defaults, scalar_defaults
 from .http import SecClient
 from .mapping import coverage_warnings, normalize_expense_signs, resolve
@@ -59,12 +59,15 @@ class BuildResult:
 
 def build(ticker: str, user_agent: str, n_years: int = 10, n_fcst: int = 5,
           market: MarketInputs = MarketInputs(), progress: Callable[[str], None] = print,
-          cache_dir=Path(".cache"), *, client=None) -> BuildResult:
+          cache_dir=Path(".cache"), *, client=None,
+          cik_override: int | None = None) -> BuildResult:
     """Build the workbook for ``ticker``. Every failure reaches the caller as a
     ``UserFacingError``; unexpected ones are logged with their traceback first.
 
     ``client`` (anything with ``get_json``/``get_text``) replaces the SEC client, in which
-    case ``user_agent`` and ``cache_dir`` are unused.
+    case ``user_agent`` and ``cache_dir`` are unused. ``cik_override`` (a positive CIK)
+    skips ticker resolution, e.g. for a successor holding company whose ticker maps to a
+    CIK with no 10-K yet (XOM in 2026: history is under the predecessor CIK 34088).
     """
     t = ticker.strip().upper()
     try:
@@ -72,7 +75,7 @@ def build(ticker: str, user_agent: str, n_years: int = 10, n_fcst: int = 5,
             raise UserFacingError("Enter a ticker.")
         if client is None:
             client = SecClient(user_agent, cache_dir)
-        return _Run(t, client, progress).run(n_years, n_fcst, market)
+        return _Run(t, client, progress, cik_override or None).run(n_years, n_fcst, market)
     except UserFacingError:
         raise
     except Exception as e:
@@ -81,8 +84,10 @@ def build(ticker: str, user_agent: str, n_years: int = 10, n_fcst: int = 5,
 
 
 class _Run:
-    def __init__(self, ticker: str, client, progress: Callable[[str], None]):
+    def __init__(self, ticker: str, client, progress: Callable[[str], None],
+                 cik_override: int | None = None):
         self.ticker, self.client, self.progress = ticker, client, progress
+        self.cik_override = cik_override
         self.log: list[str] = []
         self.no_filing: set[str] = set()   # FYs none of whose filings has all three statements
 
@@ -92,8 +97,13 @@ class _Run:
 
     def run(self, n_years: int, n_fcst: int, market: MarketInputs) -> BuildResult:
         t, client = self.ticker, self.client
-        cik, company = resolve_ticker(client, t)
-        self.say(f"Resolved {t} -> {company} (CIK {cik})")
+        if self.cik_override:
+            cik = int(self.cik_override)
+            company = company_for_cik(client, cik)
+            self.say(f"Using CIK override {cik} -> {company} for {t}")
+        else:
+            cik, company = resolve_ticker(client, t)
+            self.say(f"Resolved {t} -> {company} (CIK {cik})")
 
         try:
             filings = list_annual_filings(client, cik)

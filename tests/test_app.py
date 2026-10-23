@@ -41,7 +41,7 @@ def calls(monkeypatch):
 
     def fake_build(ticker, user_agent, n_years=10, n_fcst=5, market=MarketInputs(),
                    progress=print, *a, **k):
-        seen.append((ticker, user_agent, n_years, n_fcst, market))
+        seen.append((ticker, user_agent, n_years, n_fcst, market, k.get("cik_override")))
         progress("step one")
         return fake_result(ticker)
 
@@ -86,7 +86,7 @@ def test_successful_build_shows_results_and_download(calls):
     at.number_input(key="price").set_value(55.0)
     at.button(key="build").click().run()
     assert not at.exception and not at.error
-    assert calls == [("OKE", UA, 10, 5, MarketInputs(price=55.0))]
+    assert calls == [("OKE", UA, 10, 5, MarketInputs(price=55.0), None)]
     assert "ONEOK INC (OKE)" in [h.value for h in at.header]
     metrics = {m.label: m.value for m in at.metric}
     assert metrics == {"CIK": "1039684", "Fiscal years": "FY2024–FY2025",
@@ -111,6 +111,16 @@ def test_zero_price_means_blank(calls):
     at.text_input(key="ua").set_value(UA)
     at.button(key="build").click().run()
     assert calls[0][4].price is None
+
+
+def test_cik_override_zero_means_none_and_value_is_passed(calls):
+    at = _fresh()
+    assert at.number_input(key="cik").value == 0
+    at.text_input(key="ua").set_value(UA)
+    at.button(key="build").click().run()
+    at.number_input(key="cik").set_value(34088)
+    at.button(key="build").click().run()
+    assert calls[0][5] is None and calls[1][5] == 34088
 
 
 def test_user_facing_error_is_shown_verbatim(monkeypatch):
