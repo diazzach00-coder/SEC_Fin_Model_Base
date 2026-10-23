@@ -49,6 +49,16 @@ def _tie_check(name: str, fy: str, mapping: dict, lhs_concepts: tuple[str, ...],
     return _compare(name, fy, lhs, _get(mapping, rhs_concept, fy), bad, note)
 
 
+def _cash_roll(fy: str, mapping: dict) -> CheckResult:
+    name = "Cash roll-forward"
+    b = (mapping.get("CFBeginningCash") or {}).get(fy)
+    e = (mapping.get("CFEndingCash") or {}).get(fy)
+    if b is not None and e is not None and b.row_key is not None and b.row_key == e.row_key:
+        return _skip(name, fy, "beginning and ending cash share one row")
+    return _tie_check(name, fy, mapping, ("CFBeginningCash", "NetChangeInCash"),
+                      "CFEndingCash", "FAIL")
+
+
 def _api_check(concept: str, fy: str, mapping: dict, facts_values: dict) -> CheckResult:
     name = f"API cross-check: {concept}"
     ours = _get(mapping, concept, fy)
@@ -107,8 +117,7 @@ def run_checks(statements: dict[str, MergedStatement], mapping: dict[str, dict[s
                                   "LiabilitiesAndEquity", "FAIL"))
         results.append(_tie_check("NI ties IS=CF", fy, mapping, ("NetIncome",),
                                   "CFNetIncome", "FAIL"))
-        results.append(_tie_check("Cash roll-forward", fy, mapping,
-                                  ("CFBeginningCash", "NetChangeInCash"), "CFEndingCash", "FAIL"))
+        results.append(_cash_roll(fy, mapping))
         results.append(_tie_check("CF cash vs BS cash", fy, mapping, ("CFEndingCash",), "Cash",
                                   "WARN", "restricted cash is often included in CF cash"))
         for concept in API_CONCEPTS:

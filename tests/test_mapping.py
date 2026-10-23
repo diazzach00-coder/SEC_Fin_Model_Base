@@ -570,3 +570,16 @@ def test_mapping_prefers_rows_supplied_by_the_years_source_filing():
     for x in is_.rows + cf.rows:
         x.value_src = {}
     assert resolve({"IS": is_, "CF": cf})["Revenue"][fy].value == 160.6
+
+
+def test_beginning_cash_never_shares_the_ending_cash_row():
+    # A single cash row whose label matches both ends: it stays the ending balance and the
+    # beginning is re-resolved from the remaining rows (here: none -> UNMAPPED).
+    tag = "us-gaap_CashCashEquivalentsRestrictedCashAndRestrictedCashEquivalents"
+    cf = mstmt("CF", [mrow(tag, "Cash at beginning and end of period", {"FY2023": 9.0, "FY2024": 15.0})])
+    out = resolve({"CF": cf})
+    assert out["CFEndingCash"]["FY2024"].row_key == tag
+    assert out["CFBeginningCash"]["FY2024"].status == "UNMAPPED"
+    other = "us-gaap_CashAndCashEquivalentsAtCarryingValue"
+    cf2 = mstmt("CF", cf.rows + [mrow(other, "Cash at beginning of period", {"FY2023": 1.0, "FY2024": 9.0})])
+    assert resolve({"CF": cf2})["CFBeginningCash"]["FY2024"].row_key == other

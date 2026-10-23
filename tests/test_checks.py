@@ -282,3 +282,13 @@ def test_fill_from_facts_first_tag_wins_and_falls_through():
     assert out["FY2024"].value == 10.0           # first tag has the year: it wins
     assert out["FY2024"].tag == "companyfacts:WeightedAverageLimitedPartnershipUnitsOutstandingDiluted"
     assert out["FY2023"].value == 7.0            # first tag lacks the year: next tag used
+
+
+def test_cash_roll_forward_skips_when_both_ends_share_one_row():
+    from dataclasses import replace
+    m = mp(CFBeginningCash={"FY2024": 15.0}, NetChangeInCash={"FY2024": -70.0},
+           CFEndingCash={"FY2024": 15.0})
+    for c in ("CFBeginningCash", "CFEndingCash"):
+        m[c]["FY2024"] = replace(m[c]["FY2024"], row_key="us-gaap_Cash")
+    c = result(run_checks({}, m, {}), "Cash roll-forward")
+    assert c.status == "SKIP" and c.note == "beginning and ending cash share one row"

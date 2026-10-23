@@ -153,7 +153,23 @@ def resolve(statements: dict[str, MergedStatement]) -> dict[str, dict[str, Conce
         first = next((statements[t] for t in c.stypes if t in statements), None)
         years = first.fy_labels if first is not None else fallback_years
         out[c.name] = {fy: _resolve_one(c, statements, fy) for fy in years}
+    _separate_cash_ends(out, statements)
     return out
+
+
+def _separate_cash_ends(out: dict, statements: dict[str, MergedStatement]) -> None:
+    """Beginning and ending cash must be two rows. Where both resolved to one row, the row
+    stays the ending balance and the beginning is re-resolved without it (remaining tags,
+    then the positional rule); if nothing else is found the beginning is UNMAPPED, and
+    ``run_checks`` reports the roll-forward as SKIP."""
+    cf = statements.get("CF")
+    begin = next(c for c in CONCEPTS if c.name == "CFBeginningCash")
+    for fy, b in list(out.get("CFBeginningCash", {}).items()):
+        e = out.get("CFEndingCash", {}).get(fy)
+        if cf is None or e is None or b.row_key is None or b.row_key != e.row_key:
+            continue
+        view = replace(cf, rows=[r for r in cf.rows if r.key != b.row_key])
+        out["CFBeginningCash"][fy] = _resolve_one(begin, {"CF": view}, fy)
 
 
 def coverage_warnings(mapping: dict[str, dict[str, ConceptValue]]) -> list[str]:
