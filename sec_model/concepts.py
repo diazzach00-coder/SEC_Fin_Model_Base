@@ -31,6 +31,9 @@ class Concept:
     label_re: str | None
     sign: int = 1
     sum_groups: tuple[SumGroup, ...] = ()
+    # (trigger tag, tags to add): when the concept resolved via the trigger tag and
+    # any of the add-on rows is present in the same statement, the value is their sum.
+    add_when: tuple[str, tuple[str, ...]] | None = None
 
 
 CONCEPTS: list[Concept] = [
@@ -47,7 +50,8 @@ CONCEPTS: list[Concept] = [
     Concept("DA", ("IS", "CF"),
             ("DepreciationDepletionAndAmortization", "DepreciationAndAmortization",
              "DepreciationAmortizationAndAccretionNet", "Depreciation"),
-            r"depreciation"),
+            r"depreciation",
+            add_when=("Depreciation", ("AmortizationOfIntangibleAssets",))),
     Concept("Impairments", ("IS",),
             ("AssetImpairmentCharges", "OtherAssetImpairmentCharges", "GoodwillImpairmentLoss",
              "ImpairmentOfLongLivedAssetsHeldForUse"),

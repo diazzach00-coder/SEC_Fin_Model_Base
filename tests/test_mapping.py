@@ -354,3 +354,52 @@ def test_fixture_smoke_jpm():
     for name in ("NetIncome", "TotalAssets", "Cash"):
         cv = list(m[name].values())[-1]
         assert cv.status in ("OK", "DERIVED") and cv.value is not None, name
+
+
+def test_da_adds_intangible_amortization_when_resolved_via_bare_depreciation():
+    cf = mstmt("CF", [
+        mrow("us-gaap_Depreciation", "Depreciation", {"FY2023": 5.0, "FY2024": 6.0}),
+        mrow("us-gaap_AmortizationOfIntangibleAssets", "Amortization of intangible assets",
+             {"FY2023": None, "FY2024": 2.0}),
+    ])
+    da = resolve({"CF": cf})["DA"]
+    cv = da["FY2024"]
+    assert (cv.status, cv.value, cv.row_key) == ("DERIVED", 8.0, None)
+    assert cv.tag == "SUM(us-gaap_Depreciation+us-gaap_AmortizationOfIntangibleAssets)"
+    assert "Depreciation" in cv.label and "Amortization of intangible assets" in cv.label
+    # No amortization value in FY2023: stays the plain row.
+    assert (da["FY2023"].status, da["FY2023"].value) == ("OK", 5.0)
+
+
+def test_da_does_not_add_amortization_to_a_total_da_tag():
+    cf = mstmt("CF", [
+        mrow("us-gaap_DepreciationDepletionAndAmortization", "D&A", {"FY2023": 5.0, "FY2024": 6.0}),
+        mrow("us-gaap_AmortizationOfIntangibleAssets", "Amortization",
+             {"FY2023": 1.0, "FY2024": 2.0}),
+    ])
+    cv = resolve({"CF": cf})["DA"]["FY2024"]
+    assert (cv.status, cv.value) == ("OK", 6.0)
+
+
+def test_tag_match_in_later_statement_beats_label_hit_in_earlier_statement():
+    is_ = mstmt("IS", [mrow("x_Cost", "Cost of revenues (exclusive of depreciation)",
+                            {"FY2023": 900.0, "FY2024": 950.0})])
+    cf = mstmt("CF", [mrow("us-gaap_DepreciationDepletionAndAmortization", "Depreciation",
+                           {"FY2023": 55.0, "FY2024": 60.0})])
+    cv = resolve({"IS": is_, "CF": cf})["DA"]["FY2024"]
+    assert (cv.value, cv.tag) == (60.0, "us-gaap_DepreciationDepletionAndAmortization")
+    # With no tag anywhere, the label fallback still applies.
+    cf2 = mstmt("CF", [mrow("epd_X", "Depreciation and accretion", {"FY2023": 1.0, "FY2024": 2.0})])
+    assert resolve({"IS": is_, "CF": cf2})["DA"]["FY2024"].row_key == "x_Cost"
+
+
+def test_fixture_da_tags():
+    expect = {
+        "OKE": "us-gaap_DepreciationDepletionAndAmortization",
+        "EPD": "epd_DepreciationAndAccretion",
+        "ORCL": "SUM(us-gaap_Depreciation+us-gaap_AmortizationOfIntangibleAssets)",
+    }
+    for co, tag in expect.items():
+        cv = list(_load(co)["DA"].values())[-1]
+        assert cv.tag == tag, co
+    assert list(_load("ORCL")["DA"].values())[-1].status == "DERIVED"

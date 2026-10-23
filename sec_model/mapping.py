@@ -51,7 +51,7 @@ def _resolve_sum(c: Concept, rows: list[MergedRow], fy: str) -> ConceptValue | N
         " + ".join(r.label for r in used), "DERIVED")
 
 
-def _resolve_in(c: Concept, stmt: MergedStatement, fy: str) -> ConceptValue:
+def _resolve_by_tag(c: Concept, stmt: MergedStatement, fy: str) -> ConceptValue | None:
     rows = stmt.rows
     label_re = re.compile(c.label_re, re.IGNORECASE) if c.label_re else None
 
@@ -82,22 +82,48 @@ def _resolve_in(c: Concept, stmt: MergedStatement, fy: str) -> ConceptValue:
                 r = same[0] if c.name == "CFBeginningCash" else same[-1]
                 if r.values.get(fy) is not None:
                     return _ok(c, fy, r)
+    return None
 
-    if label_re:
-        for r in rows:
-            if _usable(r, fy) and _is_undimensioned(r) and label_re.search(r.label):
-                return _ok(c, fy, r)
-    return _unmapped(c.name, fy)
+
+def _add_on(c: Concept, stmt: MergedStatement, fy: str, cv: ConceptValue) -> ConceptValue:
+    """Fold add-on rows (e.g. amortization of intangibles) into a value resolved
+    via the trigger tag."""
+    if c.add_when is None or cv.status != "OK" or cv.tag != f"us-gaap_{c.add_when[0]}":
+        return cv
+    extra = []
+    for t in c.add_when[1]:
+        hit = next((r for r in stmt.rows if r.key == f"us-gaap_{t}" and _usable(r, fy)), None)
+        if hit is not None:
+            extra.append(hit)
+    if not extra:
+        return cv
+    return ConceptValue(
+        c.name, fy, cv.value + c.sign * sum(r.values[fy] for r in extra), None,
+        "SUM(" + "+".join([cv.tag] + [r.tag for r in extra]) + ")",
+        " + ".join([cv.label] + [r.label for r in extra]), "DERIVED")
+
+
+def _resolve_by_label(c: Concept, stmt: MergedStatement, fy: str) -> ConceptValue | None:
+    if not c.label_re:
+        return None
+    label_re = re.compile(c.label_re, re.IGNORECASE)
+    for r in stmt.rows:
+        if _usable(r, fy) and _is_undimensioned(r) and label_re.search(r.label):
+            return _ok(c, fy, r)
+    return None
 
 
 def _resolve_one(c: Concept, statements: dict[str, MergedStatement], fy: str) -> ConceptValue:
-    """Try each of the concept's statements in order; the first hit wins."""
-    for stype in c.stypes:
-        stmt = statements.get(stype)
-        if stmt is None:
-            continue
-        cv = _resolve_in(c, stmt, fy)
-        if cv.status != "UNMAPPED":
+    """Tag matching across all of the concept's statements (in order) first, then
+    label fallback across them; the first hit wins."""
+    present = [(t, statements[t]) for t in c.stypes if t in statements]
+    for _, stmt in present:
+        cv = _resolve_by_tag(c, stmt, fy)
+        if cv is not None:
+            return _add_on(c, stmt, fy, cv)
+    for _, stmt in present:
+        cv = _resolve_by_label(c, stmt, fy)
+        if cv is not None:
             return cv
     return _unmapped(c.name, fy)
 
