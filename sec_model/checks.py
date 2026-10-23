@@ -49,26 +49,52 @@ def _tie_check(name: str, fy: str, mapping: dict, lhs_concepts: tuple[str, ...],
     return _compare(name, fy, lhs, _get(mapping, rhs_concept, fy), bad, note)
 
 
-def _cash_roll(fy: str, mapping: dict, prior: str | None = None) -> CheckResult:
+def _prior_close(mapping: dict, cf: MergedStatement | None, fy: str, prior: str) -> float | None:
+    """The prior year's ending cash on this year's basis: the prior-year value of the row
+    that supplies this year's CFEndingCash (a restricted-cash or recast row carries the
+    prior year as a comparative), else the prior year's mapped CFEndingCash."""
+    e = (mapping.get("CFEndingCash") or {}).get(fy)
+    if cf is not None and e is not None and e.row_key is not None:
+        row = next((r for r in cf.rows if r.key == e.row_key), None)
+        if row is not None and row.values.get(prior) is not None:
+            return row.values[prior]
+    return _get(mapping, "CFEndingCash", prior)
+
+
+def _cash_roll(fy: str, mapping: dict, prior: str | None = None,
+               cf: MergedStatement | None = None) -> CheckResult:
     """Prior close + net change = close. The opening balance is the prior fiscal year's
     CF ending cash whenever a prior year is in the run (MPLX's FY2018-FY2020 10-Ks render
-    the "beginning" row with end-of-period values); the reported beginning-cash row is
-    used only for the first year, or when the prior year's ending cash is missing."""
+    the "beginning" row with end-of-period values), read from the same row as this year's
+    ending cash when it has the prior year (``_prior_close``); the reported beginning-cash
+    row is used
+    for the first year, when the prior ending cash is missing, and as a fallback: when the
+    prior close does not reconcile but the year's own reported opening does, the cash basis
+    changed between the two years' source filings (restricted cash added by ASU 2016-18,
+    a predecessor recast) and the result is WARN; FAIL only when neither reconciles."""
     name = "Cash roll-forward"
     b = (mapping.get("CFBeginningCash") or {}).get(fy)
     e = (mapping.get("CFEndingCash") or {}).get(fy)
     if b is not None and e is not None and b.row_key is not None and b.row_key == e.row_key:
         return _skip(name, fy, "beginning and ending cash share one row")
-    opening = _get(mapping, "CFEndingCash", prior) if prior is not None else None
+    opening = _prior_close(mapping, cf, fy, prior) if prior is not None else None
+    own = _tie_check(name, fy, mapping, ("CFBeginningCash", "NetChangeInCash"),
+                     "CFEndingCash", "FAIL")
     if opening is None:
-        return _tie_check(name, fy, mapping, ("CFBeginningCash", "NetChangeInCash"),
-                          "CFEndingCash", "FAIL")
+        return own
     gone = _missing(mapping, fy, "NetChangeInCash", "CFEndingCash")
     if gone:
         return _skip(name, fy, "missing input: " + ", ".join(gone))
-    return _compare(name, fy, opening + _get(mapping, "NetChangeInCash", fy),
+    roll = _compare(name, fy, opening + _get(mapping, "NetChangeInCash", fy),
                     _get(mapping, "CFEndingCash", fy), "FAIL",
                     f"opening = {prior} ending cash")
+    if roll.status == "FAIL" and own.status == "PASS":
+        return CheckResult(name, fy, "WARN", roll.lhs, roll.rhs, roll.tolerance,
+                           f"{prior} ending cash {opening:,.1f} differs from this year's "
+                           f"reported opening {_get(mapping, 'CFBeginningCash', fy):,.1f} "
+                           "(cash basis changed between source filings); the year's own "
+                           "roll-forward ties")
+    return roll
 
 
 def _api_check(concept: str, fy: str, mapping: dict, facts_values: dict) -> CheckResult:
@@ -130,7 +156,7 @@ def run_checks(statements: dict[str, MergedStatement], mapping: dict[str, dict[s
                                   "LiabilitiesAndEquity", "FAIL"))
         results.append(_tie_check("NI ties IS=CF", fy, mapping, ("NetIncome",),
                                   "CFNetIncome", "FAIL"))
-        results.append(_cash_roll(fy, mapping, prior))
+        results.append(_cash_roll(fy, mapping, prior, statements.get("CF")))
         results.append(_tie_check("CF cash vs BS cash", fy, mapping, ("CFEndingCash",), "Cash",
                                   "WARN", "restricted cash is often included in CF cash"))
         for concept in API_CONCEPTS:

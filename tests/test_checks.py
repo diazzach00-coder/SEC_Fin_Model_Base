@@ -317,3 +317,29 @@ def test_cash_roll_genuine_mismatch_in_year_two_still_fails():
     two = result(res, "Cash roll-forward", "FY2024")                     # 125 + 40 != 150
     assert two.status == "FAIL" and (two.lhs, two.rhs) == (165.0, 150.0)
     assert result(res, "Cash roll-forward", "FY2025").status == "PASS"   # 150 + 10 = 160
+
+
+def test_cash_roll_basis_change_between_source_filings_is_warn_not_fail():
+    # FY2024's source filing adopted restricted cash (ASU 2016-18): its own opening (110)
+    # ties, the prior year's cash-only close (100) does not.
+    m = mp(CFBeginningCash={"FY2023": 80.0, "FY2024": 110.0},
+           NetChangeInCash={"FY2023": 20.0, "FY2024": 15.0},
+           CFEndingCash={"FY2023": 100.0, "FY2024": 125.0})
+    c = result(run_checks({}, m, {}), "Cash roll-forward", "FY2024")
+    assert c.status == "WARN" and "cash basis changed" in c.note
+
+
+def test_cash_roll_prior_close_read_from_this_years_ending_cash_row():
+    # MPLX FY2017: FY2016's own close is cash-only (234, FY2017 10-K); FY2017's ending-cash row
+    # is restricted-cash basis and carries FY2016 = 239 as a comparative. The broken
+    # "beginning" row (= ending, 9) cannot be used. 239 - 230 = 9 ties.
+    from dataclasses import replace
+    key = "us-gaap_CashCashEquivalentsRestrictedCashAndRestrictedCashEquivalents|end"
+    m = mp(CFBeginningCash={"FY2023": 43.0, "FY2024": 9.0},
+           NetChangeInCash={"FY2023": 191.0, "FY2024": -230.0},
+           CFEndingCash={"FY2023": 234.0, "FY2024": 9.0})
+    m["CFEndingCash"]["FY2024"] = replace(m["CFEndingCash"]["FY2024"], row_key=key)
+    cf = stmt("CF", [mrow("Cash end", {"FY2023": 239.0, "FY2024": 9.0}, key=key)],
+              years=("FY2023", "FY2024"))
+    c = result(run_checks({"CF": cf}, m, {}), "Cash roll-forward", "FY2024")
+    assert c.status == "PASS" and c.lhs == 9.0
