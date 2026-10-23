@@ -40,6 +40,7 @@ class WaccLayout:
     diluted_units_cell: str
     market_cap_cell: str
     net_debt_cell: str
+    blank_price_equity_weight_cell: str   # We used while the price is blank (input)
     sheet: str = WACC_SHEET
 
 
@@ -177,10 +178,13 @@ def write_wacc(wb, layout: ModelLayout, market: MarketInputs, currency: str,
     label(ws, 17, 2, "Equity (market cap)")
     formula(ws, 17, 3, f"=J{right['mcap']}", S.FMT_MONEY)
     _input(ws.cell(17, 4), None, "pct")
-    formula(ws, 17, 5, '=IF(D17<>"",D17,IFERROR(C17/(C17+C18),0))', S.FMT_PCT)
+    formula(ws, 17, 5, f'=IF(D17<>"",D17,IF(J{right["price"]}="",D19,'
+                       'IFERROR(C17/(C17+C18),0)))', S.FMT_PCT)
     label(ws, 18, 2, "Net debt")
     formula(ws, 18, 3, f"=J{right['net_debt']}", S.FMT_MONEY)
     formula(ws, 18, 5, "=1-E17", S.FMT_PCT)
+    label(ws, 19, 2, "Equity weight when price is blank")
+    _input(ws.cell(19, 4), 0.55, "pct")
     label(ws, 20, 2, "Cost of capital (WACC)", bold=True)
     formula(ws, 20, 5, "=C8*E18+C13*E17", S.FMT_PCT, output=True)
 
@@ -234,4 +238,5 @@ def write_wacc(wb, layout: ModelLayout, market: MarketInputs, currency: str,
         debt_weight_cell=a(5, 18), price_cell=a(10, right["price"]),
         basic_units_cell=a(10, right["basic"]), diluted_units_cell=a(10, right["diluted"]),
         market_cap_cell=a(10, right["mcap"]), net_debt_cell=a(10, right["net_debt"]),
+        blank_price_equity_weight_cell=a(4, 19),
     )

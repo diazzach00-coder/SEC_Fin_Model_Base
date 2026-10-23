@@ -85,7 +85,11 @@ def test_wacc_formula_references_weights_and_costs():
     # weights: target override wins, else market weights; debt = 1 - equity
     we_f = _at(wb, wl.equity_weight_cell).value
     mcap, nd = _addr(wl.market_cap_cell), _addr(wl.net_debt_cell)
-    assert we_f.startswith("=IF(D") and f"IFERROR(C" in we_f and we_f.endswith(",0))")
+    fb = _addr(wl.blank_price_equity_weight_cell)
+    r_fb = _row_of(ws, "Equity weight when price is blank")
+    assert fb == f"D{r_fb}" and ws[fb].value == pytest.approx(0.55) and _is_input(ws[fb])
+    assert we_f == (f'=IF(D{we[1:]}<>"",D{we[1:]},IF({_addr(wl.price_cell)}="",{fb},'
+                    f'IFERROR(C{we[1:]}/(C{we[1:]}+C{wd[1:]}),0)))')
     assert _at(wb, wl.debt_weight_cell).value == f"=1-{we}"
     r_eq = _row_of(ws, "Equity (market cap)")
     assert ws.cell(r_eq, 3).value == f"={mcap}" and _is_input(ws.cell(r_eq, 4))
@@ -285,6 +289,11 @@ def test_exit_multiple_default_falls_back_without_price():
     assert price.value is None and _is_input(price)
     ws_w = wb["WACC"]
     assert ws_w.cell(price.row, price.column + 1).value == "enter price"
+    # equity weight falls back to the yellow default instead of 0 (100% debt)
+    we_f = _at(wb, wl.equity_weight_cell).value
+    fb = _addr(wl.blank_price_equity_weight_cell)
+    assert f'IF({_addr(wl.price_cell)}="",{fb},' in we_f
+    assert _addr(wl.equity_weight_cell) in _at(wb, wl.wacc_cell).value
     em = _at(wb, dl.exit_multiple_cell)
     assert _is_input(em)
     p = wl.price_cell

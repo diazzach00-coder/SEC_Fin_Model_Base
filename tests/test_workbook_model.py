@@ -232,3 +232,20 @@ def test_missing_history_concept_is_blank_not_zero():
     for c in range(4, G):
         assert ws.cell(layout.line_row["REV"], c).value is None
     assert ws.cell(layout.line_row["REV"], 3).value == "CAD MM"
+
+
+def test_note_starting_with_equals_is_text_not_formula():
+    import dataclasses
+    spec = build_spec("ppe")
+    i = next(i for i, ld in enumerate(spec.lines) if ld.key == "REV")
+    spec.lines[i] = dataclasses.replace(spec.lines[i], note="= revenue note, not a formula")
+    wb = Workbook()
+    rows, value_cols = _mapping_stub(wb, TOY)
+    layout = write_model(wb, spec, rows, value_cols, FY, FCST, driver_defaults(spec, TOY, FY),
+                         scalar_defaults(spec, TOY, FY), "USD")
+    buf = BytesIO()
+    wb.save(buf)
+    buf.seek(0)
+    cell = load_workbook(buf)["Model"].cell(layout.line_row["REV"], layout.last_col + 2)
+    assert cell.value == "= revenue note, not a formula"
+    assert cell.data_type == "s"

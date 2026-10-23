@@ -129,7 +129,9 @@ def _write_line(ws, ld, r, layout, ctxs, fy_labels, fcst_labels, mapping_rows,
             cell.border = S.BORDER_TOP
         cell.number_format = NUMBER_FORMATS.get(ld.fmt, S.FMT_MONEY)
     if ld.note:
-        ws.cell(r, note_col, ld.note).font = FONT_NOTE
+        note = ws.cell(r, note_col, ld.note)
+        note.data_type = "s"            # a note starting with "=" is text, never a formula
+        note.font = FONT_NOTE
 
 
 def write_model(wb, spec: ModelSpec, mapping_rows: dict[str, int],
