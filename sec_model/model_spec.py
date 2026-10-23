@@ -184,8 +184,8 @@ def _cf_lines() -> list[LineDef]:
         _same("CF_EQ", "Less equity earnings", -L("EQ_EARN"), section="CF"),
         LineDef("CF_DIST_AFF", "Distributions from affiliates", "CF",
                 "DistributionsFromAffiliates", L("CF_DIST_AFF", 1), note="held flat"),
-        LineDef("CF_DWC", "Change in working capital", "CF", dwc,
-                dwc * (1 - Scalar("WC_HOLD"))),
+        LineDef("CF_DWC", "Change in working capital", "CF", dwc, dwc,
+                note="zero when WC_HOLD = 1 because AR/INV/AP hold at prior"),
         _rpt("OCF_RPT", "OperatingCashFlow", "CF"),
         LineDef("CF_OTHER_OP", "Other operating items", "CF",
                 L("OCF_RPT") - _sum(*op_items), Driver("OTHER_OP"),
@@ -231,6 +231,9 @@ def _cf_lines() -> list[LineDef]:
 
 
 def _bs_lines() -> list[LineDef]:
+    # Each balance-sheet total falls back to the other when unmapped, so the
+    # history BAL_CHECK is 0 by construction whenever either total is reported.
+    ta = Fn("IF", L("TA_RPT").eq(0), L("LE_RPT"), L("TA_RPT"))
     le = Fn("IF", L("LE_RPT").eq(0), L("TA_RPT"), L("LE_RPT"))
     return [
         LineDef("CASH", "Cash", "BS", "Cash", L("CASH", 1) + L("NET_CHANGE")),
@@ -243,7 +246,7 @@ def _bs_lines() -> list[LineDef]:
                 note="equity-method roll-forward: + equity earnings - distributions received"),
         _rpt("TA_RPT", "TotalAssets", "BS"),
         LineDef("OTHER_ASSETS", "Other assets", "BS",
-                L("TA_RPT") - _sum("CASH", "AR", "INV", "NET_PPE", "EQ_INV"),
+                ta - _sum("CASH", "AR", "INV", "NET_PPE", "EQ_INV"),
                 L("OTHER_ASSETS", 1), note="derived in history; held flat"),
         _same("TOTAL_ASSETS", "Total assets",
               _sum("CASH", "AR", "INV", "NET_PPE", "EQ_INV", "OTHER_ASSETS"), bold=True,
@@ -300,7 +303,7 @@ def _drivers(da_basis: str) -> list[DriverDef]:
     return [
         DriverDef("REV_GROWTH", "Revenue growth (placeholder asset)",
                   _capped(Hist("REV_GROWTH_HIST", 3)),
-                  note="3-yr average, capped at +/-15%; drives the placeholder asset only"),
+                  note="3-yr average growth, capped at +/-15%; drives the placeholder asset only"),
         DriverDef("COST_PCT", "Operating cost % revenue (placeholder asset)",
                   L("COST_PCT_HIST"), note="last year"),
         DriverDef("DA_PCT", "D&A % opening net PP&E" if da_basis == "ppe" else "D&A % revenue",
@@ -313,7 +316,7 @@ def _drivers(da_basis: str) -> list[DriverDef]:
                   note="3-yr average of (tax - deferred tax) / pretax, clamped 0-35%"),
         DriverDef("DPU_GROWTH", "Distribution per unit growth",
                   _capped(Hist("DPU_GROWTH_HIST", 3)),
-                  note="3-yr average, capped at +/-15%"),
+                  note="3-yr average growth, capped at +/-15%"),
         DriverDef("UNITS", "Diluted units", L("UNITS"), fmt="units", note="last year, flat"),
         DriverDef("AR_DAYS", "Receivable days (of revenue)", L("AR_DAYS_HIST"), fmt="days",
                   note="last year"),

@@ -95,6 +95,13 @@ def test_liabilities_and_equity_falls_back_to_total_assets_when_unmapped():
     assert all(_close(out["BAL_CHECK"][fy], 0.0) for fy in FY + FCST)
 
 
+def test_total_assets_falls_back_to_liabilities_and_equity_when_unmapped():
+    h = dict(TOY, TotalAssets=_h(2900, 2950, None))
+    _, out = _run(history=h)
+    assert _close(out["TOTAL_ASSETS"]["FY2025"], 3000.0)
+    assert all(_close(out["BAL_CHECK"][fy], 0.0) for fy in ["FY2025"] + FCST)
+
+
 def test_history_subtotals_tie_to_reported():
     _, out = _run()
     for fy in FY:
@@ -127,6 +134,12 @@ def test_forecast_balances_every_year():
 ])
 def test_forecast_balances_under_overrides(kw):
     _, out = _run(**kw)
+    assert all(abs(out["BAL_CHECK"][fy]) < 1e-6 for fy in FCST)
+
+
+@pytest.mark.parametrize("hold", [0, 0.5, 1, 2])
+def test_forecast_balances_for_any_wc_hold_value(hold):
+    _, out = _run(scalar_overrides={"WC_HOLD": hold})
     assert all(abs(out["BAL_CHECK"][fy]) < 1e-6 for fy in FCST)
 
 
