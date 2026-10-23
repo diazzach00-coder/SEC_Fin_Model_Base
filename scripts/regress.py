@@ -46,7 +46,7 @@ EXPECT_40F = {"TRP"}
 BAL_TOL = 1e-6
 # Model convention: these are positive when they reduce income (NIToNCI: positive = NCI's
 # share of income), which is also the XBRL sign of their us-gaap tags.
-SIGN_CONCEPTS = ("InterestExpense", "IncomeTax", "NIToNCI", "DA")
+SIGN_CONCEPTS = ("TotalCostsAndExpenses", "InterestExpense", "IncomeTax", "NIToNCI", "DA")
 INT_RATE_RANGE, TAX_RATE_RANGE, UNITS_RATIO = (0.0, 0.15), (0.0, 0.40), (0.5, 2.0)
 # ticker -> text the failure must contain. XOM: since 2026-07-01 the ticker maps to
 # ExxonMobil Holdings Corp (CIK 2115436), a successor issuer with no 10-K yet; the history

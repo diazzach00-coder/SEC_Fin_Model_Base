@@ -176,8 +176,11 @@ def _reconcile_total_costs(out: dict) -> None:
         oi = out.get("OperatingIncome", {}).get(fy)
         if tc.value is None or rev is None or oi is None or rev.value is None or oi.value is None:
             continue
-        implied = rev.value - oi.value
-        if abs(tc.value - implied) > TOTAL_COST_TOLERANCE * max(abs(implied), 1.0):
+        # Compared in absolute value: a negated-label total arrives negative here and is
+        # flipped to expense-positive later by normalize_expense_signs (total costs are
+        # never legitimately negative).
+        implied = abs(rev.value - oi.value)
+        if abs(abs(tc.value) - implied) > TOTAL_COST_TOLERANCE * max(implied, 1.0):
             out["TotalCostsAndExpenses"][fy] = _unmapped("TotalCostsAndExpenses", fy)
 
 

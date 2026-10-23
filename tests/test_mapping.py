@@ -661,3 +661,33 @@ def test_interest_and_debt_expense_maps_to_interest_expense():
     is_ = mstmt("IS", [mrow("us-gaap_InterestAndDebtExpense", "Net interest and other financial costs",
                             {"FY2023": 921.0, "FY2024": 983.0})])
     assert resolve({"IS": is_})["InterestExpense"]["FY2024"].value == 983.0
+
+
+def test_negated_total_costs_that_reconcile_are_kept_and_flipped_positive():
+    # A total-costs row presented negative ("(45,691)") must survive the revenue - operating
+    # income reconciliation and then be normalised to expense-positive.
+    is_ = mstmt("IS", [
+        mrow("us-gaap_Revenues", "Revenues", {"FY2023": 56219.0, "FY2024": 52596.0}),
+        mrow("us-gaap_CostsAndExpenses", "Total costs and expenses", {"FY2023": -49289.0, "FY2024": -45691.0}),
+        mrow("us-gaap_OperatingIncomeLoss", "Operating income", {"FY2023": 7338.0, "FY2024": 7266.0}),
+    ])
+    res = resolve({"IS": is_})
+    assert res["TotalCostsAndExpenses"]["FY2024"].value == -45691.0
+    out = mapping.normalize_expense_signs(res, _facts({"CostsAndExpenses": {"FY2024": 45691.0}}))
+    cv = out["TotalCostsAndExpenses"]["FY2024"]
+    assert (cv.value, cv.sign, cv.status) == (45691.0, -1, "OK")
+    assert out["TotalCostsAndExpenses"]["FY2023"].value == 49289.0      # no fact: never negative
+    bad = mstmt("IS", [is_.rows[0], is_.rows[2],
+                       mrow("us-gaap_OperatingCostsAndExpenses", "Operating expenses",
+                            {"FY2023": -1175.6, "FY2024": -1298.3})])
+    assert resolve({"IS": bad})["TotalCostsAndExpenses"]["FY2024"].status == "UNMAPPED"
+
+
+def test_total_debt_single_component_sum_keeps_the_row_link():
+    # Only one sum-group component present -> status OK with that row's key and tag
+    # (formula-linked on the Mapping sheet), not a hard-coded DERIVED value.
+    bs = mstmt("BS", [mrow("us-gaap_LongTermDebtNoncurrent", "Long-term debt",
+                           {"FY2023": 100.0, "FY2024": 120.0})])
+    cv = resolve({"BS": bs})["TotalDebt"]["FY2024"]
+    assert (cv.status, cv.value, cv.row_key, cv.tag) == (
+        "OK", 120.0, "us-gaap_LongTermDebtNoncurrent", "us-gaap_LongTermDebtNoncurrent")
