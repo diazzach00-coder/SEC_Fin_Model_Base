@@ -11,7 +11,7 @@ that must be acyclic (asserted by tests), and `forecast.compute` evaluates each
 column in topological order. Lag-1 references always point at the previous,
 already-computed column. Hidden helper lines (`hidden=True`) are real rows the
 workbook hides: `<X>_RPT` rows pull a reported concept that a derived line needs,
-`DEFTAX` feeds the tax-rate ratio, `CASH_PRE` feeds the revolver and `DPU_FCST`
+`DEFTAX` feeds the informational cash-tax-rate ratio, `CASH_PRE` feeds the revolver and `DPU_FCST`
 carries distributions per unit forward.
 
 Sign convention: IS expenses positive on lines named as expenses (OPCOST, DA,
@@ -120,8 +120,8 @@ def _same(key, label, expr, fmt="money", bold=False, section="IS", note="") -> L
     return LineDef(key, label, section, expr, expr, fmt=fmt, bold=bold, note=note)
 
 
-def _ratio(key, label, expr, fmt="pct") -> LineDef:
-    return LineDef(key, label, "RATIO", expr, expr, fmt=fmt)
+def _ratio(key, label, expr, fmt="pct", note="") -> LineDef:
+    return LineDef(key, label, "RATIO", expr, expr, fmt=fmt, note=note)
 
 
 def _is_lines(da_basis: str) -> list[LineDef]:
@@ -158,7 +158,7 @@ def _is_lines(da_basis: str) -> list[LineDef]:
         _same("PRETAX", "Pretax income", L("EBIT") - L("INTEREST") + L("OTHER_INC"), bold=True),
         LineDef("TAX", "Income tax", "IS", "IncomeTax", Driver("TAX_RATE") * L("PRETAX")),
         LineDef("DEFTAX", "Deferred income tax (CF)", "IS", "DeferredTax", None, hidden=True,
-                note="hidden helper for TAX_RATE_HIST; blank (0) when unmapped"),
+                note="hidden helper for CASH_TAX_RATE_HIST; blank (0) when unmapped"),
         _rpt("NI_RPT", "NetIncome", "IS"),
         LineDef("DISC_OPS", "Discontinued ops & other", "IS",
                 L("NI_RPT") - (L("PRETAX") - L("TAX")), Const(0)),
@@ -285,8 +285,14 @@ def _ratio_lines(da_basis: str) -> list[LineDef]:
         _ratio("CAPEX_PCT_HIST", "Capex % revenue", -L("CAPEX") / L("REV")),
         _ratio("INT_RATE_HIST", "Interest rate on average debt",
                L("INTEREST") / Fn("AVERAGE", L("DEBT"), L("DEBT", 1))),
-        _ratio("TAX_RATE_HIST", "Cash tax rate",
-               Fn("MAX", 0, Fn("MIN", 0.35, (L("TAX") - L("DEFTAX")) / L("PRETAX")))),
+        # The TAX_RATE driver uses the effective rate (spec 7.2): deferred taxes reverse,
+        # so a cash rate (OKE ~1.5%) understates long-run tax in the DCF.
+        _ratio("TAX_RATE_HIST", "Effective tax rate",
+               Fn("MAX", 0, Fn("MIN", 0.35, L("TAX") / L("PRETAX")))),
+        _ratio("CASH_TAX_RATE_HIST", "Cash tax rate (info)",
+               Fn("MAX", 0, Fn("MIN", 0.35, (L("TAX") - L("DEFTAX")) / L("PRETAX"))),
+               note="deferred taxes reverse; driver uses the effective rate - override on "
+                    "Drivers if you want cash taxes"),
         _ratio("DPU_HIST", "Distribution per unit", -L("DIST") / L("UNITS"), fmt="perunit"),
         _ratio("DPU_GROWTH_HIST", "DPU growth", _growth("DPU_HIST")),
         _ratio("AR_DAYS_HIST", "Receivable days", L("AR") / L("REV") * 365, fmt="days"),
@@ -312,8 +318,9 @@ def _drivers(da_basis: str) -> list[DriverDef]:
                   note="3-yr average"),
         DriverDef("INT_RATE", "Interest rate on opening debt", L("INT_RATE_HIST"),
                   note="last year interest / average debt"),
-        DriverDef("TAX_RATE", "Cash tax rate", Hist("TAX_RATE_HIST", 3),
-                  note="3-yr average of (tax - deferred tax) / pretax, clamped 0-35%"),
+        DriverDef("TAX_RATE", "Effective tax rate", Hist("TAX_RATE_HIST", 3),
+                  note="3-yr average of tax / pretax, clamped 0-35% (cash rate shown on "
+                       "the Model for reference)"),
         DriverDef("DPU_GROWTH", "Distribution per unit growth",
                   _capped(Hist("DPU_GROWTH_HIST", 3)),
                   note="3-yr average growth, capped at +/-15%"),

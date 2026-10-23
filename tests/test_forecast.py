@@ -241,19 +241,39 @@ def test_nci_flat_by_default():
         assert _close(out["NI_NCI"][fy], 20.0)
 
 
-def test_tax_rate_uses_deferred_tax_when_present():
+def test_tax_rate_default_is_effective_rate_even_with_deferred_tax():
+    """Spec 7.2: the TAX_RATE default is the effective rate tax / pretax (3-yr average,
+    clamped 0-35%). Deferred tax does not lower it: deferred taxes reverse."""
     spec = build_spec("ppe")
-    no_def = driver_defaults(spec, TOY, FY)["TAX_RATE"]
-    assert _close(no_def, (10 / 210 + 12 / 238 + 14 / 286) / 3)
+    effective = (10 / 210 + 12 / 238 + 14 / 286) / 3
+    assert _close(driver_defaults(spec, TOY, FY)["TAX_RATE"], effective)
     h = dict(TOY, DeferredTax=_h(4, 5, 6))
     with_def = driver_defaults(spec, h, FY)["TAX_RATE"]
-    assert _close(with_def, (6 / 210 + 7 / 238 + 8 / 286) / 3)
+    assert _close(with_def, effective)
     out = compute(spec, h, FY, FCST)
     for fy in FCST:
         assert _close(out["TAX"][fy], with_def * out["PRETAX"][fy])
     # clamped to [0, 35%]
-    h2 = dict(TOY, DeferredTax=_h(40, 50, 60))
-    assert driver_defaults(spec, h2, FY)["TAX_RATE"] == 0.0
+    h2 = dict(TOY, IncomeTax=_h(200, 200, 200), NetIncome=_h(10, 38, 86))
+    assert _close(driver_defaults(spec, h2, FY)["TAX_RATE"], 0.35)
+    h3 = dict(TOY, IncomeTax=_h(-50, -50, -50), NetIncome=_h(260, 288, 336))
+    assert driver_defaults(spec, h3, FY)["TAX_RATE"] == 0.0
+
+
+def test_cash_tax_rate_info_line_differs_when_deferred_tax_present():
+    spec = build_spec("ppe")
+    ld = spec.line("CASH_TAX_RATE_HIST")
+    assert ld.section == "RATIO" and not ld.hidden and ld.label == "Cash tax rate (info)"
+    assert "effective rate" in ld.note
+    out = compute(spec, TOY, FY, FCST)                # no deferred tax: the two agree
+    for fy in FY:
+        assert _close(out["CASH_TAX_RATE_HIST"][fy], out["TAX_RATE_HIST"][fy])
+    h = dict(TOY, DeferredTax=_h(4, 5, 6))
+    out = compute(spec, h, FY, FCST)
+    for fy, tax, d, pre in zip(FY, (10, 12, 14), (4, 5, 6), (210, 238, 286)):
+        assert _close(out["CASH_TAX_RATE_HIST"][fy], (tax - d) / pre)
+        assert _close(out["TAX_RATE_HIST"][fy], tax / pre)
+        assert not _close(out["CASH_TAX_RATE_HIST"][fy], out["TAX_RATE_HIST"][fy])
 
 
 def test_driver_defaults_from_history():
@@ -323,7 +343,8 @@ CF_KEYS = ["CF_NI", "CF_DA", "CF_IMPAIR", "CF_GAINS", "CF_EQ", "CF_DIST_AFF", "C
 BS_KEYS = ["CASH", "AR", "INV", "NET_PPE", "EQ_INV", "OTHER_ASSETS", "TOTAL_ASSETS", "AP", "DEBT",
            "REVOLVER", "OTHER_LIAB", "EQUITY", "NCI_BS", "TOTAL_LE"]
 RATIO_KEYS = ["REV_GROWTH_HIST", "EBITDA_MARGIN", "COST_PCT_HIST", "DA_PCT_HIST",
-              "CAPEX_PCT_HIST", "INT_RATE_HIST", "TAX_RATE_HIST", "DPU_HIST", "DPU_GROWTH_HIST",
+              "CAPEX_PCT_HIST", "INT_RATE_HIST", "TAX_RATE_HIST", "CASH_TAX_RATE_HIST", "DPU_HIST",
+              "DPU_GROWTH_HIST",
               "AR_DAYS_HIST", "INV_DAYS_HIST", "AP_DAYS_HIST", "NET_DEBT_EBITDA", "DIST_COVERAGE"]
 
 
