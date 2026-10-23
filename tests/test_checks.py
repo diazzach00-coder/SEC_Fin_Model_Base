@@ -292,3 +292,28 @@ def test_cash_roll_forward_skips_when_both_ends_share_one_row():
         m[c]["FY2024"] = replace(m[c]["FY2024"], row_key="us-gaap_Cash")
     c = result(run_checks({}, m, {}), "Cash roll-forward")
     assert c.status == "SKIP" and c.note == "beginning and ending cash share one row"
+
+
+def test_cash_roll_opening_is_prior_year_ending_cash():
+    # MPLX-style: the "beginning" row carries end-of-period values in every year.
+    years = ("FY2023", "FY2024", "FY2025")
+    m = mp(CFBeginningCash=dict(zip(years, (9.0, 85.0, 15.0))),        # = ending (wrong)
+           NetChangeInCash=dict(zip(years, (-230.0, 76.0, -70.0))),
+           CFEndingCash=dict(zip(years, (9.0, 85.0, 15.0))))
+    res = run_checks({}, m, {})
+    assert result(res, "Cash roll-forward", "FY2024").status == "PASS"   # 9 + 76 = 85
+    assert result(res, "Cash roll-forward", "FY2025").status == "PASS"   # 85 - 70 = 15
+    first = result(res, "Cash roll-forward", "FY2023")                   # no prior year:
+    assert first.status == "FAIL" and first.lhs == 9.0 - 230.0           # beginning row used
+
+
+def test_cash_roll_genuine_mismatch_in_year_two_still_fails():
+    years = ("FY2023", "FY2024", "FY2025")
+    m = mp(CFBeginningCash=dict(zip(years, (100.0, 125.0, 150.0))),
+           NetChangeInCash=dict(zip(years, (25.0, 40.0, 10.0))),
+           CFEndingCash=dict(zip(years, (125.0, 150.0, 160.0))))
+    res = run_checks({}, m, {})
+    assert result(res, "Cash roll-forward", "FY2023").status == "PASS"
+    two = result(res, "Cash roll-forward", "FY2024")                     # 125 + 40 != 150
+    assert two.status == "FAIL" and (two.lhs, two.rhs) == (165.0, 150.0)
+    assert result(res, "Cash roll-forward", "FY2025").status == "PASS"   # 150 + 10 = 160

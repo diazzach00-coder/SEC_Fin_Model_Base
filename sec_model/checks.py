@@ -49,14 +49,26 @@ def _tie_check(name: str, fy: str, mapping: dict, lhs_concepts: tuple[str, ...],
     return _compare(name, fy, lhs, _get(mapping, rhs_concept, fy), bad, note)
 
 
-def _cash_roll(fy: str, mapping: dict) -> CheckResult:
+def _cash_roll(fy: str, mapping: dict, prior: str | None = None) -> CheckResult:
+    """Prior close + net change = close. The opening balance is the prior fiscal year's
+    CF ending cash whenever a prior year is in the run (MPLX's FY2018-FY2020 10-Ks render
+    the "beginning" row with end-of-period values); the reported beginning-cash row is
+    used only for the first year, or when the prior year's ending cash is missing."""
     name = "Cash roll-forward"
     b = (mapping.get("CFBeginningCash") or {}).get(fy)
     e = (mapping.get("CFEndingCash") or {}).get(fy)
     if b is not None and e is not None and b.row_key is not None and b.row_key == e.row_key:
         return _skip(name, fy, "beginning and ending cash share one row")
-    return _tie_check(name, fy, mapping, ("CFBeginningCash", "NetChangeInCash"),
-                      "CFEndingCash", "FAIL")
+    opening = _get(mapping, "CFEndingCash", prior) if prior is not None else None
+    if opening is None:
+        return _tie_check(name, fy, mapping, ("CFBeginningCash", "NetChangeInCash"),
+                          "CFEndingCash", "FAIL")
+    gone = _missing(mapping, fy, "NetChangeInCash", "CFEndingCash")
+    if gone:
+        return _skip(name, fy, "missing input: " + ", ".join(gone))
+    return _compare(name, fy, opening + _get(mapping, "NetChangeInCash", fy),
+                    _get(mapping, "CFEndingCash", fy), "FAIL",
+                    f"opening = {prior} ending cash")
 
 
 def _api_check(concept: str, fy: str, mapping: dict, facts_values: dict) -> CheckResult:
@@ -112,12 +124,13 @@ def run_checks(statements: dict[str, MergedStatement], mapping: dict[str, dict[s
                facts_values: dict[str, dict[str, float]]) -> list[CheckResult]:
     years = _years(statements, mapping, facts_values)
     results: list[CheckResult] = []
-    for fy in years:
+    for i, fy in enumerate(years):
+        prior = years[i - 1] if i > 0 else None
         results.append(_tie_check("BS balances", fy, mapping, ("TotalAssets",),
                                   "LiabilitiesAndEquity", "FAIL"))
         results.append(_tie_check("NI ties IS=CF", fy, mapping, ("NetIncome",),
                                   "CFNetIncome", "FAIL"))
-        results.append(_cash_roll(fy, mapping))
+        results.append(_cash_roll(fy, mapping, prior))
         results.append(_tie_check("CF cash vs BS cash", fy, mapping, ("CFEndingCash",), "Cash",
                                   "WARN", "restricted cash is often included in CF cash"))
         for concept in API_CONCEPTS:
