@@ -122,6 +122,8 @@ CONCEPTS: list[Concept] = [
             None),
     Concept("NetChangeInCash", ("CF",),
             ("CashCashEquivalentsRestrictedCashAndRestrictedCashEquivalentsPeriodIncreaseDecreaseIncludingExchangeRateEffect",
+             # filers with no FX line (MPLX) use the "excluding" element for the total
+             "CashCashEquivalentsRestrictedCashAndRestrictedCashEquivalentsPeriodIncreaseDecreaseExcludingExchangeRateEffect",
              "CashAndCashEquivalentsPeriodIncreaseDecrease"),
             None),
     # Beginning and ending cash share tags; the label regex tells them apart.

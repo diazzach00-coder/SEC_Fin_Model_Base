@@ -418,3 +418,18 @@ def test_net_income_prefers_continuing_ops_incl_nci_over_controlling_interest():
     both = mstmt("IS", [mrow("us-gaap_ProfitLoss", "Net income", {"FY2023": 1.0, "FY2024": 2.0})]
                  + is_.rows)
     assert resolve({"IS": both})["NetIncome"]["FY2024"].value == 2.0
+
+
+def test_net_change_in_cash_restricted_basis_excluding_fx_tag():
+    # MPLX reports the restricted-cash-basis net change with the "ExcludingExchangeRateEffect"
+    # element; an older filing's cash-only net change must not be used in its place.
+    base = "us-gaap_CashCashEquivalentsRestrictedCashAndRestrictedCashEquivalentsPeriodIncreaseDecrease"
+    cf = mstmt("CF", [
+        mrow("us-gaap_CashAndCashEquivalentsPeriodIncreaseDecrease",
+             "Net increase (decrease) in cash and cash equivalents", {"FY2023": 191.0, "FY2024": None}),
+        mrow(base + "ExcludingExchangeRateEffect",
+             "Net change in cash, cash equivalents and restricted cash",
+             {"FY2023": 187.0, "FY2024": 76.0}),
+    ])
+    out = resolve({"CF": cf})["NetChangeInCash"]
+    assert out["FY2023"].value == 187.0 and out["FY2024"].value == 76.0
