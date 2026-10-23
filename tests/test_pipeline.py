@@ -127,3 +127,27 @@ def test_unexpected_error_wrapped_as_user_facing(monkeypatch, caplog):
     with pytest.raises(UserFacingError, match=r"Build failed for OKE: KeyError\. See server log\."):
         build("oke", "test admin@example.com", client=FakeClient(), progress=lambda m: None)
     assert any(rec.levelname == "ERROR" and rec.exc_info for rec in caplog.records)
+
+
+def test_api_cross_check_reads_each_year_with_that_years_tag():
+    # TRGP: FY2016 revenue is mapped via RevenueFromContractWithCustomer... (6,690.9) and
+    # later years via Revenues; companyfacts' FY2016 "Revenues" is a different figure.
+    from sec_model.pipeline import _facts_values
+    from sec_model.types import ConceptValue
+
+    def entry(year, val):
+        return {"start": f"{year}-01-01", "end": f"{year}-12-31", "val": val * 1e6,
+                "fp": "FY", "form": "10-K", "filed": f"{year + 1}-02-20"}
+
+    facts = {"facts": {"us-gaap": {
+        "Revenues": {"units": {"USD": [entry(2016, 5586.7), entry(2017, 8814.9)]}},
+        "RevenueFromContractWithCustomerExcludingAssessedTax":
+            {"units": {"USD": [entry(2016, 6690.9), entry(2017, 7800.8)]}},
+    }}}
+    rev = {"FY2016": ConceptValue("Revenue", "FY2016", 6690.9, "k",
+                                  "us-gaap_RevenueFromContractWithCustomerExcludingAssessedTax",
+                                  "Total revenues", "OK"),
+           "FY2017": ConceptValue("Revenue", "FY2017", 8814.9, "k", "us-gaap_Revenues",
+                                  "Total revenues", "OK")}
+    out = _facts_values({"Revenue": rev}, facts, "USD")
+    assert out["Revenue"] == pytest.approx({"FY2016": 6690.9, "FY2017": 8814.9})

@@ -213,15 +213,21 @@ class _Run:
 
 
 def _facts_values(mapping: dict, facts: dict, currency: str) -> dict[str, dict[str, float]]:
-    """companyfacts values for the API cross-check concepts, read with the us-gaap tag the
-    mapping chose in the latest year (custom, SUM(...) and companyfacts tags are skipped)."""
-    out = {}
+    """companyfacts values for the API cross-check concepts: each year is read with the
+    us-gaap tag the mapping chose for that year (a filer's tag can change, e.g. TRGP's
+    FY2016 revenue is ``RevenueFromContractWithCustomer...`` but ``Revenues`` later).
+    Custom, SUM(...) and companyfacts tags are skipped."""
+    out: dict[str, dict[str, float]] = {}
+    by_tag: dict[str, dict[str, float]] = {}
     for concept in API_CONCEPTS:
-        by_fy = mapping.get(concept) or {}
-        cv = by_fy[list(by_fy)[-1]] if by_fy else None
-        tag = cv.tag if cv is not None else None
-        if tag and re.fullmatch(r"us-gaap_\w+", tag):
-            out[concept] = fy_values(facts, tag.removeprefix("us-gaap_"), currency)
+        for fy, cv in (mapping.get(concept) or {}).items():
+            tag = cv.tag if cv is not None else None
+            if not tag or not re.fullmatch(r"us-gaap_\w+", tag):
+                continue
+            if tag not in by_tag:
+                by_tag[tag] = fy_values(facts, tag.removeprefix("us-gaap_"), currency)
+            if fy in by_tag[tag]:
+                out.setdefault(concept, {})[fy] = by_tag[tag][fy]
     return out
 
 
