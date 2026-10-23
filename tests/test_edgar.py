@@ -239,6 +239,25 @@ def test_pick_ignores_non_statement_categories_and_drops_zero_scores():
     assert picked == {"IS": [], "BS": [], "CF": [reps[2]]}
 
 
+def test_pick_admits_uncategorized_statement():
+    # OKE FY2021 10-K: the income statement sits under MenuCategory "Uncategorized".
+    reps = [ReportEntry("Cover", "", "Cover", "R1.htm"),
+            ReportEntry("CONSOLIDATED STATEMENTS OF INCOME", "", "Uncategorized", "R3.htm"),
+            ReportEntry("CONSOLIDATED STATEMENTS OF INCOME CONSOLIDATED STATEMENT OF INCOME "
+                        "(Parenthetical)", "", "Cover", "R4.htm"),
+            ReportEntry("CONSOLIDATED STATEMENTS OF COMPREHENSIVE INCOME", "", "Statements", "R5.htm"),
+            ReportEntry("CONSOLIDATED BALANCE SHEETS", "", "Statements", "R7.htm"),
+            ReportEntry("CONSOLIDATED STATEMENTS OF CASH FLOWS", "", "Statements", "R9.htm")]
+    best = {k: [r.html_file for r in v] for k, v in pick_statement_reports(reps).items()}
+    assert best == {"IS": ["R3.htm"], "BS": ["R7.htm"], "CF": ["R9.htm"]}
+
+
+def test_pick_statements_category_before_uncategorized_at_equal_score():
+    reps = [ReportEntry("Consolidated Balance Sheet", "", "Uncategorized", "R40.htm"),
+            ReportEntry("Consolidated Balance Sheet", "", "Statements", "R4.htm")]
+    assert [r.html_file for r in pick_statement_reports(reps)["BS"]] == ["R4.htm", "R40.htm"]
+
+
 def test_pick_precise_name_outranks_broad_name():
     reps = [ReportEntry("Income Taxes Summary", "", "Statements", "R2.htm"),
             ReportEntry("Statements of Earnings", "", "Statements", "R3.htm")]

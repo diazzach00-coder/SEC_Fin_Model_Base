@@ -146,18 +146,24 @@ def _score(name: str, stype: str) -> int:
     return precise * 10 + broad
 
 
+# Some filers' XBRL puts a primary statement under "Uncategorized" (OKE's FY2021 10-K
+# income statement); name scoring plus the anchor-tag check in locate_statements guard it.
+_CATEGORIES = ("Statements", "Uncategorized")
+
+
 def pick_statement_reports(reports: list[ReportEntry]) -> dict[str, list[ReportEntry]]:
-    """Candidate reports per statement type, best first (ties keep filing order)."""
+    """Candidate reports per statement type, best first: higher name score, then
+    "Statements" before "Uncategorized", then filing order."""
     eligible = []
     for r in reports:
         name = r.short_name.lower()
-        if r.category == "Statements" and not any(x in name for x in _EXCLUDE):
+        if r.category in _CATEGORIES and not any(x in name for x in _EXCLUDE):
             eligible.append((r, name))
     picked: dict[str, list[ReportEntry]] = {}
     for stype in ("IS", "BS", "CF"):
         scored = [(_score(name, stype), r) for r, name in eligible]
         scored = [(s, r) for s, r in scored if s > 0]
-        scored.sort(key=lambda sr: -sr[0])  # stable
+        scored.sort(key=lambda sr: (-sr[0], _CATEGORIES.index(sr[1].category)))  # stable
         picked[stype] = [r for _, r in scored]
     return picked
 
