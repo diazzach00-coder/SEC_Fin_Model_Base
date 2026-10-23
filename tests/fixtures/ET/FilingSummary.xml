@@ -1,0 +1,1426 @@
+<?xml version='1.0' encoding='utf-8'?>
+<FilingSummary>
+  <Version>3.25.4</Version>
+  <ProcessingTime/>
+  <ReportFormat>html</ReportFormat>
+  <ContextCount>1317</ContextCount>
+  <ElementCount>675</ElementCount>
+  <EntityCount>1</EntityCount>
+  <FootnotesReported>true</FootnotesReported>
+  <SegmentCount>361</SegmentCount>
+  <ScenarioCount>0</ScenarioCount>
+  <TuplesReported>false</TuplesReported>
+  <UnitCount>14</UnitCount>
+  <MyReports>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R1.htm</HtmlFileName>
+      <LongName>0000001 - Document - Cover Page Cover Page</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/CoverPageCoverPage</Role>
+      <ShortName>Cover Page Cover Page</ShortName>
+      <MenuCategory>Cover</MenuCategory>
+      <Position>1</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R2.htm</HtmlFileName>
+      <LongName>9952151 - Statement - Consolidated Balance Sheets</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/ConsolidatedBalanceSheets</Role>
+      <ShortName>Consolidated Balance Sheets</ShortName>
+      <MenuCategory>Statements</MenuCategory>
+      <Position>2</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R3.htm</HtmlFileName>
+      <LongName>9952152 - Statement - Consolidated Balance Sheets Balance Sheet (Paranthetical)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/ConsolidatedBalanceSheetsBalanceSheetParanthetical</Role>
+      <ShortName>Consolidated Balance Sheets Balance Sheet (Paranthetical)</ShortName>
+      <MenuCategory>Statements</MenuCategory>
+      <Position>3</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R4.htm</HtmlFileName>
+      <LongName>9952153 - Statement - Consolidated Statements Of Operations</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/ConsolidatedStatementsOfOperations</Role>
+      <ShortName>Consolidated Statements Of Operations</ShortName>
+      <MenuCategory>Statements</MenuCategory>
+      <Position>4</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R5.htm</HtmlFileName>
+      <LongName>9952154 - Statement - Consolidated Statements Of Comprehensive Income</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/ConsolidatedStatementsOfComprehensiveIncome</Role>
+      <ShortName>Consolidated Statements Of Comprehensive Income</ShortName>
+      <MenuCategory>Statements</MenuCategory>
+      <Position>5</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R6.htm</HtmlFileName>
+      <LongName>9952155 - Statement - Consolidated Statement Of Equity</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/ConsolidatedStatementOfEquity</Role>
+      <ShortName>Consolidated Statement Of Equity</ShortName>
+      <MenuCategory>Statements</MenuCategory>
+      <Position>6</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R7.htm</HtmlFileName>
+      <LongName>9952156 - Statement - Consolidated Statements Of Cash Flows</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/ConsolidatedStatementsOfCashFlows</Role>
+      <ShortName>Consolidated Statements Of Cash Flows</ShortName>
+      <MenuCategory>Statements</MenuCategory>
+      <Position>7</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R8.htm</HtmlFileName>
+      <LongName>9952157 - Disclosure - Operations And Organization</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/OperationsAndOrganization</Role>
+      <ShortName>Operations And Organization</ShortName>
+      <MenuCategory>Notes</MenuCategory>
+      <Position>8</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R9.htm</HtmlFileName>
+      <LongName>9952158 - Disclosure - Estimates, Significant Accounting Policies and Balance Sheet Detail</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/EstimatesSignificantAccountingPoliciesandBalanceSheetDetail</Role>
+      <ShortName>Estimates, Significant Accounting Policies and Balance Sheet Detail</ShortName>
+      <MenuCategory>Notes</MenuCategory>
+      <Position>9</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R10.htm</HtmlFileName>
+      <LongName>9952159 - Disclosure - Acquisitions, Divestitures and Related Transactions</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/AcquisitionsDivestituresandRelatedTransactions</Role>
+      <ShortName>Acquisitions, Divestitures and Related Transactions</ShortName>
+      <MenuCategory>Notes</MenuCategory>
+      <Position>10</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R11.htm</HtmlFileName>
+      <LongName>9952160 - Disclosure - Investments in Unconsolidated Affiliates</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/InvestmentsinUnconsolidatedAffiliates</Role>
+      <ShortName>Investments in Unconsolidated Affiliates</ShortName>
+      <MenuCategory>Notes</MenuCategory>
+      <Position>11</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R12.htm</HtmlFileName>
+      <LongName>9952161 - Disclosure - Net Income Per Common Unit</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/NetIncomePerCommonUnit</Role>
+      <ShortName>Net Income Per Common Unit</ShortName>
+      <MenuCategory>Notes</MenuCategory>
+      <Position>12</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R13.htm</HtmlFileName>
+      <LongName>9952162 - Disclosure - Debt Obligations</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/DebtObligations</Role>
+      <ShortName>Debt Obligations</ShortName>
+      <MenuCategory>Notes</MenuCategory>
+      <Position>13</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R14.htm</HtmlFileName>
+      <LongName>9952163 - Disclosure - Redeemable Noncontrolling Interests</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/RedeemableNoncontrollingInterests</Role>
+      <ShortName>Redeemable Noncontrolling Interests</ShortName>
+      <MenuCategory>Notes</MenuCategory>
+      <Position>14</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R15.htm</HtmlFileName>
+      <LongName>9952164 - Disclosure - Equity</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/Equity</Role>
+      <ShortName>Equity</ShortName>
+      <MenuCategory>Notes</MenuCategory>
+      <Position>15</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R16.htm</HtmlFileName>
+      <LongName>9952165 - Disclosure - Equity Incentive Plans</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/EquityIncentivePlans</Role>
+      <ShortName>Equity Incentive Plans</ShortName>
+      <MenuCategory>Notes</MenuCategory>
+      <Position>16</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R17.htm</HtmlFileName>
+      <LongName>9952166 - Disclosure - Income Taxes</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/IncomeTaxes</Role>
+      <ShortName>Income Taxes</ShortName>
+      <MenuCategory>Notes</MenuCategory>
+      <Position>17</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R18.htm</HtmlFileName>
+      <LongName>9952167 - Disclosure - Regulatory Matters, Commitments, Contingencies And Environmental Liabilities</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/RegulatoryMattersCommitmentsContingenciesAndEnvironmentalLiabilities</Role>
+      <ShortName>Regulatory Matters, Commitments, Contingencies And Environmental Liabilities</ShortName>
+      <MenuCategory>Notes</MenuCategory>
+      <Position>18</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R19.htm</HtmlFileName>
+      <LongName>9952168 - Disclosure - Revenue</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/Revenue</Role>
+      <ShortName>Revenue</ShortName>
+      <MenuCategory>Notes</MenuCategory>
+      <Position>19</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R20.htm</HtmlFileName>
+      <LongName>9952169 - Disclosure - Lease Accounting</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/LeaseAccounting</Role>
+      <ShortName>Lease Accounting</ShortName>
+      <MenuCategory>Notes</MenuCategory>
+      <Position>20</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R21.htm</HtmlFileName>
+      <LongName>9952170 - Disclosure - Derivative Assets And Liabilities</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/DerivativeAssetsAndLiabilities</Role>
+      <ShortName>Derivative Assets And Liabilities</ShortName>
+      <MenuCategory>Notes</MenuCategory>
+      <Position>21</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R22.htm</HtmlFileName>
+      <LongName>9952171 - Disclosure - Retirement Benefits</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/RetirementBenefits</Role>
+      <ShortName>Retirement Benefits</ShortName>
+      <MenuCategory>Notes</MenuCategory>
+      <Position>22</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R23.htm</HtmlFileName>
+      <LongName>9952172 - Disclosure - Reportable Segments</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/ReportableSegments</Role>
+      <ShortName>Reportable Segments</ShortName>
+      <MenuCategory>Notes</MenuCategory>
+      <Position>23</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R24.htm</HtmlFileName>
+      <LongName>995445 - Disclosure - Insider Trading Arrangements</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://xbrl.sec.gov/ecd/role/InsiderTradingArrangements</Role>
+      <ShortName>Insider Trading Arrangements</ShortName>
+      <MenuCategory>Notes</MenuCategory>
+      <Position>24</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R25.htm</HtmlFileName>
+      <LongName>995447 - Disclosure - Insider Trading Policies and Procedures</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://xbrl.sec.gov/ecd/role/InsiderTradingPoliciesProc</Role>
+      <ShortName>Insider Trading Policies and Procedures</ShortName>
+      <MenuCategory>Notes</MenuCategory>
+      <Position>25</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R26.htm</HtmlFileName>
+      <LongName>995550 - Disclosure - Cybersecurity Risk Management and Strategy Disclosure</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://xbrl.sec.gov/cyd/role/CybersecurityRiskManagementAndStrategyDisclosure</Role>
+      <ShortName>Cybersecurity Risk Management and Strategy Disclosure</ShortName>
+      <MenuCategory>Notes</MenuCategory>
+      <Position>26</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R27.htm</HtmlFileName>
+      <LongName>9955511 - Disclosure - Estimates, Significant Accounting Policies and Balance Sheet Detail (Policy)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/EstimatesSignificantAccountingPoliciesandBalanceSheetDetailPolicy</Role>
+      <ShortName>Estimates, Significant Accounting Policies and Balance Sheet Detail (Policy)</ShortName>
+      <MenuCategory>Policies</MenuCategory>
+      <ParentRole>http://www.energytransfer.com/role/EstimatesSignificantAccountingPoliciesandBalanceSheetDetail</ParentRole>
+      <Position>27</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R28.htm</HtmlFileName>
+      <LongName>9955512 - Disclosure - Estimates, Significant Accounting Policies and Balance Sheet Detail (Tables)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/EstimatesSignificantAccountingPoliciesandBalanceSheetDetailTables</Role>
+      <ShortName>Estimates, Significant Accounting Policies and Balance Sheet Detail (Tables)</ShortName>
+      <MenuCategory>Tables</MenuCategory>
+      <ParentRole>http://www.energytransfer.com/role/EstimatesSignificantAccountingPoliciesandBalanceSheetDetail</ParentRole>
+      <Position>28</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R29.htm</HtmlFileName>
+      <LongName>9955513 - Disclosure - Acquisitions, Divestitures and Related Transactions (Tables)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/AcquisitionsDivestituresandRelatedTransactionsTables</Role>
+      <ShortName>Acquisitions, Divestitures and Related Transactions (Tables)</ShortName>
+      <MenuCategory>Tables</MenuCategory>
+      <ParentRole>http://www.energytransfer.com/role/AcquisitionsDivestituresandRelatedTransactions</ParentRole>
+      <Position>29</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R30.htm</HtmlFileName>
+      <LongName>9955514 - Disclosure - Investments in Unconsolidated Affiliates (Tables)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/InvestmentsinUnconsolidatedAffiliatesTables</Role>
+      <ShortName>Investments in Unconsolidated Affiliates (Tables)</ShortName>
+      <MenuCategory>Tables</MenuCategory>
+      <ParentRole>http://www.energytransfer.com/role/InvestmentsinUnconsolidatedAffiliates</ParentRole>
+      <Position>30</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R31.htm</HtmlFileName>
+      <LongName>9955515 - Disclosure - Net Income Per Common Unit (Tables)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/NetIncomePerCommonUnitTables</Role>
+      <ShortName>Net Income Per Common Unit (Tables)</ShortName>
+      <MenuCategory>Tables</MenuCategory>
+      <ParentRole>http://www.energytransfer.com/role/NetIncomePerCommonUnit</ParentRole>
+      <Position>31</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R32.htm</HtmlFileName>
+      <LongName>9955516 - Disclosure - Debt Obligations Debt Obligations (Tables)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/DebtObligationsDebtObligationsTables</Role>
+      <ShortName>Debt Obligations Debt Obligations (Tables)</ShortName>
+      <MenuCategory>Tables</MenuCategory>
+      <Position>32</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R33.htm</HtmlFileName>
+      <LongName>9955517 - Disclosure - Redeemable Noncontrolling Interests (Tables)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/RedeemableNoncontrollingInterestsTables</Role>
+      <ShortName>Redeemable Noncontrolling Interests (Tables)</ShortName>
+      <MenuCategory>Tables</MenuCategory>
+      <ParentRole>http://www.energytransfer.com/role/RedeemableNoncontrollingInterests</ParentRole>
+      <Position>33</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R34.htm</HtmlFileName>
+      <LongName>9955518 - Disclosure - Equity (Tables)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/EquityTables</Role>
+      <ShortName>Equity (Tables)</ShortName>
+      <MenuCategory>Tables</MenuCategory>
+      <ParentRole>http://www.energytransfer.com/role/Equity</ParentRole>
+      <Position>34</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R35.htm</HtmlFileName>
+      <LongName>9955519 - Disclosure - Equity Incentive Plans (Tables)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/EquityIncentivePlansTables</Role>
+      <ShortName>Equity Incentive Plans (Tables)</ShortName>
+      <MenuCategory>Tables</MenuCategory>
+      <ParentRole>http://www.energytransfer.com/role/EquityIncentivePlans</ParentRole>
+      <Position>35</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R36.htm</HtmlFileName>
+      <LongName>9955520 - Disclosure - Income Taxes (Tables)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/IncomeTaxesTables</Role>
+      <ShortName>Income Taxes (Tables)</ShortName>
+      <MenuCategory>Tables</MenuCategory>
+      <ParentRole>http://www.energytransfer.com/role/IncomeTaxes</ParentRole>
+      <Position>36</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R37.htm</HtmlFileName>
+      <LongName>9955521 - Disclosure - Regulatory Matters, Commitments, Contingencies And Environmental Liabilities Regulatory Matters, Commitments, Contingencies And Environmental Liabilities (Tables)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/RegulatoryMattersCommitmentsContingenciesAndEnvironmentalLiabilitiesRegulatoryMattersCommitmentsContingenciesAndEnvironmentalLiabilitiesTables</Role>
+      <ShortName>Regulatory Matters, Commitments, Contingencies And Environmental Liabilities Regulatory Matters, Commitments, Contingencies And Environmental Liabilities (Tables)</ShortName>
+      <MenuCategory>Tables</MenuCategory>
+      <Position>37</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R38.htm</HtmlFileName>
+      <LongName>9955522 - Disclosure - Revenue (Tables)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/RevenueTables</Role>
+      <ShortName>Revenue (Tables)</ShortName>
+      <MenuCategory>Tables</MenuCategory>
+      <ParentRole>http://www.energytransfer.com/role/Revenue</ParentRole>
+      <Position>38</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R39.htm</HtmlFileName>
+      <LongName>9955523 - Disclosure - Lease Accounting (Tables)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/LeaseAccountingTables</Role>
+      <ShortName>Lease Accounting (Tables)</ShortName>
+      <MenuCategory>Tables</MenuCategory>
+      <ParentRole>http://www.energytransfer.com/role/LeaseAccounting</ParentRole>
+      <Position>39</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R40.htm</HtmlFileName>
+      <LongName>9955524 - Disclosure - Derivative Assets And Liabilities (Tables)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/DerivativeAssetsAndLiabilitiesTables</Role>
+      <ShortName>Derivative Assets And Liabilities (Tables)</ShortName>
+      <MenuCategory>Tables</MenuCategory>
+      <ParentRole>http://www.energytransfer.com/role/DerivativeAssetsAndLiabilities</ParentRole>
+      <Position>40</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R41.htm</HtmlFileName>
+      <LongName>9955525 - Disclosure - Retirement Benefits (Tables)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/RetirementBenefitsTables</Role>
+      <ShortName>Retirement Benefits (Tables)</ShortName>
+      <MenuCategory>Tables</MenuCategory>
+      <ParentRole>http://www.energytransfer.com/role/RetirementBenefits</ParentRole>
+      <Position>41</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R42.htm</HtmlFileName>
+      <LongName>9955526 - Disclosure - Reportable Segments (Tables)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/ReportableSegmentsTables</Role>
+      <ShortName>Reportable Segments (Tables)</ShortName>
+      <MenuCategory>Tables</MenuCategory>
+      <ParentRole>http://www.energytransfer.com/role/ReportableSegments</ParentRole>
+      <Position>42</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R43.htm</HtmlFileName>
+      <LongName>9955527 - Disclosure - Operations And Organization (Narrative) (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/OperationsAndOrganizationNarrativeDetails</Role>
+      <ShortName>Operations And Organization (Narrative) (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <ParentRole>http://www.energytransfer.com/role/OperationsAndOrganization</ParentRole>
+      <Position>43</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R44.htm</HtmlFileName>
+      <LongName>9955528 - Disclosure - Estimates, Significant Accounting Policies and Balance Sheet Detail (Narrative) (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/EstimatesSignificantAccountingPoliciesandBalanceSheetDetailNarrativeDetails</Role>
+      <ShortName>Estimates, Significant Accounting Policies and Balance Sheet Detail (Narrative) (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <ParentRole>http://www.energytransfer.com/role/EstimatesSignificantAccountingPoliciesandBalanceSheetDetailTables</ParentRole>
+      <Position>44</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R45.htm</HtmlFileName>
+      <LongName>9955529 - Disclosure - Estimates (Schedule Of Net Changes In Operating Assets And Liabilities Included Cash Flows From Operating Activities) (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/EstimatesScheduleOfNetChangesInOperatingAssetsAndLiabilitiesIncludedCashFlowsFromOperatingActivitiesDetails</Role>
+      <ShortName>Estimates (Schedule Of Net Changes In Operating Assets And Liabilities Included Cash Flows From Operating Activities) (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <ParentRole>http://www.energytransfer.com/role/EstimatesSignificantAccountingPoliciesandBalanceSheetDetailTables</ParentRole>
+      <Position>45</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R46.htm</HtmlFileName>
+      <LongName>9955530 - Disclosure - Estimates (Schedule Of Non-Cash Investing And Financing Activities) (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/EstimatesScheduleOfNonCashInvestingAndFinancingActivitiesDetails</Role>
+      <ShortName>Estimates (Schedule Of Non-Cash Investing And Financing Activities) (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <ParentRole>http://www.energytransfer.com/role/EstimatesSignificantAccountingPoliciesandBalanceSheetDetailTables</ParentRole>
+      <Position>46</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R47.htm</HtmlFileName>
+      <LongName>9955531 - Disclosure - Estimates (Schedule of Inventory) (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/EstimatesScheduleofInventoryDetails</Role>
+      <ShortName>Estimates (Schedule of Inventory) (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <ParentRole>http://www.energytransfer.com/role/EstimatesSignificantAccountingPoliciesandBalanceSheetDetailTables</ParentRole>
+      <Position>47</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R48.htm</HtmlFileName>
+      <LongName>9955532 - Disclosure - Estimates (Other Current Assets) (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/EstimatesOtherCurrentAssetsDetails</Role>
+      <ShortName>Estimates (Other Current Assets) (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <ParentRole>http://www.energytransfer.com/role/EstimatesSignificantAccountingPoliciesandBalanceSheetDetailTables</ParentRole>
+      <Position>48</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R49.htm</HtmlFileName>
+      <LongName>9955533 - Disclosure - Estimates (Property, Plant and Equipment) (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/EstimatesPropertyPlantandEquipmentDetails</Role>
+      <ShortName>Estimates (Property, Plant and Equipment) (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <ParentRole>http://www.energytransfer.com/role/EstimatesSignificantAccountingPoliciesandBalanceSheetDetailTables</ParentRole>
+      <Position>49</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R50.htm</HtmlFileName>
+      <LongName>9955534 - Disclosure - Estimates (Schedule Of Property, Plant And Equipment Depreciation And Capitalized Interest Expense) (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/EstimatesScheduleOfPropertyPlantAndEquipmentDepreciationAndCapitalizedInterestExpenseDetails</Role>
+      <ShortName>Estimates (Schedule Of Property, Plant And Equipment Depreciation And Capitalized Interest Expense) (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <ParentRole>http://www.energytransfer.com/role/EstimatesSignificantAccountingPoliciesandBalanceSheetDetailTables</ParentRole>
+      <Position>50</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R51.htm</HtmlFileName>
+      <LongName>9955535 - Disclosure - Estimates (Schedule of Other Non-Current Assets, net) (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/EstimatesScheduleofOtherNonCurrentAssetsnetDetails</Role>
+      <ShortName>Estimates (Schedule of Other Non-Current Assets, net) (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <ParentRole>http://www.energytransfer.com/role/EstimatesSignificantAccountingPoliciesandBalanceSheetDetailTables</ParentRole>
+      <Position>51</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R52.htm</HtmlFileName>
+      <LongName>9955536 - Disclosure - Estimates (Components Of Intangibles And Other Assets) (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/EstimatesComponentsOfIntangiblesAndOtherAssetsDetails</Role>
+      <ShortName>Estimates (Components Of Intangibles And Other Assets) (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <ParentRole>http://www.energytransfer.com/role/EstimatesSignificantAccountingPoliciesandBalanceSheetDetailTables</ParentRole>
+      <Position>52</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R53.htm</HtmlFileName>
+      <LongName>9955537 - Disclosure - Estimates, Significant Accounting Policies and Balance Sheet Detail Estimates (Schedule of Useful Lives) (Details) (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/EstimatesSignificantAccountingPoliciesandBalanceSheetDetailEstimatesScheduleofUsefulLivesDetailsDetails</Role>
+      <ShortName>Estimates, Significant Accounting Policies and Balance Sheet Detail Estimates (Schedule of Useful Lives) (Details) (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <ParentRole>http://www.energytransfer.com/role/EstimatesSignificantAccountingPoliciesandBalanceSheetDetailTables</ParentRole>
+      <Position>53</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R54.htm</HtmlFileName>
+      <LongName>9955538 - Disclosure - Estimates (Aggregate Amortization Expense Of Intangibles And Other Assets) (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/EstimatesAggregateAmortizationExpenseOfIntangiblesAndOtherAssetsDetails</Role>
+      <ShortName>Estimates (Aggregate Amortization Expense Of Intangibles And Other Assets) (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <ParentRole>http://www.energytransfer.com/role/EstimatesSignificantAccountingPoliciesandBalanceSheetDetailTables</ParentRole>
+      <Position>54</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R55.htm</HtmlFileName>
+      <LongName>9955539 - Disclosure - Estimates (Estimated Aggregate Amortization Expense) (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/EstimatesEstimatedAggregateAmortizationExpenseDetails</Role>
+      <ShortName>Estimates (Estimated Aggregate Amortization Expense) (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <ParentRole>http://www.energytransfer.com/role/EstimatesSignificantAccountingPoliciesandBalanceSheetDetailTables</ParentRole>
+      <Position>55</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R56.htm</HtmlFileName>
+      <LongName>9955540 - Disclosure - Estimates (Schedule Of Goodwill) (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/EstimatesScheduleOfGoodwillDetails</Role>
+      <ShortName>Estimates (Schedule Of Goodwill) (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <ParentRole>http://www.energytransfer.com/role/EstimatesSignificantAccountingPoliciesandBalanceSheetDetailTables</ParentRole>
+      <Position>56</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R57.htm</HtmlFileName>
+      <LongName>9955541 - Disclosure - Estimates (Accrued And Other Current Liabilities) (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/EstimatesAccruedAndOtherCurrentLiabilitiesDetails</Role>
+      <ShortName>Estimates (Accrued And Other Current Liabilities) (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <ParentRole>http://www.energytransfer.com/role/EstimatesSignificantAccountingPoliciesandBalanceSheetDetailTables</ParentRole>
+      <Position>57</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R58.htm</HtmlFileName>
+      <LongName>9955542 - Disclosure - Estimates (Fair Value Of Financial Assets And Liabilities Measured On Recurring Basis) (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/EstimatesFairValueOfFinancialAssetsAndLiabilitiesMeasuredOnRecurringBasisDetails</Role>
+      <ShortName>Estimates (Fair Value Of Financial Assets And Liabilities Measured On Recurring Basis) (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <ParentRole>http://www.energytransfer.com/role/EstimatesSignificantAccountingPoliciesandBalanceSheetDetailTables</ParentRole>
+      <Position>58</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R59.htm</HtmlFileName>
+      <LongName>9955543 - Disclosure - Acquisitions, Divestitures and Related Transactions (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/AcquisitionsDivestituresandRelatedTransactionsDetails</Role>
+      <ShortName>Acquisitions, Divestitures and Related Transactions (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <ParentRole>http://www.energytransfer.com/role/AcquisitionsDivestituresandRelatedTransactionsTables</ParentRole>
+      <Position>59</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R60.htm</HtmlFileName>
+      <LongName>9955544 - Disclosure - Acquisitions, Divestitures and Related Transactions (Schedule Of Assets Acquired And Liabilities Assumed In Acquisition Table) (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/AcquisitionsDivestituresandRelatedTransactionsScheduleOfAssetsAcquiredAndLiabilitiesAssumedInAcquisitionTableDetails</Role>
+      <ShortName>Acquisitions, Divestitures and Related Transactions (Schedule Of Assets Acquired And Liabilities Assumed In Acquisition Table) (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <ParentRole>http://www.energytransfer.com/role/AcquisitionsDivestituresandRelatedTransactionsTables</ParentRole>
+      <Position>60</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R61.htm</HtmlFileName>
+      <LongName>9955545 - Disclosure - Acquisitions, Divestitures and Related Transactions (Schedule of Pro Forma Information) (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/AcquisitionsDivestituresandRelatedTransactionsScheduleofProFormaInformationDetails</Role>
+      <ShortName>Acquisitions, Divestitures and Related Transactions (Schedule of Pro Forma Information) (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <ParentRole>http://www.energytransfer.com/role/AcquisitionsDivestituresandRelatedTransactionsTables</ParentRole>
+      <Position>61</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R62.htm</HtmlFileName>
+      <LongName>9955546 - Disclosure - Investments in Unconsolidated Affiliates (Narrative) (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/InvestmentsinUnconsolidatedAffiliatesNarrativeDetails</Role>
+      <ShortName>Investments in Unconsolidated Affiliates (Narrative) (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <ParentRole>http://www.energytransfer.com/role/InvestmentsinUnconsolidatedAffiliatesTables</ParentRole>
+      <Position>62</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R63.htm</HtmlFileName>
+      <LongName>9955547 - Disclosure - Investments in Unconsolidated Affiliates (Carrying Values) (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/InvestmentsinUnconsolidatedAffiliatesCarryingValuesDetails</Role>
+      <ShortName>Investments in Unconsolidated Affiliates (Carrying Values) (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <ParentRole>http://www.energytransfer.com/role/InvestmentsinUnconsolidatedAffiliatesTables</ParentRole>
+      <Position>63</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R64.htm</HtmlFileName>
+      <LongName>9955548 - Disclosure - Investments in Unconsolidated Affiliates (Summarized Balance Sheet Information) (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/InvestmentsinUnconsolidatedAffiliatesSummarizedBalanceSheetInformationDetails</Role>
+      <ShortName>Investments in Unconsolidated Affiliates (Summarized Balance Sheet Information) (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <ParentRole>http://www.energytransfer.com/role/InvestmentsinUnconsolidatedAffiliatesTables</ParentRole>
+      <Position>64</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R65.htm</HtmlFileName>
+      <LongName>9955549 - Disclosure - Investments in Unconsolidated Affiliates (Summarized Income Statement Information) (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/InvestmentsinUnconsolidatedAffiliatesSummarizedIncomeStatementInformationDetails</Role>
+      <ShortName>Investments in Unconsolidated Affiliates (Summarized Income Statement Information) (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <ParentRole>http://www.energytransfer.com/role/InvestmentsinUnconsolidatedAffiliatesTables</ParentRole>
+      <Position>65</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R66.htm</HtmlFileName>
+      <LongName>9955550 - Disclosure - Net Income Per Common Unit (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/NetIncomePerCommonUnitDetails</Role>
+      <ShortName>Net Income Per Common Unit (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <ParentRole>http://www.energytransfer.com/role/NetIncomePerCommonUnitTables</ParentRole>
+      <Position>66</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R67.htm</HtmlFileName>
+      <LongName>9955551 - Disclosure - Debt Obligations Debt Obligations (Schedule Of Debt Obligations) (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/DebtObligationsDebtObligationsScheduleOfDebtObligationsDetails</Role>
+      <ShortName>Debt Obligations Debt Obligations (Schedule Of Debt Obligations) (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <ParentRole>http://www.energytransfer.com/role/DebtObligationsDebtObligationsTables</ParentRole>
+      <Position>67</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R68.htm</HtmlFileName>
+      <LongName>9955552 - Disclosure - Debt Obligations Debt Obligations (Future Maturities of Long-Term Debt) (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/DebtObligationsDebtObligationsFutureMaturitiesofLongTermDebtDetails</Role>
+      <ShortName>Debt Obligations Debt Obligations (Future Maturities of Long-Term Debt) (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <ParentRole>http://www.energytransfer.com/role/DebtObligationsDebtObligationsTables</ParentRole>
+      <Position>68</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R69.htm</HtmlFileName>
+      <LongName>9955553 - Disclosure - Debt Obligations (Debt Narrative) (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/DebtObligationsDebtNarrativeDetails</Role>
+      <ShortName>Debt Obligations (Debt Narrative) (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <ParentRole>http://www.energytransfer.com/role/DebtObligationsDebtObligationsTables</ParentRole>
+      <Position>69</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R70.htm</HtmlFileName>
+      <LongName>9955554 - Disclosure - Debt Obligations Debt Obligations (Covenants Related To Credit Agrrements) (Narrative) (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/DebtObligationsDebtObligationsCovenantsRelatedToCreditAgrrementsNarrativeDetails</Role>
+      <ShortName>Debt Obligations Debt Obligations (Covenants Related To Credit Agrrements) (Narrative) (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <ParentRole>http://www.energytransfer.com/role/DebtObligationsDebtObligationsTables</ParentRole>
+      <Position>70</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R71.htm</HtmlFileName>
+      <LongName>9955555 - Disclosure - Debt Obligations GoZone Bonds (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/DebtObligationsGoZoneBondsDetails</Role>
+      <ShortName>Debt Obligations GoZone Bonds (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <Position>71</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R72.htm</HtmlFileName>
+      <LongName>9955556 - Disclosure - Redeemable Noncontrolling Interests (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/RedeemableNoncontrollingInterestsDetails</Role>
+      <ShortName>Redeemable Noncontrolling Interests (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <ParentRole>http://www.energytransfer.com/role/RedeemableNoncontrollingInterestsTables</ParentRole>
+      <Position>72</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R73.htm</HtmlFileName>
+      <LongName>9955557 - Disclosure - Equity (Narrative) (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/EquityNarrativeDetails</Role>
+      <ShortName>Equity (Narrative) (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <ParentRole>http://www.energytransfer.com/role/EquityTables</ParentRole>
+      <Position>73</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R74.htm</HtmlFileName>
+      <LongName>9955558 - Disclosure - Equity (Change In ETE Common Units) (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/EquityChangeInETECommonUnitsDetails</Role>
+      <ShortName>Equity (Change In ETE Common Units) (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <ParentRole>http://www.energytransfer.com/role/EquityTables</ParentRole>
+      <Position>74</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R75.htm</HtmlFileName>
+      <LongName>9955559 - Disclosure - Equity (Quarterly Distributions Of Available Cash) (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/EquityQuarterlyDistributionsOfAvailableCashDetails</Role>
+      <ShortName>Equity (Quarterly Distributions Of Available Cash) (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <ParentRole>http://www.energytransfer.com/role/EquityTables</ParentRole>
+      <Position>75</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R76.htm</HtmlFileName>
+      <LongName>9955560 - Disclosure - Equity (Accumulated Other Comprehensive Income) (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/EquityAccumulatedOtherComprehensiveIncomeDetails</Role>
+      <ShortName>Equity (Accumulated Other Comprehensive Income) (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <ParentRole>http://www.energytransfer.com/role/EquityTables</ParentRole>
+      <Position>76</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R77.htm</HtmlFileName>
+      <LongName>9955561 - Disclosure - Equity Tax amounts in components of other comprehensive income (loss) (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/EquityTaxamountsincomponentsofothercomprehensiveincomelossDetails</Role>
+      <ShortName>Equity Tax amounts in components of other comprehensive income (loss) (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <Position>77</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R78.htm</HtmlFileName>
+      <LongName>9955562 - Disclosure - Equity Incentive Plans (Narrative) (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/EquityIncentivePlansNarrativeDetails</Role>
+      <ShortName>Equity Incentive Plans (Narrative) (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <ParentRole>http://www.energytransfer.com/role/EquityIncentivePlansTables</ParentRole>
+      <Position>78</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R79.htm</HtmlFileName>
+      <LongName>9955563 - Disclosure - Equity Incentive Plans (ET Equity Incentive Plans) (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/EquityIncentivePlansETEquityIncentivePlansDetails</Role>
+      <ShortName>Equity Incentive Plans (ET Equity Incentive Plans) (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <ParentRole>http://www.energytransfer.com/role/EquityIncentivePlansTables</ParentRole>
+      <Position>79</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R80.htm</HtmlFileName>
+      <LongName>9955564 - Disclosure - Equity Incentive Plans (Subsidiary Equity Incentive Plans) (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/EquityIncentivePlansSubsidiaryEquityIncentivePlansDetails</Role>
+      <ShortName>Equity Incentive Plans (Subsidiary Equity Incentive Plans) (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <ParentRole>http://www.energytransfer.com/role/EquityIncentivePlansTables</ParentRole>
+      <Position>80</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R81.htm</HtmlFileName>
+      <LongName>9955565 - Disclosure - Income Taxes Narrative (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/IncomeTaxesNarrativeDetails</Role>
+      <ShortName>Income Taxes Narrative (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <Position>81</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R82.htm</HtmlFileName>
+      <LongName>9955566 - Disclosure - Income Taxes Components of Income Tax (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/IncomeTaxesComponentsofIncomeTaxDetails</Role>
+      <ShortName>Income Taxes Components of Income Tax (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <Position>82</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R83.htm</HtmlFileName>
+      <LongName>9955567 - Disclosure - Income Taxes Reconciliation of Income Tax Satutory Rate (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/IncomeTaxesReconciliationofIncomeTaxSatutoryRateDetails</Role>
+      <ShortName>Income Taxes Reconciliation of Income Tax Satutory Rate (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <Position>83</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R84.htm</HtmlFileName>
+      <LongName>9955568 - Disclosure - Income Taxes - Cash Paid for Income Taxes (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/IncomeTaxesCashPaidforIncomeTaxesDetails</Role>
+      <ShortName>Income Taxes - Cash Paid for Income Taxes (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <Position>84</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R85.htm</HtmlFileName>
+      <LongName>9955570 - Disclosure - Income Taxes Components of Net Deferred Tax Liability (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/IncomeTaxesComponentsofNetDeferredTaxLiabilityDetails</Role>
+      <ShortName>Income Taxes Components of Net Deferred Tax Liability (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <Position>85</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R86.htm</HtmlFileName>
+      <LongName>9955571 - Disclosure - Income Taxes Changes in Unrecognized Tax Benefits (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/IncomeTaxesChangesinUnrecognizedTaxBenefitsDetails</Role>
+      <ShortName>Income Taxes Changes in Unrecognized Tax Benefits (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <Position>86</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R87.htm</HtmlFileName>
+      <LongName>9955572 - Disclosure - Regulatory Matters, Commitments, Contingencies And Environmental Liabilities (Narrative) (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/RegulatoryMattersCommitmentsContingenciesAndEnvironmentalLiabilitiesNarrativeDetails</Role>
+      <ShortName>Regulatory Matters, Commitments, Contingencies And Environmental Liabilities (Narrative) (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <ParentRole>http://www.energytransfer.com/role/RegulatoryMattersCommitmentsContingenciesAndEnvironmentalLiabilitiesRegulatoryMattersCommitmentsContingenciesAndEnvironmentalLiabilitiesTables</ParentRole>
+      <Position>87</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R88.htm</HtmlFileName>
+      <LongName>9955573 - Disclosure - Regulatory Matters, Commitments, Contingencies And Environmental Liabilities Regulatory Matters, Commitments, Contingencies And Environemental Liabilities (Environmental Liabilities) (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/RegulatoryMattersCommitmentsContingenciesAndEnvironmentalLiabilitiesRegulatoryMattersCommitmentsContingenciesAndEnvironementalLiabilitiesEnvironmentalLiabilitiesDetails</Role>
+      <ShortName>Regulatory Matters, Commitments, Contingencies And Environmental Liabilities Regulatory Matters, Commitments, Contingencies And Environemental Liabilities (Environmental Liabilities) (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <ParentRole>http://www.energytransfer.com/role/RegulatoryMattersCommitmentsContingenciesAndEnvironmentalLiabilitiesRegulatoryMattersCommitmentsContingenciesAndEnvironmentalLiabilitiesTables</ParentRole>
+      <Position>88</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R89.htm</HtmlFileName>
+      <LongName>9955574 - Disclosure - Revenue Narrative (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/RevenueNarrativeDetails</Role>
+      <ShortName>Revenue Narrative (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <Position>89</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R90.htm</HtmlFileName>
+      <LongName>9955575 - Disclosure - Revenue Contracts with customers (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/RevenueContractswithcustomersDetails</Role>
+      <ShortName>Revenue Contracts with customers (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <Position>90</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R91.htm</HtmlFileName>
+      <LongName>9955576 - Disclosure - Revenue from Contract with Customer - Performance Obligation (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/RevenuefromContractwithCustomerPerformanceObligationDetails</Role>
+      <ShortName>Revenue from Contract with Customer - Performance Obligation (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <Position>91</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R92.htm</HtmlFileName>
+      <LongName>9955577 - Disclosure - Lease Accounting Narrative (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/LeaseAccountingNarrativeDetails</Role>
+      <ShortName>Lease Accounting Narrative (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <Position>92</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R93.htm</HtmlFileName>
+      <LongName>9955578 - Disclosure - Lease Accounting - Components of Leases on BS (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/LeaseAccountingComponentsofLeasesonBSDetails</Role>
+      <ShortName>Lease Accounting - Components of Leases on BS (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <Position>93</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R94.htm</HtmlFileName>
+      <LongName>9955579 - Disclosure - Lease Accounting - Components of Lease Expense (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/LeaseAccountingComponentsofLeaseExpenseDetails</Role>
+      <ShortName>Lease Accounting - Components of Lease Expense (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <Position>94</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R95.htm</HtmlFileName>
+      <LongName>9955580 - Disclosure - Lease Accounting - Remaining term and rate (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/LeaseAccountingRemainingtermandrateDetails</Role>
+      <ShortName>Lease Accounting - Remaining term and rate (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <Position>95</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R96.htm</HtmlFileName>
+      <LongName>9955581 - Disclosure - Lease Accounting - Cash flow (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/LeaseAccountingCashflowDetails</Role>
+      <ShortName>Lease Accounting - Cash flow (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <Position>96</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R97.htm</HtmlFileName>
+      <LongName>9955582 - Disclosure - Lease Accounting - Lease Maturities (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/LeaseAccountingLeaseMaturitiesDetails</Role>
+      <ShortName>Lease Accounting - Lease Maturities (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <Position>97</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R98.htm</HtmlFileName>
+      <LongName>9955583 - Disclosure - Lease Accounting - Lessor (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/LeaseAccountingLessorDetails</Role>
+      <ShortName>Lease Accounting - Lessor (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <Position>98</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R99.htm</HtmlFileName>
+      <LongName>9955584 - Disclosure - Derivative Assets And Liabilities (Outstanding Commodity-Related Derivatives) (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/DerivativeAssetsAndLiabilitiesOutstandingCommodityRelatedDerivativesDetails</Role>
+      <ShortName>Derivative Assets And Liabilities (Outstanding Commodity-Related Derivatives) (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <ParentRole>http://www.energytransfer.com/role/DerivativeAssetsAndLiabilitiesTables</ParentRole>
+      <Position>99</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R100.htm</HtmlFileName>
+      <LongName>9955586 - Disclosure - Derivative Assets And Liabilities (Fair Value Of Derivative Instruments) (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/DerivativeAssetsAndLiabilitiesFairValueOfDerivativeInstrumentsDetails</Role>
+      <ShortName>Derivative Assets And Liabilities (Fair Value Of Derivative Instruments) (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <ParentRole>http://www.energytransfer.com/role/DerivativeAssetsAndLiabilitiesTables</ParentRole>
+      <Position>100</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R101.htm</HtmlFileName>
+      <LongName>9955587 - Disclosure - Derivative Assets And Liabilities Derivative Assets and Lianilities (Offsetting Agreements Netting Table) (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/DerivativeAssetsAndLiabilitiesDerivativeAssetsandLianilitiesOffsettingAgreementsNettingTableDetails</Role>
+      <ShortName>Derivative Assets And Liabilities Derivative Assets and Lianilities (Offsetting Agreements Netting Table) (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <Position>101</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R102.htm</HtmlFileName>
+      <LongName>9955588 - Disclosure - Derivative Assets And Liabilities (Derivative Amount Of Gain (Loss) Recognized) (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/DerivativeAssetsAndLiabilitiesDerivativeAmountOfGainLossRecognizedDetails</Role>
+      <ShortName>Derivative Assets And Liabilities (Derivative Amount Of Gain (Loss) Recognized) (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <ParentRole>http://www.energytransfer.com/role/DerivativeAssetsAndLiabilitiesTables</ParentRole>
+      <Position>102</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R103.htm</HtmlFileName>
+      <LongName>9955589 - Disclosure - Retirement Benefits (Narrative) (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/RetirementBenefitsNarrativeDetails</Role>
+      <ShortName>Retirement Benefits (Narrative) (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <ParentRole>http://www.energytransfer.com/role/RetirementBenefitsTables</ParentRole>
+      <Position>103</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R104.htm</HtmlFileName>
+      <LongName>9955590 - Disclosure - Retirement Benefits (Obligations and Funded Status) (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/RetirementBenefitsObligationsandFundedStatusDetails</Role>
+      <ShortName>Retirement Benefits (Obligations and Funded Status) (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <ParentRole>http://www.energytransfer.com/role/RetirementBenefitsTables</ParentRole>
+      <Position>104</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R105.htm</HtmlFileName>
+      <LongName>9955591 - Disclosure - Retirement Benefits (Accumulated Benefit Obligation In Excess of Plan Assets) (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/RetirementBenefitsAccumulatedBenefitObligationInExcessofPlanAssetsDetails</Role>
+      <ShortName>Retirement Benefits (Accumulated Benefit Obligation In Excess of Plan Assets) (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <ParentRole>http://www.energytransfer.com/role/RetirementBenefitsTables</ParentRole>
+      <Position>105</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R106.htm</HtmlFileName>
+      <LongName>9955592 - Disclosure - Retirement Benefits (Net Periodic Benefit Costs Schedule) (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/RetirementBenefitsNetPeriodicBenefitCostsScheduleDetails</Role>
+      <ShortName>Retirement Benefits (Net Periodic Benefit Costs Schedule) (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <ParentRole>http://www.energytransfer.com/role/RetirementBenefitsTables</ParentRole>
+      <Position>106</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R107.htm</HtmlFileName>
+      <LongName>9955593 - Disclosure - Retirement Benefits (Benefit Assumptions) (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/RetirementBenefitsBenefitAssumptionsDetails</Role>
+      <ShortName>Retirement Benefits (Benefit Assumptions) (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <ParentRole>http://www.energytransfer.com/role/RetirementBenefitsTables</ParentRole>
+      <Position>107</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R108.htm</HtmlFileName>
+      <LongName>9955594 - Disclosure - Retirement Benefits (Fair Value of Plan Assets) (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/RetirementBenefitsFairValueofPlanAssetsDetails</Role>
+      <ShortName>Retirement Benefits (Fair Value of Plan Assets) (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <ParentRole>http://www.energytransfer.com/role/RetirementBenefitsTables</ParentRole>
+      <Position>108</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R109.htm</HtmlFileName>
+      <LongName>9955595 - Disclosure - Retirement Benefits (Benefit Payments) (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/RetirementBenefitsBenefitPaymentsDetails</Role>
+      <ShortName>Retirement Benefits (Benefit Payments) (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <ParentRole>http://www.energytransfer.com/role/RetirementBenefitsTables</ParentRole>
+      <Position>109</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R110.htm</HtmlFileName>
+      <LongName>9955596 - Disclosure - Reportable Segments Revenue (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/ReportableSegmentsRevenueDetails</Role>
+      <ShortName>Reportable Segments Revenue (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <Position>110</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R111.htm</HtmlFileName>
+      <LongName>9955597 - Disclosure - Reportable Segments (Operating Segments) (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/ReportableSegmentsOperatingSegmentsDetails</Role>
+      <ShortName>Reportable Segments (Operating Segments) (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <ParentRole>http://www.energytransfer.com/role/ReportableSegmentsTables</ParentRole>
+      <Position>111</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R112.htm</HtmlFileName>
+      <LongName>9955598 - Disclosure - Reportable Segments Reportable Segments (Segment Adjusted EBITDA) (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/ReportableSegmentsReportableSegmentsSegmentAdjustedEBITDADetails</Role>
+      <ShortName>Reportable Segments Reportable Segments (Segment Adjusted EBITDA) (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <Position>112</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R113.htm</HtmlFileName>
+      <LongName>9955600 - Disclosure - Reporting Segments (Additions To Property Plant And Equipment Including Acquisitions Net Of Contributions In Aid Of Construction Costs Segments) (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/ReportingSegmentsAdditionsToPropertyPlantAndEquipmentIncludingAcquisitionsNetOfContributionsInAidOfConstructionCostsSegmentsDetails</Role>
+      <ShortName>Reporting Segments (Additions To Property Plant And Equipment Including Acquisitions Net Of Contributions In Aid Of Construction Costs Segments) (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <Position>113</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R114.htm</HtmlFileName>
+      <LongName>9955601 - Disclosure - Reportable Segments (Advances to and investments in affiliates) (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/ReportableSegmentsAdvancestoandinvestmentsinaffiliatesDetails</Role>
+      <ShortName>Reportable Segments (Advances to and investments in affiliates) (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <ParentRole>http://www.energytransfer.com/role/ReportableSegmentsTables</ParentRole>
+      <Position>114</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R115.htm</HtmlFileName>
+      <LongName>9955602 - Disclosure - Reportable Segments (Other Income Expense) (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/ReportableSegmentsOtherIncomeExpenseDetails</Role>
+      <ShortName>Reportable Segments (Other Income Expense) (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <ParentRole>http://www.energytransfer.com/role/ReportableSegmentsTables</ParentRole>
+      <Position>115</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R116.htm</HtmlFileName>
+      <LongName>9955603 - Disclosure - Reportable Segments (Selling General and Administrative) (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/ReportableSegmentsSellingGeneralandAdministrativeDetails</Role>
+      <ShortName>Reportable Segments (Selling General and Administrative) (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <ParentRole>http://www.energytransfer.com/role/ReportableSegmentsTables</ParentRole>
+      <Position>116</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R117.htm</HtmlFileName>
+      <LongName>9955604 - Disclosure - Reportable Segments (Operating Expense) (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/ReportableSegmentsOperatingExpenseDetails</Role>
+      <ShortName>Reportable Segments (Operating Expense) (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <ParentRole>http://www.energytransfer.com/role/ReportableSegmentsTables</ParentRole>
+      <Position>117</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R118.htm</HtmlFileName>
+      <LongName>9955605 - Disclosure - Reportable Segments Equity in Earnings of Affiliates (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/ReportableSegmentsEquityinEarningsofAffiliatesDetails</Role>
+      <ShortName>Reportable Segments Equity in Earnings of Affiliates (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <Position>118</Position>
+    </Report>
+    <Report instance="et-20251231.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R119.htm</HtmlFileName>
+      <LongName>9955606 - Disclosure - Reportable Segments Depreciation (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.energytransfer.com/role/ReportableSegmentsDepreciationDetails</Role>
+      <ShortName>Reportable Segments Depreciation (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <Position>119</Position>
+    </Report>
+    <Report>
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <LongName>All Reports</LongName>
+      <ReportType>Book</ReportType>
+      <ShortName>All Reports</ShortName>
+    </Report>
+  </MyReports>
+  <InputFiles>
+    <File doctype="10-K" isDefinitelyFs="true" isUsgaap="true" original="et-20251231.htm">et-20251231.htm</File>
+    <File>et-20251231.xsd</File>
+    <File>et-20251231_cal.xml</File>
+    <File>et-20251231_def.xml</File>
+    <File>et-20251231_lab.xml</File>
+    <File>et-20251231_pre.xml</File>
+  </InputFiles>
+  <SupplementalFiles>
+    <File>et-20251231_g1.jpg</File>
+    <File>et-20251231_g2.jpg</File>
+    <File>et-20251231_g3.jpg</File>
+    <File>et-20251231_g4.jpg</File>
+    <File>et-20251231_g5.jpg</File>
+    <File>et-20251231_g6.jpg</File>
+    <File>et-20251231_g7.jpg</File>
+    <File>et-20251231_g8.jpg</File>
+  </SupplementalFiles>
+  <BaseTaxonomies>
+    <BaseTaxonomy items="1">http://fasb.org/srt/2025</BaseTaxonomy>
+    <BaseTaxonomy items="3041">http://fasb.org/us-gaap/2025</BaseTaxonomy>
+    <BaseTaxonomy items="12">http://xbrl.sec.gov/cyd/2025</BaseTaxonomy>
+    <BaseTaxonomy items="42">http://xbrl.sec.gov/dei/2025</BaseTaxonomy>
+    <BaseTaxonomy items="5">http://xbrl.sec.gov/ecd/2025</BaseTaxonomy>
+  </BaseTaxonomies>
+  <HasPresentationLinkbase>true</HasPresentationLinkbase>
+  <HasCalculationLinkbase>true</HasCalculationLinkbase>
+</FilingSummary>

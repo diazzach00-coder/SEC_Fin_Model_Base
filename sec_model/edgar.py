@@ -1,5 +1,9 @@
-"""Ticker -> CIK resolution and annual (10-K family) filing selection."""
+"""Ticker -> CIK resolution, annual filing selection, and statement location."""
+import xml.etree.ElementTree as ET
+from dataclasses import dataclass
 from datetime import date
+
+import requests
 
 from sec_model.types import Filing, UserFacingError
 
@@ -85,3 +89,104 @@ def select_filings_by_fy(filings: list[Filing], n_years: int) -> dict[str, list[
     return {
         fy: sorted(by_fy[fy], key=lambda f: f.filing_date, reverse=True) for fy in latest
     }
+
+
+# ---- Locating the three statements in a filing ----------------------------
+@dataclass(frozen=True)
+class ReportEntry:
+    short_name: str
+    long_name: str
+    category: str
+    html_file: str
+
+
+_EXCLUDE = ("parenthetical", "comprehensive", "equity", "partners' capital",
+            "details", "stockholders", "changes in")
+
+_PRECISE = {
+    "IS": ["statement of income", "statements of income", "statement of operations",
+           "statements of operations", "statement of earnings", "statements of earnings",
+           "statements of comprehensive income", "statements of consolidated operations"],
+    "BS": ["balance sheet", "statements of condition", "financial position", "consolidated balance"],
+    "CF": ["cash flow", "statements of cash", "cash flows", "statements of consolidated cash"],
+}
+_BROAD = {
+    "IS": ["income", "operations", "earnings"],
+    "BS": ["balance"],
+    "CF": ["cash"],
+}
+_ANCHORS = {
+    "IS": ("us-gaap_Revenues", "us-gaap_RevenueFromContractWithCustomerExcludingAssessedTax",
+           "us-gaap_CostsAndExpenses", "us-gaap_InterestAndDividendIncomeOperating"),
+    "BS": ("us-gaap_Assets",),
+    "CF": ("us-gaap_NetCashProvidedByUsedInOperatingActivities",),
+}
+
+
+def parse_filing_summary(xml: str) -> list[ReportEntry]:
+    """Reports from FilingSummary.xml; entries without an HtmlFileName are skipped."""
+    root = ET.fromstring(xml.lstrip("﻿").encode("utf-8"))
+    out: list[ReportEntry] = []
+    for rep in root.iter("Report"):
+        html = (rep.findtext("HtmlFileName") or "").strip()
+        if not html:
+            continue
+        out.append(ReportEntry(
+            short_name=(rep.findtext("ShortName") or "").strip(),
+            long_name=(rep.findtext("LongName") or "").strip(),
+            category=(rep.findtext("MenuCategory") or "").strip(),
+            html_file=html,
+        ))
+    return out
+
+
+def _score(name: str, stype: str) -> int:
+    precise = sum(kw in name for kw in _PRECISE[stype])
+    broad = sum(kw in name for kw in _BROAD[stype])
+    return precise * 10 + broad
+
+
+def pick_statement_reports(reports: list[ReportEntry]) -> dict[str, list[ReportEntry]]:
+    """Candidate reports per statement type, best first (ties keep filing order)."""
+    eligible = []
+    for r in reports:
+        name = r.short_name.lower()
+        if r.category == "Statements" and not any(x in name for x in _EXCLUDE):
+            eligible.append((r, name))
+    picked: dict[str, list[ReportEntry]] = {}
+    for stype in ("IS", "BS", "CF"):
+        scored = [(_score(name, stype), r) for r, name in eligible]
+        scored = [(s, r) for s, r in scored if s > 0]
+        scored.sort(key=lambda sr: -sr[0])  # stable
+        picked[stype] = [r for _, r in scored]
+    return picked
+
+
+def locate_statements(client, filing: Filing) -> dict[str, ReportEntry | None]:
+    """The R-file for each statement: first candidate whose HTML carries the anchor tag."""
+    none = {"IS": None, "BS": None, "CF": None}
+    try:
+        xml = client.get_text(filing.folder_url + "FilingSummary.xml")
+    except requests.HTTPError:
+        return none
+    candidates = pick_statement_reports(parse_filing_summary(xml))
+    located: dict[str, ReportEntry | None] = dict(none)
+    for stype, cands in candidates.items():
+        for rep in cands:
+            try:
+                html = client.get_text(filing.folder_url + rep.html_file)
+            except requests.HTTPError:
+                continue
+            if any(a in html for a in _ANCHORS[stype]):
+                located[stype] = rep
+                break
+    return located
+
+
+def choose_source_filing(client, candidates: list[Filing]):
+    """First filing (newest first) that yields all three statements, else None."""
+    for filing in candidates:
+        located = locate_statements(client, filing)
+        if all(located.values()):
+            return filing, located
+    return None

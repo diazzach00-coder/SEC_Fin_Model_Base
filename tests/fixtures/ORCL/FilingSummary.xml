@@ -1,0 +1,1080 @@
+<?xml version='1.0' encoding='utf-8'?>
+<FilingSummary>
+  <Version>3.26.1</Version>
+  <ProcessingTime/>
+  <ReportFormat>html</ReportFormat>
+  <ContextCount>545</ContextCount>
+  <ElementCount>590</ElementCount>
+  <EntityCount>1</EntityCount>
+  <FootnotesReported>true</FootnotesReported>
+  <SegmentCount>169</SegmentCount>
+  <ScenarioCount>0</ScenarioCount>
+  <TuplesReported>false</TuplesReported>
+  <UnitCount>7</UnitCount>
+  <MyReports>
+    <Report instance="orcl-20260531.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R1.htm</HtmlFileName>
+      <LongName>75000 - Document - DOCUMENT AND ENTITY INFORMATION</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.oracle.com/20260531/taxonomy/role/Role_DocumentDOCUMENTANDENTITYINFORMATION</Role>
+      <ShortName>DOCUMENT AND ENTITY INFORMATION</ShortName>
+      <MenuCategory>Cover</MenuCategory>
+      <Position>1</Position>
+    </Report>
+    <Report instance="orcl-20260531.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R2.htm</HtmlFileName>
+      <LongName>75010 - Statement - CONSOLIDATED BALANCE SHEETS</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.oracle.com/20260531/taxonomy/role/Role_StatementCONSOLIDATEDBALANCESHEETS</Role>
+      <ShortName>CONSOLIDATED BALANCE SHEETS</ShortName>
+      <MenuCategory>Statements</MenuCategory>
+      <Position>2</Position>
+    </Report>
+    <Report instance="orcl-20260531.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R3.htm</HtmlFileName>
+      <LongName>75020 - Statement - CONSOLIDATED BALANCE SHEETS (Parenthetical)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.oracle.com/20260531/taxonomy/role/StatementConsolidatedBalanceSheetsParenthetical</Role>
+      <ShortName>CONSOLIDATED BALANCE SHEETS (Parenthetical)</ShortName>
+      <MenuCategory>Statements</MenuCategory>
+      <Position>3</Position>
+    </Report>
+    <Report instance="orcl-20260531.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R4.htm</HtmlFileName>
+      <LongName>75030 - Statement - CONSOLIDATED STATEMENTS OF OPERATIONS</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.oracle.com/20260531/taxonomy/role/Role_StatementCONSOLIDATEDSTATEMENTSOFOPERATIONS</Role>
+      <ShortName>CONSOLIDATED STATEMENTS OF OPERATIONS</ShortName>
+      <MenuCategory>Statements</MenuCategory>
+      <Position>4</Position>
+    </Report>
+    <Report instance="orcl-20260531.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R5.htm</HtmlFileName>
+      <LongName>75040 - Statement - CONSOLIDATED STATEMENTS OF COMPREHENSIVE INCOME</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.oracle.com/20260531/taxonomy/role/Role_StatementCONSOLIDATEDSTATEMENTSOFCOMPREHENSIVEINCOME</Role>
+      <ShortName>CONSOLIDATED STATEMENTS OF COMPREHENSIVE INCOME</ShortName>
+      <MenuCategory>Statements</MenuCategory>
+      <Position>5</Position>
+    </Report>
+    <Report instance="orcl-20260531.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R6.htm</HtmlFileName>
+      <LongName>75050 - Statement - CONSOLIDATED STATEMENTS OF STOCKHOLDERS' EQUITY</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.oracle.com/20260531/taxonomy/role/StatementConsolidatedStatementsOfStockholdersEquity1</Role>
+      <ShortName>CONSOLIDATED STATEMENTS OF STOCKHOLDERS' EQUITY</ShortName>
+      <MenuCategory>Statements</MenuCategory>
+      <Position>6</Position>
+    </Report>
+    <Report instance="orcl-20260531.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R7.htm</HtmlFileName>
+      <LongName>75060 - Statement - CONSOLIDATED STATEMENTS OF STOCKHOLDERS' EQUITY PARENTHETICAL</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.oracle.com/20260531/taxonomy/role/StatementConsolidatedStatementsOfStockholdersEquityParenthetical</Role>
+      <ShortName>CONSOLIDATED STATEMENTS OF STOCKHOLDERS' EQUITY PARENTHETICAL</ShortName>
+      <MenuCategory>Statements</MenuCategory>
+      <Position>7</Position>
+    </Report>
+    <Report instance="orcl-20260531.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R8.htm</HtmlFileName>
+      <LongName>75070 - Statement - CONSOLIDATED STATEMENTS OF CASH FLOWS</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.oracle.com/20260531/taxonomy/role/Role_StatementCONSOLIDATEDSTATEMENTSOFCASHFLOWS</Role>
+      <ShortName>CONSOLIDATED STATEMENTS OF CASH FLOWS</ShortName>
+      <MenuCategory>Statements</MenuCategory>
+      <Position>8</Position>
+    </Report>
+    <Report instance="orcl-20260531.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R9.htm</HtmlFileName>
+      <LongName>995410 - Disclosure - Pay vs Performance Disclosure</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://xbrl.sec.gov/ecd/role/PvpDisclosure</Role>
+      <ShortName>Pay vs Performance Disclosure</ShortName>
+      <MenuCategory>Notes</MenuCategory>
+      <Position>9</Position>
+    </Report>
+    <Report instance="orcl-20260531.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R10.htm</HtmlFileName>
+      <LongName>995445 - Disclosure - Insider Trading Arrangements</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://xbrl.sec.gov/ecd/role/InsiderTradingArrangements</Role>
+      <ShortName>Insider Trading Arrangements</ShortName>
+      <MenuCategory>Notes</MenuCategory>
+      <Position>10</Position>
+    </Report>
+    <Report instance="orcl-20260531.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R11.htm</HtmlFileName>
+      <LongName>995455 - Disclosure - Cybersecurity Risk Management, Strategy, and Governance</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.oracle.com/20260531/taxonomy/role/DisclosureCybersecurityRiskManagementStrategyAndGovernance</Role>
+      <ShortName>Cybersecurity Risk Management, Strategy, and Governance</ShortName>
+      <MenuCategory>Notes</MenuCategory>
+      <Position>11</Position>
+    </Report>
+    <Report instance="orcl-20260531.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R12.htm</HtmlFileName>
+      <LongName>995465 - Disclosure - ORGANIZATION AND SIGNIFICANT ACCOUNTING POLICIES</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.oracle.com/20260531/taxonomy/role/Role_DisclosureORGANIZATIONANDSIGNIFICANTACCOUNTINGPOLICIES</Role>
+      <ShortName>ORGANIZATION AND SIGNIFICANT ACCOUNTING POLICIES</ShortName>
+      <MenuCategory>Notes</MenuCategory>
+      <Position>12</Position>
+    </Report>
+    <Report instance="orcl-20260531.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R13.htm</HtmlFileName>
+      <LongName>995485 - Disclosure - CASH, CASH EQUIVALENTS AND MARKETABLE SECURITIES</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.oracle.com/20260531/taxonomy/role/Role_DisclosureCASHCASHEQUIVALENTSANDMARKETABLESECURITIES</Role>
+      <ShortName>CASH, CASH EQUIVALENTS AND MARKETABLE SECURITIES</ShortName>
+      <MenuCategory>Notes</MenuCategory>
+      <Position>13</Position>
+    </Report>
+    <Report instance="orcl-20260531.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R14.htm</HtmlFileName>
+      <LongName>995495 - Disclosure - FAIR VALUE MEASUREMENTS</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.oracle.com/20260531/taxonomy/role/Role_DisclosureFAIRVALUEMEASUREMENTS</Role>
+      <ShortName>FAIR VALUE MEASUREMENTS</ShortName>
+      <MenuCategory>Notes</MenuCategory>
+      <Position>14</Position>
+    </Report>
+    <Report instance="orcl-20260531.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R15.htm</HtmlFileName>
+      <LongName>995505 - Disclosure - PROPERTY, PLANT AND EQUIPMENT</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.oracle.com/20260531/taxonomy/role/Role_DisclosurePROPERTYPLANTANDEQUIPMENT</Role>
+      <ShortName>PROPERTY, PLANT AND EQUIPMENT</ShortName>
+      <MenuCategory>Notes</MenuCategory>
+      <Position>15</Position>
+    </Report>
+    <Report instance="orcl-20260531.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R16.htm</HtmlFileName>
+      <LongName>995515 - Disclosure - INTANGIBLE ASSETS AND GOODWILL</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.oracle.com/20260531/taxonomy/role/Role_DisclosureINTANGIBLEASSETSANDGOODWILL</Role>
+      <ShortName>INTANGIBLE ASSETS AND GOODWILL</ShortName>
+      <MenuCategory>Notes</MenuCategory>
+      <Position>16</Position>
+    </Report>
+    <Report instance="orcl-20260531.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R17.htm</HtmlFileName>
+      <LongName>995525 - Disclosure - NOTES PAYABLE AND OTHER BORROWINGS</LongName>
+      <ReportType>Notes</ReportType>
+      <Role>http://www.oracle.com/20260531/taxonomy/role/Role_DisclosureNOTESPAYABLEANDOTHERBORROWINGS</Role>
+      <ShortName>NOTES PAYABLE AND OTHER BORROWINGS</ShortName>
+      <MenuCategory>Notes</MenuCategory>
+      <Position>17</Position>
+    </Report>
+    <Report instance="orcl-20260531.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R18.htm</HtmlFileName>
+      <LongName>995535 - Disclosure - RESTRUCTURING AND OTHER EXPENSES</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.oracle.com/20260531/taxonomy/role/DisclosureRestructuringAndOtherExpenses</Role>
+      <ShortName>RESTRUCTURING AND OTHER EXPENSES</ShortName>
+      <MenuCategory>Notes</MenuCategory>
+      <Position>18</Position>
+    </Report>
+    <Report instance="orcl-20260531.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R19.htm</HtmlFileName>
+      <LongName>995545 - Disclosure - DEFERRED REVENUES</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.oracle.com/20260531/taxonomy/role/Role_DisclosureDEFERREDREVENUES</Role>
+      <ShortName>DEFERRED REVENUES</ShortName>
+      <MenuCategory>Notes</MenuCategory>
+      <Position>19</Position>
+    </Report>
+    <Report instance="orcl-20260531.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R20.htm</HtmlFileName>
+      <LongName>995555 - Disclosure - LEASES, OTHER COMMITMENTS AND CERTAIN CONTINGENCIES</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.oracle.com/20260531/taxonomy/role/Role_DisclosureLEASESOTHERCOMMITMENTSANDCERTAINCONTINGENCIES</Role>
+      <ShortName>LEASES, OTHER COMMITMENTS AND CERTAIN CONTINGENCIES</ShortName>
+      <MenuCategory>Notes</MenuCategory>
+      <Position>20</Position>
+    </Report>
+    <Report instance="orcl-20260531.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R21.htm</HtmlFileName>
+      <LongName>995565 - Disclosure - STOCKHOLDERS' EQUITY</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.oracle.com/20260531/taxonomy/role/DisclosureStockholdersEquity1</Role>
+      <ShortName>STOCKHOLDERS' EQUITY</ShortName>
+      <MenuCategory>Notes</MenuCategory>
+      <Position>21</Position>
+    </Report>
+    <Report instance="orcl-20260531.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R22.htm</HtmlFileName>
+      <LongName>995575 - Disclosure - EMPLOYEE BENEFIT PLANS</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.oracle.com/20260531/taxonomy/role/Role_DisclosureEMPLOYEEBENEFITPLANS</Role>
+      <ShortName>EMPLOYEE BENEFIT PLANS</ShortName>
+      <MenuCategory>Notes</MenuCategory>
+      <Position>22</Position>
+    </Report>
+    <Report instance="orcl-20260531.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R23.htm</HtmlFileName>
+      <LongName>995585 - Disclosure - INCOME TAXES</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.oracle.com/20260531/taxonomy/role/Role_DisclosureINCOMETAXES</Role>
+      <ShortName>INCOME TAXES</ShortName>
+      <MenuCategory>Notes</MenuCategory>
+      <Position>23</Position>
+    </Report>
+    <Report instance="orcl-20260531.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R24.htm</HtmlFileName>
+      <LongName>995595 - Disclosure - SEGMENT INFORMATION</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.oracle.com/20260531/taxonomy/role/Role_DisclosureSEGMENTINFORMATION</Role>
+      <ShortName>SEGMENT INFORMATION</ShortName>
+      <MenuCategory>Notes</MenuCategory>
+      <Position>24</Position>
+    </Report>
+    <Report instance="orcl-20260531.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R25.htm</HtmlFileName>
+      <LongName>995605 - Disclosure - EARNINGS PER SHARE</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.oracle.com/20260531/taxonomy/role/Role_DisclosureEARNINGSPERSHARE</Role>
+      <ShortName>EARNINGS PER SHARE</ShortName>
+      <MenuCategory>Notes</MenuCategory>
+      <Position>25</Position>
+    </Report>
+    <Report instance="orcl-20260531.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R26.htm</HtmlFileName>
+      <LongName>995615 - Disclosure - LEGAL PROCEEDINGS</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.oracle.com/20260531/taxonomy/role/Role_DisclosureLEGALPROCEEDINGS</Role>
+      <ShortName>LEGAL PROCEEDINGS</ShortName>
+      <MenuCategory>Notes</MenuCategory>
+      <Position>26</Position>
+    </Report>
+    <Report instance="orcl-20260531.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R27.htm</HtmlFileName>
+      <LongName>995625 - Disclosure - ORGANIZATION AND SIGNIFICANT ACCOUNTING POLICIES (Policies)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.oracle.com/20260531/taxonomy/role/Role_DisclosureORGANIZATIONANDSIGNIFICANTACCOUNTINGPOLICIESPolicies</Role>
+      <ShortName>ORGANIZATION AND SIGNIFICANT ACCOUNTING POLICIES (Policies)</ShortName>
+      <MenuCategory>Policies</MenuCategory>
+      <Position>27</Position>
+    </Report>
+    <Report instance="orcl-20260531.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R28.htm</HtmlFileName>
+      <LongName>995635 - Disclosure - ORGANIZATION AND SIGNIFICANT ACCOUNTING POLICIES (Tables)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.oracle.com/20260531/taxonomy/role/Role_DisclosureORGANIZATIONANDSIGNIFICANTACCOUNTINGPOLICIESTables</Role>
+      <ShortName>ORGANIZATION AND SIGNIFICANT ACCOUNTING POLICIES (Tables)</ShortName>
+      <MenuCategory>Tables</MenuCategory>
+      <ParentRole>http://www.oracle.com/20260531/taxonomy/role/Role_DisclosureORGANIZATIONANDSIGNIFICANTACCOUNTINGPOLICIES</ParentRole>
+      <Position>28</Position>
+    </Report>
+    <Report instance="orcl-20260531.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R29.htm</HtmlFileName>
+      <LongName>995645 - Disclosure - CASH, CASH EQUIVALENTS AND MARKETABLE SECURITIES (Tables)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.oracle.com/20260531/taxonomy/role/Role_DisclosureCASHCASHEQUIVALENTSANDMARKETABLESECURITIESTables</Role>
+      <ShortName>CASH, CASH EQUIVALENTS AND MARKETABLE SECURITIES (Tables)</ShortName>
+      <MenuCategory>Tables</MenuCategory>
+      <ParentRole>http://www.oracle.com/20260531/taxonomy/role/Role_DisclosureCASHCASHEQUIVALENTSANDMARKETABLESECURITIES</ParentRole>
+      <Position>29</Position>
+    </Report>
+    <Report instance="orcl-20260531.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R30.htm</HtmlFileName>
+      <LongName>995655 - Disclosure - FAIR VALUE MEASUREMENTS (Tables)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.oracle.com/20260531/taxonomy/role/Role_DisclosureFAIRVALUEMEASUREMENTSTables</Role>
+      <ShortName>FAIR VALUE MEASUREMENTS (Tables)</ShortName>
+      <MenuCategory>Tables</MenuCategory>
+      <ParentRole>http://www.oracle.com/20260531/taxonomy/role/Role_DisclosureFAIRVALUEMEASUREMENTS</ParentRole>
+      <Position>30</Position>
+    </Report>
+    <Report instance="orcl-20260531.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R31.htm</HtmlFileName>
+      <LongName>995665 - Disclosure - PROPERTY, PLANT AND EQUIPMENT (Tables)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.oracle.com/20260531/taxonomy/role/Role_DisclosurePROPERTYPLANTANDEQUIPMENTTables</Role>
+      <ShortName>PROPERTY, PLANT AND EQUIPMENT (Tables)</ShortName>
+      <MenuCategory>Tables</MenuCategory>
+      <ParentRole>http://www.oracle.com/20260531/taxonomy/role/Role_DisclosurePROPERTYPLANTANDEQUIPMENT</ParentRole>
+      <Position>31</Position>
+    </Report>
+    <Report instance="orcl-20260531.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R32.htm</HtmlFileName>
+      <LongName>995675 - Disclosure - INTANGIBLE ASSETS AND GOODWILL (Tables)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.oracle.com/20260531/taxonomy/role/Role_DisclosureINTANGIBLEASSETSANDGOODWILLTables</Role>
+      <ShortName>INTANGIBLE ASSETS AND GOODWILL (Tables)</ShortName>
+      <MenuCategory>Tables</MenuCategory>
+      <ParentRole>http://www.oracle.com/20260531/taxonomy/role/Role_DisclosureINTANGIBLEASSETSANDGOODWILL</ParentRole>
+      <Position>32</Position>
+    </Report>
+    <Report instance="orcl-20260531.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R33.htm</HtmlFileName>
+      <LongName>995685 - Disclosure - NOTES PAYABLE AND OTHER BORROWINGS (Tables)</LongName>
+      <ReportType>Notes</ReportType>
+      <Role>http://www.oracle.com/20260531/taxonomy/role/Role_DisclosureNOTESPAYABLEANDOTHERBORROWINGSTables</Role>
+      <ShortName>NOTES PAYABLE AND OTHER BORROWINGS (Tables)</ShortName>
+      <MenuCategory>Tables</MenuCategory>
+      <ParentRole>http://www.oracle.com/20260531/taxonomy/role/Role_DisclosureNOTESPAYABLEANDOTHERBORROWINGS</ParentRole>
+      <Position>33</Position>
+    </Report>
+    <Report instance="orcl-20260531.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R34.htm</HtmlFileName>
+      <LongName>995695 - Disclosure - RESTRUCTURING AND OTHER EXPENSES (Tables)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.oracle.com/20260531/taxonomy/role/DisclosureRestructuringAndOtherExpensesTables</Role>
+      <ShortName>RESTRUCTURING AND OTHER EXPENSES (Tables)</ShortName>
+      <MenuCategory>Tables</MenuCategory>
+      <ParentRole>http://www.oracle.com/20260531/taxonomy/role/DisclosureRestructuringAndOtherExpenses</ParentRole>
+      <Position>34</Position>
+    </Report>
+    <Report instance="orcl-20260531.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R35.htm</HtmlFileName>
+      <LongName>995705 - Disclosure - DEFERRED REVENUES (Tables)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.oracle.com/20260531/taxonomy/role/Role_DisclosureDEFERREDREVENUESTables</Role>
+      <ShortName>DEFERRED REVENUES (Tables)</ShortName>
+      <MenuCategory>Tables</MenuCategory>
+      <ParentRole>http://www.oracle.com/20260531/taxonomy/role/Role_DisclosureDEFERREDREVENUES</ParentRole>
+      <Position>35</Position>
+    </Report>
+    <Report instance="orcl-20260531.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R36.htm</HtmlFileName>
+      <LongName>995715 - Disclosure - LEASES, OTHER COMMITMENTS AND CERTAIN CONTINGENCIES (Tables)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.oracle.com/20260531/taxonomy/role/Role_DisclosureLEASESOTHERCOMMITMENTSANDCERTAINCONTINGENCIESTables</Role>
+      <ShortName>LEASES, OTHER COMMITMENTS AND CERTAIN CONTINGENCIES (Tables)</ShortName>
+      <MenuCategory>Tables</MenuCategory>
+      <ParentRole>http://www.oracle.com/20260531/taxonomy/role/Role_DisclosureLEASESOTHERCOMMITMENTSANDCERTAINCONTINGENCIES</ParentRole>
+      <Position>36</Position>
+    </Report>
+    <Report instance="orcl-20260531.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R37.htm</HtmlFileName>
+      <LongName>995725 - Disclosure - STOCKHOLDERS' EQUITY (Tables)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.oracle.com/20260531/taxonomy/role/DisclosureStockholdersEquityTables</Role>
+      <ShortName>STOCKHOLDERS' EQUITY (Tables)</ShortName>
+      <MenuCategory>Tables</MenuCategory>
+      <ParentRole>http://www.oracle.com/20260531/taxonomy/role/DisclosureStockholdersEquity1</ParentRole>
+      <Position>37</Position>
+    </Report>
+    <Report instance="orcl-20260531.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R38.htm</HtmlFileName>
+      <LongName>995735 - Disclosure - EMPLOYEE BENEFIT PLANS (Tables)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.oracle.com/20260531/taxonomy/role/Role_DisclosureEMPLOYEEBENEFITPLANSTables</Role>
+      <ShortName>EMPLOYEE BENEFIT PLANS (Tables)</ShortName>
+      <MenuCategory>Tables</MenuCategory>
+      <ParentRole>http://www.oracle.com/20260531/taxonomy/role/Role_DisclosureEMPLOYEEBENEFITPLANS</ParentRole>
+      <Position>38</Position>
+    </Report>
+    <Report instance="orcl-20260531.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R39.htm</HtmlFileName>
+      <LongName>995745 - Disclosure - INCOME TAXES (Tables)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.oracle.com/20260531/taxonomy/role/Role_DisclosureINCOMETAXESTables</Role>
+      <ShortName>INCOME TAXES (Tables)</ShortName>
+      <MenuCategory>Tables</MenuCategory>
+      <ParentRole>http://www.oracle.com/20260531/taxonomy/role/Role_DisclosureINCOMETAXES</ParentRole>
+      <Position>39</Position>
+    </Report>
+    <Report instance="orcl-20260531.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R40.htm</HtmlFileName>
+      <LongName>995755 - Disclosure - SEGMENT INFORMATION (Tables)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.oracle.com/20260531/taxonomy/role/Role_DisclosureSEGMENTINFORMATIONTables</Role>
+      <ShortName>SEGMENT INFORMATION (Tables)</ShortName>
+      <MenuCategory>Tables</MenuCategory>
+      <ParentRole>http://www.oracle.com/20260531/taxonomy/role/Role_DisclosureSEGMENTINFORMATION</ParentRole>
+      <Position>40</Position>
+    </Report>
+    <Report instance="orcl-20260531.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R41.htm</HtmlFileName>
+      <LongName>995765 - Disclosure - EARNINGS PER SHARE (Tables)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.oracle.com/20260531/taxonomy/role/Role_DisclosureEARNINGSPERSHARETables</Role>
+      <ShortName>EARNINGS PER SHARE (Tables)</ShortName>
+      <MenuCategory>Tables</MenuCategory>
+      <ParentRole>http://www.oracle.com/20260531/taxonomy/role/Role_DisclosureEARNINGSPERSHARE</ParentRole>
+      <Position>41</Position>
+    </Report>
+    <Report instance="orcl-20260531.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R42.htm</HtmlFileName>
+      <LongName>995775 - Disclosure - ORGANIZATION AND SIGNIFICANT ACCOUNTING POLICIES Narrative (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.oracle.com/20260531/taxonomy/role/Role_DisclosureORGANIZATIONANDSIGNIFICANTACCOUNTINGPOLICIESNarrativeDetails</Role>
+      <ShortName>ORGANIZATION AND SIGNIFICANT ACCOUNTING POLICIES Narrative (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <ParentRole>http://www.oracle.com/20260531/taxonomy/role/Role_DisclosureORGANIZATIONANDSIGNIFICANTACCOUNTINGPOLICIESTables</ParentRole>
+      <Position>42</Position>
+    </Report>
+    <Report instance="orcl-20260531.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R43.htm</HtmlFileName>
+      <LongName>995785 - Disclosure - ORGANIZATION AND SIGNIFICANT ACCOUNTING POLICIES Narrative (Details1)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.oracle.com/20260531/taxonomy/role/Role_DisclosureORGANIZATIONANDSIGNIFICANTACCOUNTINGPOLICIESNarrativeDetails1</Role>
+      <ShortName>ORGANIZATION AND SIGNIFICANT ACCOUNTING POLICIES Narrative (Details1)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <ParentRole>http://www.oracle.com/20260531/taxonomy/role/Role_DisclosureORGANIZATIONANDSIGNIFICANTACCOUNTINGPOLICIESTables</ParentRole>
+      <Position>43</Position>
+    </Report>
+    <Report instance="orcl-20260531.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R44.htm</HtmlFileName>
+      <LongName>995795 - Disclosure - ORGANIZATION AND SIGNIFICANT ACCOUNTING POLICIES (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.oracle.com/20260531/taxonomy/role/Role_DisclosureORGANIZATIONANDSIGNIFICANTACCOUNTINGPOLICIESDetails</Role>
+      <ShortName>ORGANIZATION AND SIGNIFICANT ACCOUNTING POLICIES (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <ParentRole>http://www.oracle.com/20260531/taxonomy/role/Role_DisclosureORGANIZATIONANDSIGNIFICANTACCOUNTINGPOLICIESTables</ParentRole>
+      <Position>44</Position>
+    </Report>
+    <Report instance="orcl-20260531.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R45.htm</HtmlFileName>
+      <LongName>995805 - Disclosure - CASH, CASH EQUIVALENTS AND MARKETABLE SECURITIES (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.oracle.com/20260531/taxonomy/role/Role_DisclosureCASHCASHEQUIVALENTSANDMARKETABLESECURITIESDetails</Role>
+      <ShortName>CASH, CASH EQUIVALENTS AND MARKETABLE SECURITIES (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <ParentRole>http://www.oracle.com/20260531/taxonomy/role/Role_DisclosureCASHCASHEQUIVALENTSANDMARKETABLESECURITIESTables</ParentRole>
+      <Position>45</Position>
+    </Report>
+    <Report instance="orcl-20260531.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R46.htm</HtmlFileName>
+      <LongName>995825 - Disclosure - ACQUISITIONS Narrative (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.oracle.com/20260531/taxonomy/role/Role_DisclosureACQUISITIONSNarrativeDetails</Role>
+      <ShortName>ACQUISITIONS Narrative (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <Position>46</Position>
+    </Report>
+    <Report instance="orcl-20260531.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R47.htm</HtmlFileName>
+      <LongName>995835 - Disclosure - FAIR VALUE MEASUREMENTS (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.oracle.com/20260531/taxonomy/role/Role_DisclosureFAIRVALUEMEASUREMENTSDetails</Role>
+      <ShortName>FAIR VALUE MEASUREMENTS (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <ParentRole>http://www.oracle.com/20260531/taxonomy/role/Role_DisclosureFAIRVALUEMEASUREMENTSTables</ParentRole>
+      <Position>47</Position>
+    </Report>
+    <Report instance="orcl-20260531.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R48.htm</HtmlFileName>
+      <LongName>995845 - Disclosure - FAIR VALUE MEASUREMENTS Narrative (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.oracle.com/20260531/taxonomy/role/Role_DisclosureFAIRVALUEMEASUREMENTSNarrativeDetails</Role>
+      <ShortName>FAIR VALUE MEASUREMENTS Narrative (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <Position>48</Position>
+    </Report>
+    <Report instance="orcl-20260531.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R49.htm</HtmlFileName>
+      <LongName>995855 - Disclosure - PROPERTY, PLANT AND EQUIPMENT (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.oracle.com/20260531/taxonomy/role/Role_DisclosurePROPERTYPLANTANDEQUIPMENTDetails</Role>
+      <ShortName>PROPERTY, PLANT AND EQUIPMENT (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <ParentRole>http://www.oracle.com/20260531/taxonomy/role/Role_DisclosurePROPERTYPLANTANDEQUIPMENTTables</ParentRole>
+      <Position>49</Position>
+    </Report>
+    <Report instance="orcl-20260531.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R50.htm</HtmlFileName>
+      <LongName>995865 - Disclosure - PROPERTY, PLANT AND EQUIPMENT (Parenthetical) (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.oracle.com/20260531/taxonomy/role/DisclosurePropertyPlantAndEquipmentParentheticalDetails</Role>
+      <ShortName>PROPERTY, PLANT AND EQUIPMENT (Parenthetical) (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <ParentRole>http://www.oracle.com/20260531/taxonomy/role/Role_DisclosurePROPERTYPLANTANDEQUIPMENTTables</ParentRole>
+      <Position>50</Position>
+    </Report>
+    <Report instance="orcl-20260531.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R51.htm</HtmlFileName>
+      <LongName>995875 - Disclosure - PROPERTY, PLANT AND EQUIPMENT Narrative (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.oracle.com/20260531/taxonomy/role/DisclosurePropertyPlantAndEquipmentNarrativeDetails</Role>
+      <ShortName>PROPERTY, PLANT AND EQUIPMENT Narrative (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <Position>51</Position>
+    </Report>
+    <Report instance="orcl-20260531.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R52.htm</HtmlFileName>
+      <LongName>995885 - Disclosure - INTANGIBLE ASSETS (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.oracle.com/20260531/taxonomy/role/Role_DisclosureINTANGIBLEASSETSDetails</Role>
+      <ShortName>INTANGIBLE ASSETS (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <ParentRole>http://www.oracle.com/20260531/taxonomy/role/Role_DisclosureINTANGIBLEASSETSANDGOODWILLTables</ParentRole>
+      <Position>52</Position>
+    </Report>
+    <Report instance="orcl-20260531.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R53.htm</HtmlFileName>
+      <LongName>995895 - Disclosure - INTANGIBLE ASSETS AMORTIZATION (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.oracle.com/20260531/taxonomy/role/Role_DisclosureINTANGIBLEASSETSAMORTIZATIONDetails</Role>
+      <ShortName>INTANGIBLE ASSETS AMORTIZATION (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <Position>53</Position>
+    </Report>
+    <Report instance="orcl-20260531.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R54.htm</HtmlFileName>
+      <LongName>995905 - Disclosure - GOODWILL (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.oracle.com/20260531/taxonomy/role/Role_DisclosureGOODWILLDetails</Role>
+      <ShortName>GOODWILL (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <Position>54</Position>
+    </Report>
+    <Report instance="orcl-20260531.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R55.htm</HtmlFileName>
+      <LongName>995915 - Disclosure - NOTES PAYABLE AND OTHER BORROWINGS (Details)</LongName>
+      <ReportType>Notes</ReportType>
+      <Role>http://www.oracle.com/20260531/taxonomy/role/DisclosureNotesPayableAndOtherBorrowingsDetails</Role>
+      <ShortName>NOTES PAYABLE AND OTHER BORROWINGS (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <ParentRole>http://www.oracle.com/20260531/taxonomy/role/Role_DisclosureNOTESPAYABLEANDOTHERBORROWINGSTables</ParentRole>
+      <Position>55</Position>
+    </Report>
+    <Report instance="orcl-20260531.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R56.htm</HtmlFileName>
+      <LongName>995935 - Disclosure - NOTES PAYABLE AND OTHER BORROWINGS - Summary of Senior Notes (Parenthetical) (Details)</LongName>
+      <ReportType>Notes</ReportType>
+      <Role>http://www.oracle.com/20260531/taxonomy/role/DisclosureNotesPayableAndOtherBorrowingsSummaryOfSeniorNotesParentheticalDetails3</Role>
+      <ShortName>NOTES PAYABLE AND OTHER BORROWINGS - Summary of Senior Notes (Parenthetical) (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <Position>56</Position>
+    </Report>
+    <Report instance="orcl-20260531.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R57.htm</HtmlFileName>
+      <LongName>995945 - Disclosure - FUTURE PRINCIPAL PAYMENTS FOR ALL BORROWINGS (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.oracle.com/20260531/taxonomy/role/Role_DisclosureFUTUREPRINCIPALPAYMENTSFORALLBORROWINGSDetails</Role>
+      <ShortName>FUTURE PRINCIPAL PAYMENTS FOR ALL BORROWINGS (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <Position>57</Position>
+    </Report>
+    <Report instance="orcl-20260531.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R58.htm</HtmlFileName>
+      <LongName>995955 - Disclosure - NOTES PAYABLE AND OTHER BORROWINGS Narrative (Details)</LongName>
+      <ReportType>Notes</ReportType>
+      <Role>http://www.oracle.com/20260531/taxonomy/role/Role_DisclosureNOTESPAYABLEANDOTHERBORROWINGSNarrativeDetails</Role>
+      <ShortName>NOTES PAYABLE AND OTHER BORROWINGS Narrative (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <Position>58</Position>
+    </Report>
+    <Report instance="orcl-20260531.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R59.htm</HtmlFileName>
+      <LongName>995965 - Disclosure - RESTRUCTURING AND OTHER EXPENSES - Schedule of Restructuring and Other Expenses (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.oracle.com/20260531/taxonomy/role/DisclosureRestructuringAndOtherExpensesScheduleOfRestructuringAndOtherExpensesDetails</Role>
+      <ShortName>RESTRUCTURING AND OTHER EXPENSES - Schedule of Restructuring and Other Expenses (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <Position>59</Position>
+    </Report>
+    <Report instance="orcl-20260531.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R60.htm</HtmlFileName>
+      <LongName>995975 - Disclosure - RESTRUCTURING AND OTHER EXPENSES Narrative (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.oracle.com/20260531/taxonomy/role/DisclosureRestructuringAndOtherExpensesNarrativeDetails</Role>
+      <ShortName>RESTRUCTURING AND OTHER EXPENSES Narrative (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <Position>60</Position>
+    </Report>
+    <Report instance="orcl-20260531.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R61.htm</HtmlFileName>
+      <LongName>995985 - Disclosure - RESTRUCTURING AND OTHER EXPENSES - Summary of All Plans (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.oracle.com/20260531/taxonomy/role/DisclosureRestructuringAndOtherExpensesSummaryOfAllPlansDetails</Role>
+      <ShortName>RESTRUCTURING AND OTHER EXPENSES - Summary of All Plans (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <Position>61</Position>
+    </Report>
+    <Report instance="orcl-20260531.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R62.htm</HtmlFileName>
+      <LongName>995995 - Disclosure - RESTRUCTURING AND OTHER EXPENSES - Summary of All Plans - Parenthetical (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.oracle.com/20260531/taxonomy/role/DisclosureRestructuringAndOtherExpensesSummaryOfAllPlansParentheticalDetails</Role>
+      <ShortName>RESTRUCTURING AND OTHER EXPENSES - Summary of All Plans - Parenthetical (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <Position>62</Position>
+    </Report>
+    <Report instance="orcl-20260531.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R63.htm</HtmlFileName>
+      <LongName>996005 - Disclosure - DEFERRED REVENUES (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.oracle.com/20260531/taxonomy/role/Role_DisclosureDEFERREDREVENUESDetails</Role>
+      <ShortName>DEFERRED REVENUES (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <ParentRole>http://www.oracle.com/20260531/taxonomy/role/Role_DisclosureDEFERREDREVENUESTables</ParentRole>
+      <Position>63</Position>
+    </Report>
+    <Report instance="orcl-20260531.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R64.htm</HtmlFileName>
+      <LongName>996015 - Disclosure - LEASES, OTHER COMMITMENTS AND CERTAIN CONTINGENCIES Narrative (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.oracle.com/20260531/taxonomy/role/Role_DisclosureLEASESOTHERCOMMITMENTSANDCERTAINCONTINGENCIESNarrativeDetails</Role>
+      <ShortName>LEASES, OTHER COMMITMENTS AND CERTAIN CONTINGENCIES Narrative (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <ParentRole>http://www.oracle.com/20260531/taxonomy/role/Role_DisclosureLEASESOTHERCOMMITMENTSANDCERTAINCONTINGENCIESTables</ParentRole>
+      <Position>64</Position>
+    </Report>
+    <Report instance="orcl-20260531.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R65.htm</HtmlFileName>
+      <LongName>996025 - Disclosure - LEASES, OTHER COMMITMENTS AND CERTAIN CONTINGENCIES - Components of Lease Expense (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.oracle.com/20260531/taxonomy/role/DisclosureLeasesOtherCommitmentsAndCertainContingenciesComponentsOfLeaseExpenseDetails</Role>
+      <ShortName>LEASES, OTHER COMMITMENTS AND CERTAIN CONTINGENCIES - Components of Lease Expense (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <Position>65</Position>
+    </Report>
+    <Report instance="orcl-20260531.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R66.htm</HtmlFileName>
+      <LongName>996035 - Disclosure - LEASES, OTHER COMMITMENTS AND CERTAIN CONTINGENCIES - Supplemental Balance Sheet Information Related to Leases (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.oracle.com/20260531/taxonomy/role/DisclosureLeasesOtherCommitmentsAndCertainContingenciesSupplementalBalanceSheetInformationRelatedToLeasesDetails</Role>
+      <ShortName>LEASES, OTHER COMMITMENTS AND CERTAIN CONTINGENCIES - Supplemental Balance Sheet Information Related to Leases (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <Position>66</Position>
+    </Report>
+    <Report instance="orcl-20260531.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R67.htm</HtmlFileName>
+      <LongName>996045 - Disclosure - LEASES, OTHER COMMITMENTS AND CERTAIN CONTINGENCIES - Supplemental Cash Flow Information Related to Leases (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.oracle.com/20260531/taxonomy/role/DisclosureLeasesOtherCommitmentsAndCertainContingenciesSupplementalCashFlowInformationRelatedToLeasesDetails</Role>
+      <ShortName>LEASES, OTHER COMMITMENTS AND CERTAIN CONTINGENCIES - Supplemental Cash Flow Information Related to Leases (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <Position>67</Position>
+    </Report>
+    <Report instance="orcl-20260531.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R68.htm</HtmlFileName>
+      <LongName>996055 - Disclosure - LEASES, OTHER COMMITMENTS AND CERTAIN CONTINGENCIES - Schedule of Maturities of Lease Liabilities (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.oracle.com/20260531/taxonomy/role/DisclosureLeasesOtherCommitmentsAndCertainContingenciesScheduleOfMaturitiesOfLeaseLiabilitiesDetails</Role>
+      <ShortName>LEASES, OTHER COMMITMENTS AND CERTAIN CONTINGENCIES - Schedule of Maturities of Lease Liabilities (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <Position>68</Position>
+    </Report>
+    <Report instance="orcl-20260531.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R69.htm</HtmlFileName>
+      <LongName>996075 - Disclosure - LEASES, OTHER COMMITMENTS AND CERTAIN CONTINGENCIES - Schedule of Unconditional Purchase and Certain Other Obligations (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.oracle.com/20260531/taxonomy/role/Role_DisclosureLEASESOTHERCOMMITMENTSANDCERTAINCONTINGENCIESScheduleOfUnconditionalPurchaseAndCertainOtherObligationsDetails</Role>
+      <ShortName>LEASES, OTHER COMMITMENTS AND CERTAIN CONTINGENCIES - Schedule of Unconditional Purchase and Certain Other Obligations (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <Position>69</Position>
+    </Report>
+    <Report instance="orcl-20260531.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R70.htm</HtmlFileName>
+      <LongName>996085 - Disclosure - STOCKHOLDERS' EQUITY Narrative (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.oracle.com/20260531/taxonomy/role/DisclosureStockholdersEquityNarrativeDetails</Role>
+      <ShortName>STOCKHOLDERS' EQUITY Narrative (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <Position>70</Position>
+    </Report>
+    <Report instance="orcl-20260531.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R71.htm</HtmlFileName>
+      <LongName>996095 - Disclosure - STOCKHOLDERS' EQUITY (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.oracle.com/20260531/taxonomy/role/DisclosureStockholdersEquityDetails</Role>
+      <ShortName>STOCKHOLDERS' EQUITY (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <ParentRole>http://www.oracle.com/20260531/taxonomy/role/DisclosureStockholdersEquityTables</ParentRole>
+      <Position>71</Position>
+    </Report>
+    <Report instance="orcl-20260531.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R72.htm</HtmlFileName>
+      <LongName>996105 - Disclosure - EMPLOYEE BENEFIT PLANS Narrative (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.oracle.com/20260531/taxonomy/role/Role_DisclosureEMPLOYEEBENEFITPLANSNarrativeDetails</Role>
+      <ShortName>EMPLOYEE BENEFIT PLANS Narrative (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <Position>72</Position>
+    </Report>
+    <Report instance="orcl-20260531.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R73.htm</HtmlFileName>
+      <LongName>996115 - Disclosure - EMPLOYEE BENEFIT PLANS (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.oracle.com/20260531/taxonomy/role/Role_DisclosureEMPLOYEEBENEFITPLANSDetails</Role>
+      <ShortName>EMPLOYEE BENEFIT PLANS (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <ParentRole>http://www.oracle.com/20260531/taxonomy/role/Role_DisclosureEMPLOYEEBENEFITPLANSTables</ParentRole>
+      <Position>73</Position>
+    </Report>
+    <Report instance="orcl-20260531.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R74.htm</HtmlFileName>
+      <LongName>996125 - Disclosure - TAX BENEFITS FROM EXERCISES OF STOCK OPTIONS AND VESTING OF RESTRICTED STOCK-BASED AWARDS Narrative (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.oracle.com/20260531/taxonomy/role/Role_DisclosureTAXBENEFITSFROMEXERCISESOFSTOCKOPTIONSANDVESTINGOFRESTRICTEDSTOCKBASEDAWARDSNarrativeDetails</Role>
+      <ShortName>TAX BENEFITS FROM EXERCISES OF STOCK OPTIONS AND VESTING OF RESTRICTED STOCK-BASED AWARDS Narrative (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <Position>74</Position>
+    </Report>
+    <Report instance="orcl-20260531.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R75.htm</HtmlFileName>
+      <LongName>996135 - Disclosure - DEFERRED CONTRIBUTION PLANS Narrative (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.oracle.com/20260531/taxonomy/role/Role_DisclosureDEFERREDCONTRIBUTIONPLANSNarrativeDetails</Role>
+      <ShortName>DEFERRED CONTRIBUTION PLANS Narrative (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <Position>75</Position>
+    </Report>
+    <Report instance="orcl-20260531.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R76.htm</HtmlFileName>
+      <LongName>996145 - Disclosure - DEFERRED COMPENSATION PLANS Narrative (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.oracle.com/20260531/taxonomy/role/Role_DisclosureDEFERREDCOMPENSATIONPLANSNarrativeDetails</Role>
+      <ShortName>DEFERRED COMPENSATION PLANS Narrative (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <Position>76</Position>
+    </Report>
+    <Report instance="orcl-20260531.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R77.htm</HtmlFileName>
+      <LongName>996155 - Disclosure - INCOME TAXES Narrative (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.oracle.com/20260531/taxonomy/role/Role_DisclosureINCOMETAXESNarrativeDetails</Role>
+      <ShortName>INCOME TAXES Narrative (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <Position>77</Position>
+    </Report>
+    <Report instance="orcl-20260531.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R78.htm</HtmlFileName>
+      <LongName>996165 - Disclosure - INCOME TAXES - Geographical Breakdown of Income Before Income Taxes (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.oracle.com/20260531/taxonomy/role/Role_DisclosureINCOMETAXESGeographicalBreakdownOfIncomeBeforeIncomeTaxesDetails</Role>
+      <ShortName>INCOME TAXES - Geographical Breakdown of Income Before Income Taxes (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <Position>78</Position>
+    </Report>
+    <Report instance="orcl-20260531.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R79.htm</HtmlFileName>
+      <LongName>996175 - Disclosure - INCOME TAXES - Components of Provision for Income Taxes (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.oracle.com/20260531/taxonomy/role/DisclosureIncomeTaxesComponentsOfProvisionForIncomeTaxesDetails</Role>
+      <ShortName>INCOME TAXES - Components of Provision for Income Taxes (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <Position>79</Position>
+    </Report>
+    <Report instance="orcl-20260531.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R80.htm</HtmlFileName>
+      <LongName>996185 - Disclosure - INCOME TAXES - Reconciliation of Differences Between Federal Statutory Tax Rate and Effective Tax Rate (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.oracle.com/20260531/taxonomy/role/Role_DisclosureINCOMETAXESReconciliationOfDifferencesBetweenFederalStatutoryTaxRateAndEffectiveTaxRateDetails</Role>
+      <ShortName>INCOME TAXES - Reconciliation of Differences Between Federal Statutory Tax Rate and Effective Tax Rate (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <Position>80</Position>
+    </Report>
+    <Report instance="orcl-20260531.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R81.htm</HtmlFileName>
+      <LongName>996195 - Disclosure - INCOME TAXES - Schedule of Cash Paid for Income Taxes, Net of Refunds Received, by Jurisdiction (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.oracle.com/20260531/taxonomy/role/DisclosureIncomeTaxesScheduleOfCashPaidForIncomeTaxesNetOfRefundsReceivedByJurisdictionDetails</Role>
+      <ShortName>INCOME TAXES - Schedule of Cash Paid for Income Taxes, Net of Refunds Received, by Jurisdiction (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <Position>81</Position>
+    </Report>
+    <Report instance="orcl-20260531.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R82.htm</HtmlFileName>
+      <LongName>996205 - Disclosure - INCOME TAXES - Components of Deferred Tax Liabilities and Assets (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.oracle.com/20260531/taxonomy/role/Role_DisclosureINCOMETAXESComponentsOfDeferredTaxLiabilitiesAndAssetsDetails</Role>
+      <ShortName>INCOME TAXES - Components of Deferred Tax Liabilities and Assets (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <Position>82</Position>
+    </Report>
+    <Report instance="orcl-20260531.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R83.htm</HtmlFileName>
+      <LongName>996215 - Disclosure - INCOME TAXES - Components of Deferred Tax Liabilities and Assets Continued (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.oracle.com/20260531/taxonomy/role/Role_DisclosureINCOMETAXESComponentsOfDeferredTaxLiabilitiesAndAssetsContinuedDetails</Role>
+      <ShortName>INCOME TAXES - Components of Deferred Tax Liabilities and Assets Continued (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <Position>83</Position>
+    </Report>
+    <Report instance="orcl-20260531.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R84.htm</HtmlFileName>
+      <LongName>996225 - Disclosure - INCOME TAXES - Gross Unrecognized Tax Benefits, Including Acquisitions (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.oracle.com/20260531/taxonomy/role/Role_DisclosureINCOMETAXESGrossUnrecognizedTaxBenefitsIncludingAcquisitionsDetails</Role>
+      <ShortName>INCOME TAXES - Gross Unrecognized Tax Benefits, Including Acquisitions (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <Position>84</Position>
+    </Report>
+    <Report instance="orcl-20260531.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R85.htm</HtmlFileName>
+      <LongName>996235 - Disclosure - SEGMENT INFORMATION Narrative (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.oracle.com/20260531/taxonomy/role/Role_DisclosureSEGMENTINFORMATIONNarrativeDetails</Role>
+      <ShortName>SEGMENT INFORMATION Narrative (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <Position>85</Position>
+    </Report>
+    <Report instance="orcl-20260531.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R86.htm</HtmlFileName>
+      <LongName>996245 - Disclosure - SEGMENT INFORMATION (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.oracle.com/20260531/taxonomy/role/Role_DisclosureSEGMENTINFORMATIONDetails</Role>
+      <ShortName>SEGMENT INFORMATION (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <ParentRole>http://www.oracle.com/20260531/taxonomy/role/Role_DisclosureSEGMENTINFORMATIONTables</ParentRole>
+      <Position>86</Position>
+    </Report>
+    <Report instance="orcl-20260531.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R87.htm</HtmlFileName>
+      <LongName>996255 - Disclosure - SEGMENT INFORMATION RECONCILIATION (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.oracle.com/20260531/taxonomy/role/Role_DisclosureSEGMENTINFORMATIONRECONCILIATIONDetails</Role>
+      <ShortName>SEGMENT INFORMATION RECONCILIATION (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <Position>87</Position>
+    </Report>
+    <Report instance="orcl-20260531.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R88.htm</HtmlFileName>
+      <LongName>996265 - Disclosure - SUMMARY OF TOTAL REVENUES BY GEOGRAPHIC REGION (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.oracle.com/20260531/taxonomy/role/Role_DisclosureSUMMARYOFTOTALREVENUESBYGEOGRAPHICREGIONDetails</Role>
+      <ShortName>SUMMARY OF TOTAL REVENUES BY GEOGRAPHIC REGION (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <Position>88</Position>
+    </Report>
+    <Report instance="orcl-20260531.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R89.htm</HtmlFileName>
+      <LongName>996275 - Disclosure - SUMMARY OF SOFTWARE REVENUES AND CLOUD REVENUES BY OFFERINGS (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.oracle.com/20260531/taxonomy/role/DisclosureSummaryOfSoftwareRevenuesAndCloudRevenuesByOfferingsDetails</Role>
+      <ShortName>SUMMARY OF SOFTWARE REVENUES AND CLOUD REVENUES BY OFFERINGS (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <Position>89</Position>
+    </Report>
+    <Report instance="orcl-20260531.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R90.htm</HtmlFileName>
+      <LongName>996285 - Disclosure - GEOGRAPHIC INFORMATION (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.oracle.com/20260531/taxonomy/role/DisclosureGeographicInformationDetails</Role>
+      <ShortName>GEOGRAPHIC INFORMATION (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <Position>90</Position>
+    </Report>
+    <Report instance="orcl-20260531.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R91.htm</HtmlFileName>
+      <LongName>996295 - Disclosure - EARNINGS PER SHARE (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.oracle.com/20260531/taxonomy/role/Role_DisclosureEARNINGSPERSHAREDetails</Role>
+      <ShortName>EARNINGS PER SHARE (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <ParentRole>http://www.oracle.com/20260531/taxonomy/role/Role_DisclosureEARNINGSPERSHARETables</ParentRole>
+      <Position>91</Position>
+    </Report>
+    <Report instance="orcl-20260531.htm">
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <HtmlFileName>R92.htm</HtmlFileName>
+      <LongName>996325 - Disclosure - LEGAL PROCEEDINGS (Details)</LongName>
+      <ReportType>Sheet</ReportType>
+      <Role>http://www.oracle.com/20260531/taxonomy/role/Role_DisclosureLEGALPROCEEDINGSDetails</Role>
+      <ShortName>LEGAL PROCEEDINGS (Details)</ShortName>
+      <MenuCategory>Details</MenuCategory>
+      <ParentRole>http://www.oracle.com/20260531/taxonomy/role/Role_DisclosureLEGALPROCEEDINGS</ParentRole>
+      <Position>92</Position>
+    </Report>
+    <Report>
+      <IsDefault>false</IsDefault>
+      <HasEmbeddedReports>false</HasEmbeddedReports>
+      <LongName>All Reports</LongName>
+      <ReportType>Book</ReportType>
+      <ShortName>All Reports</ShortName>
+    </Report>
+  </MyReports>
+  <InputFiles>
+    <File doctype="10-K" isDefinitelyFs="true" isUsgaap="true" original="orcl-20260531.htm">orcl-20260531.htm</File>
+    <File>orcl-20260531.xsd</File>
+  </InputFiles>
+  <SupplementalFiles>
+    <File>img52265273_0.jpg</File>
+  </SupplementalFiles>
+  <BaseTaxonomies>
+    <BaseTaxonomy items="1929">http://fasb.org/us-gaap/2025</BaseTaxonomy>
+    <BaseTaxonomy items="13">http://xbrl.sec.gov/cyd/2025</BaseTaxonomy>
+    <BaseTaxonomy items="42">http://xbrl.sec.gov/dei/2025</BaseTaxonomy>
+    <BaseTaxonomy items="4">http://xbrl.sec.gov/ecd/2025</BaseTaxonomy>
+  </BaseTaxonomies>
+  <HasPresentationLinkbase>false</HasPresentationLinkbase>
+  <HasCalculationLinkbase>false</HasCalculationLinkbase>
+</FilingSummary>
