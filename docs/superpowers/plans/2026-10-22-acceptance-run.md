@@ -1,6 +1,6 @@
-# Acceptance run: 2026-10-22/23 (final, after the coordinator's rulings)
+# Acceptance run: 2026-10-22/23 (final, after the final-review fix wave)
 
-Command (warm `.cache/`, after all fixes below):
+Command (warm `.cache/`, after all fixes below, including section 5):
 
 ```
 python scripts/regress.py --excel --ua "SEC-Model-Framework regression admin@secmodelframework.dev" \
@@ -13,7 +13,11 @@ FY2016, which is SKIP because an input is missing.
 
 `regress.py` now asserts the following by default, in addition to the brief's assertions:
 - The default interest rate is 0-15%. JPM, a bank, gets a NOTE instead of a failure.
-- The default cash tax rate is 0-40%.
+- The default tax rate is 0-40%, and within 10 points of the last-3-year effective rate
+  (sum of tax / sum of pretax) for filers whose effective rate is above 10%.
+- Distributions and DistributionsToNCI are not the same row in the latest year.
+- Receivables and Payables are mapped in the latest year when the balance sheet has a
+  receivable / payable row. JPM, a bank, gets a NOTE instead of a failure.
 - Last-year diluted units are within 0.5x-2x of dei shares outstanding.
 - No expense concept has the opposite sign to its XBRL fact.
 
@@ -25,42 +29,47 @@ cells, and prints the DCF value per unit.
 `P/W/F/S` = PASS/WARN/FAIL/SKIP checks. `cov` = coverage warnings (required concept
 unmapped in the latest year). `bal` = max |BAL_CHECK| over the forecast years. `s` = warm
 build seconds (cold builds take 35-58 s, CVX 54 s). `value/unit` = DCF perpetuity / exit
-multiple from Excel, with no price entered (equity weight 55%).
+multiple from Excel, with no price entered (equity weight 55%); `before` is the run at
+e2b4231, ahead of the final-review fixes (section 5).
 
-| Ticker | Result | Years | Cur | Stmts | P/W/F/S | cov | bal | s | KB | value/unit |
-|---|---|---|---|---|---|---|---|---|---|---|
-| OKE | ok | 10 FY2016-FY2025 | USD | 10/10 | 160/0/0/93 | 0 | 1.5e-11 | 7.7 | 77 | 169.81 / 158.20 |
-| EPD | ok | 10 FY2016-FY2025 | USD | 10/10 | 150/10/0/123 | 0 | 1.5e-11 | 6.8 | 74 | 25.02 / 20.49 |
-| ET | ok | 10 FY2016-FY2025 | USD | 10/10 | 160/0/0/105 | 0 | 2.9e-11 | 8.6 | 81 | 27.55 / 17.20 |
-| KMI | ok | 10 FY2016-FY2025 | USD | 10/10 | 151/9/0/135 | 0 | 1.5e-11 | 8.7 | 78 | 20.35 / 15.29 |
-| WMB | ok | 10 FY2016-FY2025 | USD | 10/10 | 160/0/0/70 | 0 | 7.3e-12 | 8.4 | 75 | 39.85 / 38.45 |
-| MPLX | ok | 10 FY2016-FY2025 | USD | 10/10 | 158/2/0/142 | 0 | 7.3e-12 | 9.6 | 95 | 130.16 / 73.17 |
-| TRGP | ok | 10 FY2016-FY2025 | USD | 10/10 | 159/0/0/99 | 0 | 3.6e-12 | 8.3 | 77 | 37.90 / 69.89 |
-| KNTK | ok | 9 FY2017-FY2025 | USD | 9/9 | 143/1/0/90 | 0 | 3.6e-12 | 11.5 | 83 | -1.29 / 94.28 |
-| ENB | ok | 10 FY2016-FY2025 | CAD | 10/10 | 147/10/0/100 | 0 | 2.9e-11 | 7.5 | 77 | 71.79 / 67.77 |
-| AAPL | ok | 10 FY2016-FY2025 | USD | 10/10 | 155/5/0/88 | 0 | 1.2e-10 | 6.5 | 70 | 260.74 / 111.22 |
-| CVX | ok | 10 FY2016-FY2025 | USD | 10/10 | 137/19/0/104 | 1 (Cash) | 5.8e-11 | 6.9 | 72 | 104.80 / 99.70 |
-| JPM | ok | 10 FY2016-FY2025 | USD | 10/10 | 121/29/0/90 | 1 (Revenue) | 0.0 | 8.3 | 77 | -199.01 / -199.01 |
-| TRP | ok (40-F message, as expected) | - | - | - | - | - | - | 0.0 | - | - |
-| XOM | KNOWN (documented) | - | - | - | - | - | - | 0.0 | - | - |
+| Ticker | Result | Years | Cur | Stmts | P/W/F/S | cov | bal | s | KB | value/unit | before |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| OKE | ok | 10 FY2016-FY2025 | USD | 10/10 | 160/0/0/93 | 0 | 1.5e-11 | 7.7 | 77 | 113.02 / 150.37 | 169.81 / 158.20 |
+| EPD | ok | 10 FY2016-FY2025 | USD | 10/10 | 150/10/0/123 | 0 | 1.5e-11 | 6.9 | 75 | 26.01 / 20.67 | 25.02 / 20.49 |
+| ET | ok | 10 FY2016-FY2025 | USD | 10/10 | 160/0/0/105 | 0 | 2.9e-11 | 8.5 | 82 | 26.95 / 17.04 | 27.55 / 17.20 |
+| KMI | ok | 10 FY2016-FY2025 | USD | 10/10 | 151/9/0/135 | 0 | 1.5e-11 | 8.5 | 78 | 17.66 / 14.58 | 20.35 / 15.29 |
+| WMB | ok | 10 FY2016-FY2025 | USD | 10/10 | 160/0/0/70 | 0 | 1.5e-11 | 8.7 | 76 | 30.46 / 36.88 | 39.85 / 38.45 |
+| MPLX | ok | 10 FY2016-FY2025 | USD | 10/10 | 158/2/0/142 | 0 | 0.0 | 9.6 | 96 | 130.13 / 73.16 | 130.16 / 73.17 |
+| TRGP | ok | 10 FY2016-FY2025 | USD | 10/10 | 159/0/0/99 | 0 | 7.3e-12 | 8.5 | 77 | 21.22 / 66.18 | 37.90 / 69.89 |
+| KNTK | ok | 9 FY2017-FY2025 | USD | 9/9 | 143/1/0/90 | 0 | 1.8e-12 | 9.0 | 84 | -6.71 / 94.08 | -1.29 / 94.28 |
+| ENB | ok | 10 FY2016-FY2025 | CAD | 10/10 | 147/10/0/100 | 0 | 2.9e-11 | 7.4 | 77 | 57.15 / 65.66 | 71.79 / 67.77 |
+| AAPL | ok | 10 FY2016-FY2025 | USD | 10/10 | 155/5/0/88 | 0 | 1.2e-10 | 6.1 | 70 | 260.74 / 111.22 | 260.74 / 111.22 |
+| CVX | ok | 10 FY2016-FY2025 | USD | 10/10 | 137/19/0/104 | 1 (Cash) | 5.8e-11 | 6.7 | 72 | 113.88 / 101.23 | 104.80 / 99.70 |
+| JPM | ok | 10 FY2016-FY2025 | USD | 10/10 | 121/29/0/90 | 2 (Revenue, Receivables) | 0.0 | 8.0 | 78 | -199.01 / -199.01 | -199.01 / -199.01 |
+| TRP | ok (40-F message, as expected) | - | - | - | - | - | - | 0.0 | - | - | - |
+| XOM | KNOWN (documented) | - | - | - | - | - | - | 0.0 | - | - | - |
 
 Notes:
 - **SKIPs** are mostly subtotal checks ("no indented children"), a known limitation.
 - **WARNs** are mostly "CF cash vs BS cash" (restricted cash), which is WARN by design.
-- **JPM:** Revenue is UNMAPPED, as expected for a bank. Its default interest rate (20.5%,
+- **JPM:** Revenue is UNMAPPED, as expected for a bank. Receivables is UNMAPPED too
+  ("Accrued interest and accounts receivable"): a coverage warning, and a NOTE in the
+  working-capital sanity assertion. Its default interest rate (20.5%,
   deposit interest over debt) is a NOTE, not a failure. Its DCF value (-199) is
   meaningless because the model is not built for banks. JPM is in the list only to show
   that the build does not assume an industrial income statement.
 - **CVX:** `Cash: UNMAPPED in FY2025` is a coverage WARN. CVX builds, balances and has no
   FAIL.
 - **KNTK:** FY2016 has no filing with all three statements and is dropped. Its perpetuity
-  value is about -1.29 because default capex is 23.5% of revenue at 13.5% growth, which
-  leaves terminal UFCF near zero. The exit-multiple value is 94.28.
+  value is about -6.71 because default capex is 23.5% of revenue at 13.5% growth, which
+  leaves terminal UFCF near zero (the effective tax rate, 5.8% instead of 0.6%, pushes it
+  further below). The exit-multiple value is 94.08.
 - **Value per unit:** the defaults are mechanical (3-year revenue CAGR capped at ±15%,
-  cash tax rate = (tax - deferred) / pretax). OKE's 169.81 comes from its 15%
-  acquisition-driven growth cap and a 1.5% cash tax rate. The sign and units bugs behind
-  the earlier $3,121 are fixed (section 2). Analysts are expected to overwrite the
-  placeholder asset row and the drivers.
+  tax rate = 3-year average effective rate tax / pretax, spec 7.2). The final-review fixes
+  moved the C-corps most: OKE 169.81 -> 113.02 (tax 1.5% -> 23.7%), KMI, WMB, TRGP and ENB
+  likewise; the partnerships barely move (EPD 0.3% -> 0.7%, MPLX 0.1% -> 0.2%). The cash
+  rate (tax - deferred) / pretax stays on the Model as "Cash tax rate (info)". Analysts are
+  expected to overwrite the placeholder asset row and the drivers.
 
 ## 2. Fixes
 
@@ -90,32 +99,43 @@ Round 2:
 
 ## 3. Manual Excel check (COM, `Visible=False`, `CalculateFull`, closed without saving)
 
-Method: open read-only with `DisplayAlerts=False` (a repaired file shows "[Repaired]" in
-its caption) and scan every used cell on every sheet for `#NULL! #DIV/0! #VALUE! #REF!
-#NAME? #NUM! #N/A`. Then set `Asset Inputs` row 1 FY2026E revenue to 1.10x its value,
+Method: open with `DisplayAlerts=False` (a repaired file shows "[Repaired]" in its
+caption) and scan every used cell on every sheet for `#NULL! #DIV/0! #VALUE! #REF! #NAME?
+#NUM! #N/A`. Then set `Asset Inputs` row 1 FY2026E revenue to 1.10x its value,
 recalculate and read again. Finally type a realistic price into `WACC!J6`.
 
-Both workbooks: no repair, **zero error cells** after all three recalculations.
+Both workbooks (regression output after the final-review fixes): no repair, **zero error
+cells** after all three recalculations.
 
 | FY2026E | OKE before | OKE after | EPD before | EPD after |
 |---|---|---|---|---|
 | Asset Inputs revenue | 38,673.35 | 42,540.69 | 51,207.40 | 56,328.14 |
 | Model EBITDA | 8,729.25 | 9,563.58 (up) | 9,135.07 | 10,012.48 (up) |
-| Model Cash | 599.26 | 935.08 (up) | 969.00 | 969.00 (held at min cash) |
+| Model Cash | 78.00 | 78.00 (held at min cash) | 969.00 | 969.00 (held at min cash) |
 | Model Total debt | 32,816.00 | 32,816.00 (input) | 34,395.00 | 34,395.00 |
-| Model Revolver | 0.00 | 0.00 | 1,481.81 | 1,417.65 (down: repays) |
+| Model Revolver | 673.54 | 523.08 (down: repays) | 1,367.77 | 1,819.37 (up, see below) |
 | Balance check | 0.00 | 0.00 | 0.00 | 0.00 |
-| DCF value/unit, perpetuity | 169.81 | 190.80 (up) | 25.02 | 28.70 (up) |
-| DCF value/unit, exit | 158.20 | 178.52 (up) | 20.49 | 23.86 (up) |
+| DCF value/unit, perpetuity | 113.02 | 127.17 (up) | 26.01 | 29.73 (up) |
+| DCF value/unit, exit | 150.37 | 169.71 (up) | 20.67 | 24.01 (up) |
 
-With no price, WACC is 7.80% for OKE (pre-tax Kd 5.50%, tax 1.50%) and 7.26% for EPD. The
+EPD's revolver now rises with the revenue edit. Before the fixes its working capital was
+unmapped (AR and AP days 0), so extra revenue was pure cash. Now AR is 45 days of revenue,
+inventory 33 days and AP 10 days of cost, so the +5,121 revenue ties up 890 of working
+capital and 433 of capex against +877 EBITDA: year-1 cash from operations falls 19 and
+the revolver draws 452 more (the Python model gives the same 1,367.8 -> 1,819.4). The DCF
+value still rises because later years keep the higher run-rate.
+
+With no price, WACC is 7.25% for both OKE and EPD (before the fixes: 7.80% and 7.26%; the
+after-tax cost of debt now uses the effective tax rate). Drivers year 1 is now a formula
+over the Model; after `CalculateFull` every year-1 driver and the MIN_CASH scalar equal
+`forecast.driver_defaults` / `scalar_defaults` (OKE max |diff| 1.4e-17, EPD 0.0). The
 valuation date is `TODAY()`, so values move slightly from day to day.
 
 After typing a price, "% over / (under) valued" (= price / value - 1) changed from "enter
 price" to a number. These readings are taken after the +10% revenue edit, and the price
 also moves WACC to market weights:
-- OKE at $95: WACC 8.21%, value/unit 172.65 / 214.92, over/under -45.0% / -55.8%.
-- EPD at $32: WACC 7.95%, value/unit 23.20 / 25.78, over/under +38.0% / +24.1%.
+- OKE at $95: WACC 7.78%, value/unit 108.68 / 205.88, over/under -12.6% / -53.9%.
+- EPD at $32: WACC 7.94%, value/unit 24.07 / 25.93, over/under +32.9% / +23.4%.
 
 ## 4. Remaining failures and limitations
 
@@ -148,3 +168,24 @@ balance sheet, and the API cross-check compares against that same filing's facts
 - AAPL has no interest-expense line (NOTE).
 - Default revenue growth hits the ±15% cap for acquisitive names (OKE).
 - Banks: the model is not built for them (JPM).
+
+## 5. Final-review fixes (2026-10-23)
+
+A whole-branch review found one Critical and five Important items and two must-fix minors.
+Each has its own commit and a test that fails without it.
+
+| Item | Symptom | Fix | Commit |
+|---|---|---|---|
+| C1 tax rate | TAX_RATE default was the cash rate (tax - deferred) / pretax: OKE 1.5%, KMI 0.9%, WMB 2.9%, TRGP 0.7%, so the forecast and the DCF were nearly untaxed. | Spec 7.2: `TAX_RATE_HIST = MAX(0, MIN(0.35, TAX / PRETAX))`, the driver averages 3 years. A visible RATIO line "Cash tax rate (info)" keeps the cash rate, fed by the hidden DEFTAX helper. OKE 23.7%, KMI 21.1%, WMB 22.6%, TRGP 19.9%, ENB 22.1%. | 4b94c12 |
+| I1 TRGP distributions | Common distributions FY2021-FY2025 were the NCI row ("Distributions to noncontrolling interests", FY2025 -33.5 instead of -818.3); DistributionsToNCI took "Contributions from noncontrolling interests" (an inflow), KNTK's took "Net income including noncontrolling interest". | Distributions label excludes noncontrolling/minority and admits "dividends paid"; DistributionsToNCI's label must name a payout; a post-step UNMAPs whichever concept does not own a shared row. | 828a191 |
+| I2 working capital | EPD and ET (FY2023/24 on) and ENB (FY2025) had Receivables and Payables UNMAPPED, so the forecast had no working capital; ENB's earlier years were its affiliate rows (90 / 22). | A listed tag with no consolidated row resolves as the DERIVED sum of its member rows (one declared axis, money rows only). Receivables adds `AccountsAndOtherReceivablesNetCurrent` and CVX's `AccountsNotesAndLoansReceivableNetCurrent`; Payables adds `AccountsPayableAndOtherAccruedLiabilitiesCurrent`, `AccountsPayableAndAccruedLiabilitiesCurrent`; labels exclude affiliate/related. Coverage WARN when either is UNMAPPED while the BS shows such a row. EPD AR 6,495 / AP 1,238, ENB 7,081 / 7,555, CVX AR 18,075. | ec40024 |
+| I3 Drivers year 1 | Year-1 driver defaults were pasted numbers. | `to_excel(default, ctx)` on the Model's last history column, sheet-qualified: `=AVERAGE(Model!$K$36:$M$36)`, `=Model!M34`, `=N(Model!M80)` for MIN_CASH; constants stay values; input style kept. COM: equal to `forecast.driver_defaults` (max |diff| 1.4e-17). | 9fda876 |
+| I4 unmapped pretax | With PretaxIncome unmapped OTHER_INC became -EBIT + interest and the forecast lost its pretax income (toy: FY2026E NI 59.2 instead of 328.3). | OTHER_INC uses `IF(PRETAX_RPT=0, NI_RPT + TAX, PRETAX_RPT)`; PretaxIncome is REQUIRED (coverage warning). No ticker on the list hits it. | 9deef69 |
+| I5 equity investments | KMI, WMB (FY2021+) and ENB had EquityInvestments UNMAPPED. | `LongTermInvestments`, `Investments` and the label "^investments$" are accepted only in years where EquityEarnings is mapped (`Concept.gate`). KMI 7,532, WMB 4,559, ENB 21,264 (FY2025). | 2b07b17 |
+| I6 toggles | JV_TOGGLE, WC_HOLD and the DCF mid-year cell accepted any value. | List validation "1,0", no blanks. | 62433b0 |
+| Minors | README said the latest filing wins across comparatives and pointed at an untracked notebook; pandas unpinned. | README describes the supplier rule; `pandas>=2.1`. | cc361e3 |
+| regress | - | Tax-vs-effective-rate, distinct distribution rows and mapped working capital assertions. On the pre-fix mappings they flag OKE, TRGP, EPD and ENB; on the final builds nothing. | d4cc271 |
+
+Mapping changes on the list beyond those above: none. A per-ticker diff of every concept,
+year, driver default, coverage warning and check status before and after shows only the
+rows named here, and no check changed status.
