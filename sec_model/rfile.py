@@ -23,6 +23,11 @@ _FOOTNOTE = re.compile(r"\[\d+\]")
 _PAD_EM = re.compile(r"padding-left:\s*([\d.]+)\s*em", re.I)
 _SCALES = {"Millions": 1.0, "Thousands": 0.001, "Billions": 1000.0}
 _EMPTY = {"", "—", "–", "-"}
+# Currency: "INCOME - CAD ($)" in the title or "Dec. 31, 2022 CAD ($)" in a column header;
+# some titles carry only the scale ("... - CAD CAD in Millions").
+_CUR_PAREN = re.compile(r"\b([A-Z]{3}) \(\$\)")
+_CUR_SCALE = re.compile(r"\b([A-Z]{3}) in (?:Millions|Thousands|Billions)\b")
+_MONEY_SCALE = r"(?:\$|\b[A-Z]{3}) in (Millions|Thousands|Billions)"
 
 _PERUNIT_TAG = re.compile(r"PerShare|PerUnit")
 _PERUNIT_LABEL = re.compile(r"per\s+(share|unit)", re.I)
@@ -45,8 +50,8 @@ def parse_rfile(html: str, stype: str, source_url: str,
     n_header = sum(1 for _ in _leading_header_rows(trs))
     title, label_cols, columns, keep = _parse_header(trs[:n_header])
 
-    currency = _search(r"([A-Z]{3}) \(\$\)", title, "USD")
-    money_scale = _SCALES.get(_search(r"\$ in (Millions|Thousands|Billions)", title, ""), 1e-6)
+    currency = _currency(title, columns)
+    money_scale = _SCALES.get(_search(_MONEY_SCALE, title, ""), 1e-6)
     share_scale = _SCALES.get(_search(r"shares in (Millions|Thousands)", title, ""), 1e-6)
     scales = {"money": money_scale, "shares": share_scale}
     page_types = _page_data_types(soup)
@@ -204,6 +209,20 @@ def _unique_key(tag: str, label: str, member: str | None, used: set[str]) -> str
         key, n = f"{base}|{n}", n + 1
     used.add(key)
     return key
+
+
+def _currency(title: str, columns: list[Column]) -> str:
+    """A currency code in a kept column header wins (the title then carries only "$ in
+    Millions"), then "XXX ($)" in the title, then "XXX in Millions", else USD."""
+    for c in columns:
+        m = _CUR_PAREN.search(c.label)
+        if m:
+            return m.group(1)
+    for pattern in (_CUR_PAREN, _CUR_SCALE):
+        m = pattern.search(title)
+        if m:
+            return m.group(1)
+    return "USD"
 
 
 def _search(pattern: str, text: str, default: str) -> str:

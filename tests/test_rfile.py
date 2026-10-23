@@ -154,6 +154,31 @@ def test_currency_from_title():
     assert parse_rfile(_table(rev, title="STATEMENTS OF INCOME - CAD ($)"), "IS", "u").currency == "CAD"
 
 
+def _enb_table(title_html: str, date_cell: str) -> str:
+    rev = _row("Revenue", "us-gaap_Revenues", '<td class="nump">10</td><td class="nump">9</td>')
+    return ('<html><body><table class="report">'
+            f'<tr><th class="tl" colspan="1" rowspan="2"><div><strong>{title_html}</strong></div></th>'
+            '<th class="th" colspan="2">12 Months Ended</th></tr>'
+            f'<tr><th class="th">{date_cell.format(2022)}</th><th class="th">{date_cell.format(2021)}</th></tr>'
+            + rev + "</table></body></html>")
+
+
+def test_currency_and_scale_from_code_in_millions_title():
+    # ENB FY2017 10-K: "CONSOLIDATED STATEMENTS OF EARNINGS - CAD<br> CAD in Millions".
+    s = parse_rfile(_enb_table("STATEMENTS OF EARNINGS - CAD<br> CAD in Millions",
+                               "<div>Dec. 31, {}</div>"), "IS", "u")
+    assert s.currency == "CAD" and s.money_scale == 1 and s.rows[0].values == [10.0, 9.0]
+
+
+def test_currency_from_column_header_when_title_has_only_dollar_scale():
+    # ENB FY2022 10-K IS: title "... $ in Millions, $ in Millions", columns "Dec. 31, 2022 CAD ($)".
+    s = parse_rfile(_enb_table("STATEMENTS OF EARNINGS<br> $ in Millions, $ in Millions",
+                               "<div>Dec. 31, {}</div><div>CAD ($)</div><div>$ / shares</div>"),
+                    "IS", "u")
+    assert s.currency == "CAD" and s.money_scale == 1
+    assert [c.end.year for c in s.columns] == [2022, 2021]
+
+
 def test_malformed_authref_block_falls_back_to_label_rules():
     broken = ('<div style="display: none;"><table class="authRefData" id="defref_us-gaap_Revenues">'
               "<tr><th><strong> Data Type:</strong></th></tr></table></div>")
