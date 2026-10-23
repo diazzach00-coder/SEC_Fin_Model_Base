@@ -68,7 +68,9 @@ CONCEPTS: list[Concept] = [
             r"interest expense"),
     Concept("PretaxIncome", ("IS",),
             ("IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest",
-             "IncomeLossFromContinuingOperationsBeforeIncomeTaxesMinorityInterestAndIncomeLossFromEquityMethodInvestments"),
+             "IncomeLossFromContinuingOperationsBeforeIncomeTaxesMinorityInterestAndIncomeLossFromEquityMethodInvestments",
+             # newer element ("..., before Tax"); ET uses it from FY2022
+             "IncomeLossIncludingPortionAttributableToNoncontrollingInterest"),
             r"before income tax"),
     # The lookahead keeps "Income before income taxes" from matching.
     Concept("IncomeTax", ("IS",), ("IncomeTaxExpenseBenefit",), r"^(?!.*before).*income tax"),

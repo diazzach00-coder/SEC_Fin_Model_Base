@@ -451,3 +451,20 @@ def test_nci_income_nonredeemable_tag_and_label_skips_including_portion_total():
                               mrow("x_NCI", "Less: Net income attributable to noncontrolling interests",
                                    {"FY2023": 1.0, "FY2024": 2.0})])
     assert resolve({"IS": label_only})["NIToNCI"]["FY2024"].value == 2.0
+
+
+def test_pretax_income_newer_before_tax_element():
+    # ET FY2022+: pretax income is IncomeLossIncludingPortionAttributableToNoncontrollingInterest
+    # ("Income (Loss), Including Portion Attributable to Noncontrolling Interest, before Tax").
+    is_ = mstmt("IS", [
+        mrow("us-gaap_IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest",
+             "Income from continuing operations before income tax expense",
+             {"FY2023": None, "FY2024": None}),
+        mrow("us-gaap_IncomeLossIncludingPortionAttributableToNoncontrollingInterest",
+             "Income (Loss), Including Portion Attributable to Noncontrolling Interest",
+             {"FY2023": 7106.0, "FY2024": 6058.0}),
+        mrow("us-gaap_IncomeTaxExpenseBenefit", "Income tax expense", {"FY2023": 541.0, "FY2024": 350.0}),
+    ])
+    out = resolve({"IS": is_})
+    assert out["PretaxIncome"]["FY2024"].value == 6058.0
+    assert out["NIToNCI"]["FY2024"].status == "UNMAPPED"
