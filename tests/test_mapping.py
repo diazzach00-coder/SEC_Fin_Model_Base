@@ -850,3 +850,9 @@ def test_cvx_accounts_and_notes_receivable_tag():
     bs = mstmt("BS", [mrow("us-gaap_AccountsNotesAndLoansReceivableNetCurrent",
                            "Accounts and notes receivable", {"FY2023": 20684.0, "FY2024": 18075.0})])
     assert resolve({"BS": bs})["Receivables"]["FY2024"].value == 18075.0
+
+
+def test_pretax_and_net_income_are_required():
+    assert {"PretaxIncome", "NetIncome"} <= set(REQUIRED)
+    is_ = mstmt("IS", [mrow("us-gaap_Revenues", "Revenue", {"FY2023": 1.0, "FY2024": 2.0})])
+    assert "PretaxIncome: UNMAPPED in FY2024" in coverage_warnings(resolve({"IS": is_}))

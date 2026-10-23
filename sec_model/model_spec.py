@@ -129,6 +129,9 @@ def _is_lines(da_basis: str) -> list[LineDef]:
     da_fcst = Driver("DA_PCT") * (L("NET_PPE", 1) if da_basis == "ppe" else L("REV"))
     opcost_hist = (Fn("IF", L("TCE_RPT").eq(0), L("REV") - L("OPINC_RPT"), L("TCE_RPT"))
                    - L("DA") - L("IMPAIR") + L("GAINS"))
+    # Unmapped pretax income (blank reads 0) falls back to net income + tax; otherwise
+    # OTHER_INC absorbs -EBIT + interest and the held-flat forecast wipes out pretax.
+    pretax_hist = Fn("IF", L("PRETAX_RPT").eq(0), L("NI_RPT") + L("TAX"), L("PRETAX_RPT"))
     return [
         LineDef("REV", "Revenue", "IS", "Revenue", Block("ASSET_REV"), bold=True),
         _rpt("TCE_RPT", "TotalCostsAndExpenses", "IS"),
@@ -153,8 +156,9 @@ def _is_lines(da_basis: str) -> list[LineDef]:
                 note="on opening debt + opening revolver (no circularity)"),
         _rpt("PRETAX_RPT", "PretaxIncome", "IS"),
         LineDef("OTHER_INC", "Other income (expense)", "IS",
-                L("PRETAX_RPT") - L("EBIT") + L("INTEREST"), L("OTHER_INC", 1),
-                note="derived in history; held flat"),
+                pretax_hist - L("EBIT") + L("INTEREST"), L("OTHER_INC", 1),
+                note="derived in history (pretax falls back to net income + tax when "
+                     "unreported); held flat"),
         _same("PRETAX", "Pretax income", L("EBIT") - L("INTEREST") + L("OTHER_INC"), bold=True),
         LineDef("TAX", "Income tax", "IS", "IncomeTax", Driver("TAX_RATE") * L("PRETAX")),
         LineDef("DEFTAX", "Deferred income tax (CF)", "IS", "DeferredTax", None, hidden=True,

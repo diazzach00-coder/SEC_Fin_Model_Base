@@ -6,7 +6,7 @@ from dataclasses import replace
 from .concepts import CONCEPTS, Concept
 from .types import ConceptValue, MergedRow, MergedStatement
 
-REQUIRED = ("Revenue", "NetIncome", "TotalAssets", "LiabilitiesAndEquity",
+REQUIRED = ("Revenue", "PretaxIncome", "NetIncome", "TotalAssets", "LiabilitiesAndEquity",
             "OperatingCashFlow", "Cash", "TotalDebt", "EquityCommon", "DilutedUnits")
 
 # These share their tags, so a tag hit must also satisfy the label regex.

@@ -260,6 +260,17 @@ def test_tax_rate_default_is_effective_rate_even_with_deferred_tax():
     assert driver_defaults(spec, h3, FY)["TAX_RATE"] == 0.0
 
 
+def test_unmapped_pretax_income_falls_back_to_net_income_plus_tax():
+    h = dict(TOY, PretaxIncome=_h(None, None, None))
+    _, base = _run()
+    _, out = _run(history=h)
+    for fy in FY:
+        assert _close(out["PRETAX"][fy], TOY["NetIncome"][fy] + TOY["IncomeTax"][fy])
+    for fy in FCST:
+        assert abs(out["NI"][fy] - base["NI"][fy]) <= 0.01 * abs(base["NI"][fy])
+        assert abs(out["BAL_CHECK"][fy]) < 1e-6
+
+
 def test_cash_tax_rate_info_line_differs_when_deferred_tax_present():
     spec = build_spec("ppe")
     ld = spec.line("CASH_TAX_RATE_HIST")
