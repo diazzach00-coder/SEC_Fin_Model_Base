@@ -16,7 +16,7 @@ from .edgar import (choose_source_filing, company_for_cik, list_annual_filings,
 from .forecast import compute, driver_defaults, scalar_defaults
 from .http import SecClient
 from .mapping import coverage_warnings, normalize_expense_signs, resolve
-from .merge import merge_statements
+from .merge import designated_suppliers, merge_statements
 from .model_spec import build_spec
 from .rfile import parse_rfile
 from .types import CheckResult, Filing, MarketInputs, MergedStatement, UserFacingError
@@ -119,7 +119,9 @@ class _Run:
         fy_labels, fy_ends, dropped = self._fiscal_years(parsed, by_fy, n_years)
 
         used = [(f, s) for f, s in parsed.values() if f.fy_label in fy_ends]
-        statements = {st: merge_statements([(f, s[st]) for f, s in used], fy_labels, fy_ends)
+        suppliers = designated_suppliers(used, fy_ends)
+        statements = {st: merge_statements([(f, s[st]) for f, s in used], fy_labels, fy_ends,
+                                           suppliers)
                       for st in STYPES}
         currency = statements["IS"].currency
 

@@ -69,6 +69,7 @@ class MergedRow:
     unit: str
     values: dict            # dict[str, float | None]  fy_label -> value
     still_reported: bool
+    value_src: dict = field(default_factory=dict)   # fy_label -> accession that supplied it
 
 
 @dataclass

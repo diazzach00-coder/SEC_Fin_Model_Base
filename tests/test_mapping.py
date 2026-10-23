@@ -539,3 +539,34 @@ def test_label_fallback_on_other_us_gaap_element_left_as_reported():
     facts = _facts({"GainLossOnSalesOfAssetsAndAssetImpairmentCharges": {"FY2023": 32.0, "FY2024": 15.0}})
     out = mapping.normalize_expense_signs(resolve({"IS": is_}), facts)["Impairments"]["FY2024"]
     assert (out.value, out.sign) == (-15.0, 1)
+
+
+def test_mapping_prefers_rows_supplied_by_the_years_source_filing():
+    # KNTK FY2021: its supplier (BCP's FY2022 10-K) reports revenue as RevenueFromContract...
+    # and ending cash under one label; Altus's own FY2021 10-K (another entity before the
+    # recast) supplies a "Revenues" row and a differently labelled ending-cash row.
+    from sec_model.types import SourceRec
+    tag = "us-gaap_CashCashEquivalentsRestrictedCashAndRestrictedCashEquivalents"
+    new, old = "0001692787-23-000009", "0001784031-22-000008"
+    fy = "FY2024"
+
+    def r(key, label, value, accn, tag=None):
+        x = mrow(key, label, {"FY2023": None, fy: value}, tag=tag)
+        x.value_src = {fy: accn}
+        return x
+    is_ = mstmt("IS", [r("us-gaap_Revenues", "Total revenues", 160.6, old),
+                       r("us-gaap_RevenueFromContractWithCustomerExcludingAssessedTax",
+                         "Total operating revenues", 662.0, new)])
+    cf = mstmt("CF", [r(tag, "CASH, BEGINNING OF PERIOD", 19.6, new),
+                      r(tag + "|CASH AND CASH EQUIVALENTS AT END OF PERIOD",
+                        "CASH AND CASH EQUIVALENTS AT END OF PERIOD", 132.0, old, tag=tag),
+                      r(tag + "|CASH, END OF PERIOD", "CASH, END OF PERIOD", 18.7, new, tag=tag)])
+    src = SourceRec(new, "10-K", None, "u", "")
+    is_.sources, cf.sources = {fy: src}, {fy: src}
+    out = resolve({"IS": is_, "CF": cf})
+    assert out["Revenue"][fy].value == 662.0
+    assert out["CFEndingCash"][fy].value == 18.7
+    # Without provenance (no value_src) the tag order rule is unchanged.
+    for x in is_.rows + cf.rows:
+        x.value_src = {}
+    assert resolve({"IS": is_, "CF": cf})["Revenue"][fy].value == 160.6

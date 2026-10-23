@@ -117,15 +117,28 @@ def _resolve_by_label(c: Concept, stmt: MergedStatement, fy: str) -> ConceptValu
     return None
 
 
+def _supplied_view(stmt: MergedStatement, fy: str) -> MergedStatement | None:
+    """``stmt`` restricted to the rows whose ``fy`` value came from the year's source
+    filing (``sources[fy]``), or None when provenance is unknown or nothing is filtered."""
+    src = stmt.sources.get(fy)
+    if src is None or not any(r.value_src for r in stmt.rows):
+        return None
+    rows = [r for r in stmt.rows if r.value_src.get(fy) == src.accession]
+    return None if len(rows) == len(stmt.rows) else replace(stmt, rows=rows)
+
+
 def _resolve_one(c: Concept, statements: dict[str, MergedStatement], fy: str) -> ConceptValue:
     """Tag matching across all of the concept's statements (in order) first, then
-    label fallback across them; the first hit wins."""
+    label fallback across them; the first hit wins. Each pass looks first at the rows the
+    year's source filing supplied: rows only an older filing has (another entity's history
+    after a predecessor recast, e.g. KNTK) are used only when that finds nothing."""
     present = [(t, statements[t]) for t in c.stypes if t in statements]
-    for _, stmt in present:
+    views = [(t, v) for t, s in present if (v := _supplied_view(s, fy)) is not None]
+    for _, stmt in views + present:
         cv = _resolve_by_tag(c, stmt, fy)
         if cv is not None:
             return _add_on(c, stmt, fy, cv)
-    for _, stmt in present:
+    for _, stmt in views + present:
         cv = _resolve_by_label(c, stmt, fy)
         if cv is not None:
             return cv

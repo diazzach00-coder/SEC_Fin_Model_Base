@@ -166,3 +166,33 @@ def test_short_row_values_yield_none():
     s = stmt(cols(2025, 2024), [row("A", "A", [1.0])])
     m = merge_statements([(filing(2025), s)], ["FY2024", "FY2025"], FY_ENDS)
     assert m.rows[0].values == {"FY2024": None, "FY2025": 1.0}
+
+
+# ---- one designated supplier filing per fiscal year (KNTK predecessor recast) ----
+def test_designated_supplier_is_newest_filing_covering_all_three_statements():
+    from sec_model.merge import designated_suppliers
+    f24, f25 = filing(2024), filing(2025)
+    s24 = {"IS": stmt(cols(2024, 2023), []), "CF": stmt(cols(2024, 2023), [], stype="CF"),
+           "BS": stmt(cols(2024, 2023, months=None), [], stype="BS")}
+    # The FY2025 10-K has FY2023 IS/CF columns but its BS stops at FY2024.
+    s25 = {"IS": stmt(cols(2025, 2024, 2023), []), "CF": stmt(cols(2025, 2024, 2023), [], stype="CF"),
+           "BS": stmt(cols(2025, 2024, months=None), [], stype="BS")}
+    sup = designated_suppliers([(f24, s24), (f25, s25)], FY_ENDS)
+    assert sup == {"FY2023": f24.accession, "FY2024": f25.accession, "FY2025": f25.accession}
+
+
+def test_supplier_filing_values_first_and_lacking_keys_from_others():
+    old = stmt(cols(2024, 2023), [row("us-gaap_Revenues", "Revenues", [148.0, 136.0]),
+                                  row("Legacy", "Legacy", [5.0, 4.0])])
+    new = stmt(cols(2025, 2024, 2023), [row("us-gaap_Revenues", "Revenues", [1213.0, 662.0, 410.0])])
+    f24, f25 = filing(2024), filing(2025)
+    m = merge_statements([(f24, old), (f25, new)], ["FY2023", "FY2024", "FY2025"], FY_ENDS,
+                         suppliers={"FY2023": f24.accession})
+    rev = next(r for r in m.rows if r.key == "us-gaap_Revenues")
+    assert rev.values == {"FY2023": 136.0, "FY2024": 662.0, "FY2025": 1213.0}
+    assert rev.value_src == {"FY2023": f24.accession, "FY2024": f25.accession,
+                             "FY2025": f25.accession}
+    assert m.sources["FY2023"].accession == f24.accession
+    assert m.sources["FY2024"].accession == f25.accession
+    legacy = next(r for r in m.rows if r.key == "Legacy")   # key fallback still works
+    assert legacy.values["FY2024"] == 5.0 and legacy.value_src["FY2024"] == f24.accession
