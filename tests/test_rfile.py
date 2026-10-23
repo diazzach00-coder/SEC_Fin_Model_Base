@@ -18,16 +18,16 @@ def _row(label: str, tag: str, cells: str, style: str = "border-bottom: 0px;") -
     )
 
 
-def _table(*rows: str) -> str:
+def _table(*rows: str, title: str = "INCOME STATEMENT - USD ($)", extra: str = "") -> str:
     return (
         '<html><body><table class="report">'
         '<tr><th class="tl" colspan="1" rowspan="2"><div><strong>'
-        "INCOME STATEMENT - USD ($)<br> $ in Millions</strong></div></th>"
+        f"{title}<br> $ in Millions</strong></div></th>"
         '<th class="th" colspan="2">12 Months Ended</th></tr>'
         '<tr><th class="th"><div>Dec. 31, 2025</div></th>'
         '<th class="th"><div>Dec. 31, 2024</div></th></tr>'
         + "".join(rows)
-        + "</table></body></html>"
+        + "</table>" + extra + "</body></html>"
     )
 
 
@@ -145,3 +145,26 @@ def test_equity_lines_mentioning_units_issued_stay_money():
 def test_unit_hint_overrides_label_rules():
     s = parse_rfile(TWO_REVENUE_ROWS_HTML, "IS", "u", unit_hint=lambda tag: "perunit")
     assert s.rows[0].unit == "perunit"
+
+
+def test_currency_from_title():
+    rev = _row("Revenue", "us-gaap_Revenues", '<td class="nump">1</td><td class="nump">2</td>')
+    loss = parse_rfile(_table(rev, title="CONSOLIDATED STATEMENTS OF INCOME (LOSS) - USD ($)"), "IS", "u")
+    assert loss.currency == "USD"
+    assert parse_rfile(_table(rev, title="STATEMENTS OF INCOME - CAD ($)"), "IS", "u").currency == "CAD"
+
+
+def test_malformed_authref_block_falls_back_to_label_rules():
+    broken = ('<div style="display: none;"><table class="authRefData" id="defref_us-gaap_Revenues">'
+              "<tr><th><strong> Data Type:</strong></th></tr></table></div>")
+    rev = _row("Revenue", "us-gaap_Revenues", '<td class="nump">$ 10</td><td class="nump">$ 9</td>')
+    s = parse_rfile(_table(rev, extra=broken), "IS", "u")
+    assert s.rows[0].unit == "money" and s.rows[0].values == [10.0, 9.0]
+
+
+def test_non_numeric_cells_are_none():
+    cells = ['<td class="text">[1]</td>', '<td class="num">—</td>', '<td class="nump">1e400</td>',
+             '<td class="text">abc</td>', '<td class="nump">nan</td>', '<td class="nump">-</td>']
+    rows = [_row(f"R{i}", f"us-gaap_X{i}", c + '<td class="nump">1</td>') for i, c in enumerate(cells)]
+    s = parse_rfile(_table(*rows), "IS", "u")
+    assert [r.values for r in s.rows] == [[None, 1.0]] * len(cells)

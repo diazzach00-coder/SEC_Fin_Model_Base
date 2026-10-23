@@ -4,6 +4,7 @@ Columns are keyed by period end date and duration; rows by XBRL tag. Values
 are converted to millions (money), millions of shares/units (shares) or left
 as-is (per-share and other).
 """
+import math
 import re
 from datetime import date
 from decimal import Decimal, InvalidOperation
@@ -44,7 +45,7 @@ def parse_rfile(html: str, stype: str, source_url: str,
     n_header = sum(1 for _ in _leading_header_rows(trs))
     title, label_cols, columns, keep = _parse_header(trs[:n_header])
 
-    currency = _search(r"([A-Z]{3}) \(\S+\)", title, "USD")
+    currency = _search(r"([A-Z]{3}) \(\$\)", title, "USD")
     money_scale = _SCALES.get(_search(r"\$ in (Millions|Thousands|Billions)", title, ""), 1e-6)
     share_scale = _SCALES.get(_search(r"shares in (Millions|Thousands)", title, ""), 1e-6)
     scales = {"money": money_scale, "shares": share_scale}
@@ -150,8 +151,8 @@ def _parse_value(text: str, scale: float) -> float | None:
         return None
     if not d.is_finite():
         return None
-    d = d * Decimal(repr(scale))
-    return float(-d if neg else d)
+    v = float((-d if neg else d) * Decimal(repr(scale)))
+    return v if math.isfinite(v) else None   # "1e400" overflows to inf
 
 
 def _indent_of(cell) -> int | None:
@@ -168,7 +169,8 @@ def _page_data_types(soup) -> dict[str, str]:
     out = {}
     for t in soup.find_all("table", class_="authRefData"):
         strong = t.find("strong", string=re.compile("Data Type"))
-        td = strong.find_parent("td").find_next_sibling("td") if strong else None
+        label_td = strong.find_parent("td") if strong else None
+        td = label_td.find_next_sibling("td") if label_td else None   # malformed block: skip
         unit = _DATA_TYPES.get(td.get_text().strip().split(":")[-1]) if td else None
         if unit and t.get("id", "").startswith("defref_"):
             out[t["id"][len("defref_"):]] = unit
