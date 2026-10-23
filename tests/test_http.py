@@ -111,3 +111,36 @@ def test_min_interval_between_requests(tmp_path, monkeypatch):
     c.get_text("https://www.sec.gov/a")
     c.get_text("https://www.sec.gov/b")
     assert len(sleeps) == 1 and 0 < sleeps[0] <= 5.0
+
+
+def test_503_then_200_is_retried(tmp_path, monkeypatch):
+    monkeypatch.setattr("sec_model.http.time.sleep", lambda s: None)
+    responses = iter([FakeResp(503, b"busy"), FakeResp(200, b"ok")])
+    calls = []
+
+    def fake_get(url, headers, timeout):
+        calls.append(url)
+        return next(responses)
+
+    monkeypatch.setattr("sec_model.http.requests.get", fake_get)
+    c = SecClient("Test test@example.com", cache_dir=tmp_path)
+    assert c.get_bytes("https://www.sec.gov/flaky") == b"ok"
+    assert len(calls) == 2
+
+
+def test_persistent_503_raises_after_retries(tmp_path, monkeypatch):
+    sleeps = []
+    calls = []
+    monkeypatch.setattr("sec_model.http.time.sleep", lambda s: sleeps.append(s))
+
+    def fake_get(url, headers, timeout):
+        calls.append(url)
+        return FakeResp(503, b"busy")
+
+    monkeypatch.setattr("sec_model.http.requests.get", fake_get)
+    c = SecClient("Test test@example.com", cache_dir=tmp_path)
+    with pytest.raises(requests.HTTPError):
+        c.get_bytes("https://www.sec.gov/down")
+    assert len(calls) == 4  # initial try + 3 retries
+    assert [s for s in sleeps if s >= 1] == [1, 2, 4]
+    assert list(tmp_path.iterdir()) == []
