@@ -17,7 +17,6 @@ from openpyxl.worksheet.datavalidation import DataValidation
 from openpyxl.workbook.defined_name import DefinedName
 
 from sec_model.formula import Const, Expr, RenderContext, to_excel
-from sec_model.labels import label, unit_noun
 
 from .asreported import unit_note
 from . import styles as S
@@ -36,13 +35,10 @@ FONT_FORMULA_BOLD = Font(name=S.FONT_NAME, size=10, bold=True, color="000000")
 
 
 def unit_for(fmt: str, currency: str, entity_type: str = "corporation") -> str:
-    """Unit-column text: "$MM", "%", "MM shares" / "MM units", "per share" / "per unit" ..."""
-    if fmt == "money":
-        return unit_note("money", currency)
-    if fmt == "units":
-        return f"MM {unit_noun(entity_type)}s"
-    if fmt == "perunit":
-        return label("per_unit", entity_type)
+    """Unit-column text for a Model / Drivers format: money, share counts and per-share
+    data share `asreported.unit_note` (the Model's "units" fmt is its "shares" unit)."""
+    if fmt in ("money", "units", "perunit"):
+        return unit_note("shares" if fmt == "units" else fmt, currency, entity_type)
     return _UNITS.get(fmt, "")
 
 

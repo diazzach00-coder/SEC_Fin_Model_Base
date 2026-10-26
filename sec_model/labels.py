@@ -15,6 +15,8 @@ LABELS: dict[str, dict[str, str]] = {
                    "partnership": "Distribution per unit growth"},
     "ni_common": {"corporation": "Net income to common", "partnership": "Net income to partners"},
     "equity": {"corporation": "Shareholders' equity", "partnership": "Partners' capital"},
+    # Reserved: no sheet uses "holder" yet; kept for owner-facing copy (e.g. "returned to
+    # unitholders") so it comes from this table when added.
     "holder": {"corporation": "shareholders", "partnership": "unitholders"},
     "eps": {"corporation": "EPS (diluted)", "partnership": "Earnings per unit (diluted)"},
     "dist_coverage": {"corporation": "Dividend coverage (OCF - capex) / dividends",

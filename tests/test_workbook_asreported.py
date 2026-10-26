@@ -1,13 +1,15 @@
 from datetime import date
 from io import BytesIO
 
+import pytest
 from openpyxl import Workbook, load_workbook
 
 from sec_model.concepts import CONCEPTS, Concept
 from sec_model.types import (CheckResult, ConceptValue, MergedRow, MergedStatement,
                              SourceRec)
 from sec_model.workbook import styles as S
-from sec_model.workbook.asreported import SHEET_NAMES, write_as_reported
+from sec_model.workbook.asreported import SHEET_NAMES, unit_note, write_as_reported
+from sec_model.workbook.inputs_sheets import unit_for
 from sec_model.workbook.mapping_sheet import write_mapping
 from sec_model.workbook.meta import CoverInfo, write_checks, write_cover, write_sources
 
@@ -44,7 +46,7 @@ def _cv(concept, fy, value, key, status="OK", tag=None):
 
 def test_as_reported_layout_and_hidden_key_column():
     wb = Workbook()
-    rows = write_as_reported(wb, _is(), SHEET_NAMES["IS"])
+    rows = write_as_reported(wb, _is(), SHEET_NAMES["IS"], "partnership")
     buf = BytesIO()
     wb.save(buf)
     ws = load_workbook(BytesIO(buf.getvalue()))["IS (As Reported)"]
@@ -62,6 +64,26 @@ def test_as_reported_layout_and_hidden_key_column():
     assert ws["B2"].fill.start_color.rgb.endswith("1F3864") and ws["B2"].font.size == 14
     # None -> blank, never 0; abstract row has no values
     assert ws["E8"].value is None and ws["E7"].value is None and ws["D5"].value is None
+
+
+@pytest.mark.parametrize("entity_type, shares, per, noun", [
+    ("corporation", "MM shares", "per share", "share"),
+    ("partnership", "MM units", "per unit", "unit"),
+])
+def test_as_reported_units_follow_entity_type(entity_type, shares, per, noun):
+    wb = Workbook()
+    write_as_reported(wb, _is(), SHEET_NAMES["IS"], entity_type)
+    ws = wb["IS (As Reported)"]
+    assert (ws["C9"].value, ws["C10"].value) == (per, shares)
+    assert ws["B3"].value == f"USD in millions except per-{noun}; blue = SEC-reported value"
+    assert unit_note("shares", "USD", entity_type) == shares
+    assert unit_note("perunit", "USD", entity_type) == per
+    # the Model's unit column uses the same helper
+    assert (unit_for("units", "USD", entity_type), unit_for("perunit", "USD", entity_type)) == \
+        (shares, per)
+    # the default is a corporation, as for build_spec
+    write_as_reported(wb2 := Workbook(), _is(), SHEET_NAMES["IS"])
+    assert wb2["IS (As Reported)"]["C10"].value == "MM shares"
 
 
 def test_non_usd_unit_note():

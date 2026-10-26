@@ -38,7 +38,7 @@ def build_workbook(*, company: str, ticker: str, cik: int, currency: str,
     stmt_sheets = {}
     for stype in ("IS", "BS", "CF"):
         if stype in statements:
-            write_as_reported(wb, statements[stype], SHEET_NAMES[stype])
+            write_as_reported(wb, statements[stype], SHEET_NAMES[stype], spec.entity_type)
             stmt_sheets[stype] = SHEET_NAMES[stype]
     m = write_mapping(wb, mapping, stmt_sheets, statements, fy_labels)
     layout = write_model(wb, spec, m["rows"], m["value_cols"], fy_labels, fcst_labels,
