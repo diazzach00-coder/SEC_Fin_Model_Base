@@ -276,9 +276,12 @@ def _apply_gates(out: dict, statements: dict[str, MergedStatement]) -> None:
 
 def _guard_revolver(out: dict) -> None:
     """The drawn revolver is part of total debt, so a RevolverDrawn year is set UNMAPPED
-    when TotalDebt is unmapped, or when it is at or above TotalDebt (a total-debt row
-    caught by the label) -- unless TotalDebt was built from that same revolver row (a
-    balance sheet whose only debt is the revolver). The Model then splits nothing off."""
+    when TotalDebt is unmapped, when it is at or above TotalDebt (a total-debt row caught
+    by the label), or when TotalDebt is a SUM(...) of components that does not include the
+    revolver row (a revolver outside the total cannot be split out of it) -- unless
+    TotalDebt was built from that same revolver row (a balance sheet whose only debt is
+    the revolver, or a revolver tag summed with the components). A single total-including
+    tag is assumed to contain the revolver. The Model then splits nothing off."""
     for fy, rv in list(out.get("RevolverDrawn", {}).items()):
         if rv.value is None:
             continue
@@ -286,9 +289,10 @@ def _guard_revolver(out: dict) -> None:
         if td is None or td.value is None:
             out["RevolverDrawn"][fy] = _unmapped("RevolverDrawn", fy)
             continue
+        summed = (td.tag or "").startswith("SUM(")
         parts = set((td.tag or "").removeprefix("SUM(").removesuffix(")").split("+"))
         inside = rv.tag in parts            # TotalDebt includes this very revolver row
-        if rv.value >= td.value and not inside:
+        if (rv.value >= td.value or summed) and not inside:
             out["RevolverDrawn"][fy] = _unmapped("RevolverDrawn", fy)
 
 

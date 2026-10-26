@@ -393,6 +393,41 @@ def test_revolver_assumed_inside_a_single_total_including_tag():
         assert (m["DEBT"]["FY2024"], m["REVOLVER"]["FY2024"]) == (80.0, 30.0), tag
 
 
+def test_custom_revolver_outside_a_component_built_total_is_unmapped():
+    out, m = _debt_split([
+        mrow("us-gaap_LongTermDebtNoncurrent", "Long-term debt", {"FY2023": 200.0, "FY2024": 200.0}),
+        mrow("us-gaap_LongTermDebtCurrent", "Current maturities", {"FY2023": 10.0, "FY2024": 10.0}),
+        mrow("xyz_Revolver", "Revolving credit facility", {"FY2023": 50.0, "FY2024": 50.0}),
+    ])
+    td = out["TotalDebt"]["FY2024"]
+    assert td.value == 210.0 and td.tag.startswith("SUM(") and "xyz_Revolver" not in td.tag
+    assert out["RevolverDrawn"]["FY2024"].status == "UNMAPPED"
+    assert (m["DEBT"]["FY2024"], m["REVOLVER"]["FY2024"]) == (210.0, 0.0)
+
+
+def test_loc_tag_inside_a_component_built_total_is_kept():
+    out, _ = _debt_split([
+        mrow("us-gaap_LongTermDebtNoncurrent", "Long-term debt", {"FY2023": 200.0, "FY2024": 200.0}),
+        mrow("us-gaap_LongTermLineOfCredit", "Credit facility", {"FY2023": 40.0, "FY2024": 40.0}),
+    ])
+    td = out["TotalDebt"]["FY2024"]
+    assert td.value == 240.0 and "us-gaap_LongTermLineOfCredit" in td.tag
+    rv = out["RevolverDrawn"]["FY2024"]
+    assert (rv.status, rv.value) == ("OK", 40.0)
+
+
+def test_custom_revolver_with_single_total_including_tag_is_kept_as_inside():
+    # Current behaviour: a single total-including tag is not a SUM, so the separately
+    # presented face row is assumed to be inside it and is split out.
+    out, m = _debt_split([
+        mrow("us-gaap_LongTermDebt", "Total debt", {"FY2023": 110.0, "FY2024": 110.0}),
+        mrow("xyz_Revolver", "Revolving credit facility", {"FY2023": 30.0, "FY2024": 30.0}),
+    ])
+    assert out["TotalDebt"]["FY2024"].tag == "us-gaap_LongTermDebt"
+    assert out["RevolverDrawn"]["FY2024"].value == 30.0
+    assert (m["DEBT"]["FY2024"], m["REVOLVER"]["FY2024"]) == (80.0, 30.0)
+
+
 def test_revolver_only_balance_sheet_has_no_negative_term_debt():
     out, m = _debt_split([
         mrow("us-gaap_LineOfCredit", "Credit facility", {"FY2023": 50.0, "FY2024": 50.0}),

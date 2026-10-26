@@ -248,7 +248,8 @@ CONCEPTS: list[Concept] = [
             )),
     # Drawn revolver / line of credit; part of TotalDebt. Unmapped -> 0 (no opening revolver).
     # The label fallback skips total / term-debt rows that merely mention the revolver;
-    # mapping._guard_revolver drops a year at or above TotalDebt or without TotalDebt.
+    # mapping._guard_revolver drops a year at or above TotalDebt, without TotalDebt, or
+    # outside a component-built (SUM) TotalDebt.
     Concept("RevolverDrawn", ("BS",), REVOLVER_TAGS,
             r"^(?!.*(long-term debt|total|notes|senior)).*(revolv|line of credit)"),
     Concept("LiabilitiesAndEquity", ("BS",),
