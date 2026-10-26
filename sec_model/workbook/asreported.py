@@ -43,11 +43,11 @@ def write_as_reported(wb, stmt: MergedStatement, sheet_name: str,
     rows: dict[str, int] = {}
     for r, row in enumerate(stmt.rows, start=5):
         rows[row.key] = r
-        label = row.label + ("" if row.still_reported else " (no longer reported)")
+        text = row.label + ("" if row.still_reported else " (no longer reported)")
         total = (not row.is_abstract) and row.label.strip().lower().startswith("total")
         base = S.FONT_BOLD if (row.is_abstract or total) else S.FONT_BASE
         ws.cell(r, 1, row.key).font = S.FONT_BASE
-        lab = ws.cell(r, 2, label)
+        lab = ws.cell(r, 2, text)
         lab.font = S.FONT_DROPPED if not row.still_reported else base
         lab.alignment = Alignment(indent=row.indent)
         ws.cell(r, 3, unit_note(row.unit, stmt.currency, entity_type)).font = S.FONT_BASE
