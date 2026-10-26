@@ -19,7 +19,7 @@ CANONICAL = [
     "FinancingCF", "NetChangeInCash", "CFBeginningCash", "CFEndingCash", "Cash", "Receivables",
     "Inventory", "NetPPE", "EquityInvestments", "TotalAssets", "Payables", "DebtCurrent",
     "LongTermDebt", "TotalDebt", "LiabilitiesAndEquity", "EquityCommon", "NCI",
-    "TotalEquityInclNCI",
+    "TotalEquityInclNCI", "RevolverDrawn",
 ]
 
 
@@ -47,7 +47,7 @@ def test_concept_statement_scopes():
           "CFBeginningCash", "CFEndingCash", "OperatingCashFlow"}
     bs = {"Cash", "Receivables", "Inventory", "NetPPE", "EquityInvestments", "TotalAssets",
           "Payables", "DebtCurrent", "LongTermDebt", "TotalDebt", "LiabilitiesAndEquity",
-          "EquityCommon", "NCI", "TotalEquityInclNCI", "UnitsOutstanding"}
+          "EquityCommon", "NCI", "TotalEquityInclNCI", "UnitsOutstanding", "RevolverDrawn"}
     for name, stypes in by.items():
         expected = ("IS", "CF") if name == "DA" else (
             "CF" if name in cf else "BS" if name in bs else "IS",)
@@ -301,6 +301,33 @@ def test_total_debt_single_tag_fallbacks_and_unmapped():
     cv2 = resolve({"BS": bs2})["TotalDebt"]["FY2024"]
     assert (cv2.value, cv2.tag) == (2.0, tag)
     assert resolve({"BS": mstmt("BS", [])})["TotalDebt"]["FY2024"].status == "UNMAPPED"
+
+
+def test_revolver_drawn_tags_label_fallback_and_unmapped():
+    c = next(c for c in CONCEPTS if c.name == "RevolverDrawn")
+    assert c.tags == ("LineOfCredit", "LongTermLineOfCredit", "LinesOfCreditCurrent",
+                      "RevolvingCreditFacility")
+    assert c.stypes == ("BS",) and c.sum_groups == ()
+    for tag in c.tags:
+        bs = mstmt("BS", [mrow(f"us-gaap_{tag}", "Borrowings", {"FY2023": 3.0, "FY2024": 4.0})])
+        cv = resolve({"BS": bs})["RevolverDrawn"]["FY2024"]
+        assert (cv.status, cv.value, cv.tag) == ("OK", 4.0, f"us-gaap_{tag}"), tag
+    bs = mstmt("BS", [mrow("xyz_Revolver", "Revolving credit facility",
+                           {"FY2023": 5.0, "FY2024": 6.0}),
+                      mrow("us-gaap_LongTermDebtNoncurrent", "Long-term debt",
+                           {"FY2023": 100.0, "FY2024": 100.0})])
+    cv = resolve({"BS": bs})["RevolverDrawn"]["FY2024"]
+    assert (cv.status, cv.value, cv.row_key) == ("OK", 6.0, "xyz_Revolver")
+    bs2 = mstmt("BS", [mrow("xyz_Loc", "Borrowings under line of credit",
+                            {"FY2023": 1.0, "FY2024": 2.0})])
+    assert resolve({"BS": bs2})["RevolverDrawn"]["FY2024"].value == 2.0
+    empty = resolve({"BS": mstmt("BS", [mrow("us-gaap_LongTermDebt", "Debt",
+                                             {"FY2023": 1.0, "FY2024": 2.0})])})
+    assert empty["RevolverDrawn"]["FY2024"].status == "UNMAPPED"
+    # BS scope only: a cash-flow revolver line is not a drawn balance
+    cf = mstmt("CF", [mrow("us-gaap_ProceedsFromLinesOfCredit", "Revolver borrowings",
+                           {"FY2023": 1.0, "FY2024": 2.0})])
+    assert resolve({"CF": cf})["RevolverDrawn"]["FY2024"].status == "UNMAPPED"
 
 
 def test_diluted_units_tags_and_label_fallback_ignores_eps():

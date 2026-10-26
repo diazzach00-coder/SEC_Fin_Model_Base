@@ -12,7 +12,7 @@ formula reference to a concept-sourced line's HISTORY cell renders as ``N(<cell>
 """
 from dataclasses import dataclass, field
 
-from openpyxl.formatting.rule import CellIsRule
+from openpyxl.formatting.rule import CellIsRule, FormulaRule
 from openpyxl.styles import Alignment
 
 from sec_model.formula import RenderContext, to_excel
@@ -191,4 +191,13 @@ def write_model(wb, spec: ModelSpec, mapping_rows: dict[str, int],
         for op, f in (("greaterThan", "0.5"), ("lessThan", "-0.5")):
             ws.conditional_formatting.add(rng, CellIsRule(operator=op, formula=[f],
                                                           fill=S.FILL_FAIL))
+    r = line_row.get("LIQ_SHORTFALL")
+    if r is not None:
+        first, last = S.col(first_fcst), S.col(last_col)
+        ws.conditional_formatting.add(f"{first}{r}:{last}{r}", CellIsRule(
+            operator="greaterThan", formula=["0.5"], fill=S.FILL_FAIL))
+        rev = line_row.get("REVOLVER")
+        if rev is not None:     # the capped revolver turns red in a shortfall year
+            ws.conditional_formatting.add(f"{first}{rev}:{last}{rev}", FormulaRule(
+                formula=[f"{first}{r}>0.5"], fill=S.FILL_FAIL))
     return layout

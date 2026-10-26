@@ -409,7 +409,8 @@ def test_toggles_have_one_zero_list_validation():
         coord = layout.scalar_cell[key].split("!")[1].replace("$", "")
         dv = drivers[coord]
         assert (dv.type, dv.formula1, dv.allow_blank) == ("list", '"1,0"', False), key
-    assert layout.scalar_cell["MIN_CASH"].split("!")[1].replace("$", "") not in drivers
+    for key in ("REV_CAP", "GROWTH_CAP"):                     # numeric inputs, no list
+        assert layout.scalar_cell[key].split("!")[1].replace("$", "") not in drivers
     dv = _validations(wb["DCF"])["H8"]
     assert wb["DCF"]["F8"].value == "Mid-year convention (1 = on)"
     assert (dv.type, dv.formula1, dv.allow_blank) == ("list", '"1,0"', False)

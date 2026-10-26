@@ -107,7 +107,7 @@ def test_forecast_cell_formula_matches_renderer():
     assert ws.cell(r["BAL_CHECK"], H).value == f"=H{r['TOTAL_ASSETS']}-H{r['TOTAL_LE']}"
     dr = layout.driver_row
     assert ws.cell(r["INTEREST"], H).value == \
-        f"=Drivers!H{dr['INT_RATE']}*(G{r['DEBT']}+G{r['REVOLVER']})"
+        f"=(Drivers!H{dr['INT_RATE']}*G{r['DEBT']})+(Drivers!H{dr['REV_RATE']}*G{r['REVOLVER']})"
 
 
 def test_driver_first_col_value_and_chain():
@@ -146,13 +146,29 @@ def test_driver_first_col_value_and_chain():
         assert ws.cell(row, 3).fill.start_color.rgb.endswith("FFF2CC")
         assert ws.cell(row, 4).value == s.note
         assert wb.defined_names[s.key].attr_text == ref
-    assert sd["MIN_CASH"] == 130.0
+    assert set(sd) == {"JV_TOGGLE", "WC_HOLD", "REV_CAP", "GROWTH_CAP"}
     capex = ws.cell(layout.driver_row["CAPEX_PCT"], G).value
     assert capex == f"=AVERAGE(Model!$D${layout.line_row['CAPEX_PCT_HIST']}:$F$"         f"{layout.line_row['CAPEX_PCT_HIST']})"
     assert "AVERAGE(" in capex and "Model!" in capex
     assert ws.cell(layout.driver_row["UNITS"], G).value == f"=N(Model!F{layout.line_row['UNITS']})"
-    min_cash = layout.scalar_cell["MIN_CASH"].rsplit("$", 1)[1]
-    assert ws.cell(int(min_cash), 3).value == f"=N(Model!F{layout.line_row['CASH']})"
+    # per-year minimum cash and revolver rate: year 1 a formula over the Model, then =prev
+    r_min, r_rate = layout.driver_row["MIN_CASH"], layout.driver_row["REV_RATE"]
+    assert r_rate == r_min + 1 == layout.driver_row["DEBT_ISSUE"] + 2
+    assert ws.cell(r_min, 2).value == "Minimum cash balance"
+    assert ws.cell(r_min, G).value == f"=N(Model!F{layout.line_row['CASH']})"
+    assert ws.cell(r_rate, G).value == f"=Model!F{layout.line_row['INT_RATE_HIST']}"
+    assert ws.cell(r_rate, 12).value == "revolver rate; defaults to the term-debt rate"
+    for r in (r_min, r_rate):
+        assert ws.cell(r, H).value == f"=G{r}"
+    assert ws.cell(r_min, G).number_format == S.FMT_MONEY
+    assert ws.cell(r_rate, G).number_format == S.FMT_PCT
+    # scalars: revolver commitment and growth cap are plain yellow numeric inputs
+    for key, val, fmt in (("REV_CAP", 0, S.FMT_MONEY), ("GROWTH_CAP", 0.15, S.FMT_PCT)):
+        row = int(layout.scalar_cell[key].rsplit("$", 1)[1])
+        assert ws.cell(row, 3).value == val and ws.cell(row, 3).number_format == fmt
+        assert ws.cell(row, 3).font.color.rgb.endswith(S.BLUE)
+    cap = layout.scalar_cell["GROWTH_CAP"]
+    assert ws.cell(layout.driver_row["REV_GROWTH"], G).value ==         f"=MAX(MIN(AVERAGE(Model!$D${layout.line_row['REV_GROWTH_HIST']}:$F$"         f"{layout.line_row['REV_GROWTH_HIST']}),{cap}),-{cap})"
 
 
 def test_asset_block_total_feeds_revenue():
@@ -200,6 +216,39 @@ def test_balance_check_has_conditional_format():
     for sq, rule in rules:
         assert rule.dxf.fill.fgColor.rgb.endswith("F4CCCC") or \
             rule.dxf.fill.bgColor.rgb.endswith("F4CCCC")
+
+
+def test_liquidity_shortfall_row_and_conditional_format():
+    wb, layout, spec, *_ = _build()
+    ws = wb["Model"]
+    r = layout.line_row
+    assert r["LIQ_SHORTFALL"] == r["BAL_CHECK"] + 1
+    assert ws.cell(r["LIQ_SHORTFALL"], 2).value == "Liquidity shortfall vs minimum cash"
+    assert all(ws.cell(r["LIQ_SHORTFALL"], c).value is None for c in range(4, G))
+    assert ws.cell(r["LIQ_SHORTFALL"], H).value ==         f"=MAX(0,Drivers!H{layout.driver_row['MIN_CASH']}-H{r['CASH']})"
+    rules = [(str(rng.sqref), rule) for rng in ws.conditional_formatting for rule in rng.rules]
+    row = r["LIQ_SHORTFALL"]
+    found = [(rule.operator, tuple(rule.formula)) for sq, rule in rules if sq == f"G{row}:K{row}"]
+    assert found == [("greaterThan", ("0.5",))]
+    # the revolver cell turns red in a year whose need exceeds the commitment
+    rev = r["REVOLVER"]
+    found = [rule for sq, rule in rules if sq == f"G{rev}:K{rev}"]
+    assert len(found) == 1 and found[0].type == "expression"
+    assert found[0].formula == [f"G{row}>0.5"]
+    for sq, rule in rules:
+        assert rule.dxf.fill.fgColor.rgb.endswith("F4CCCC") or             rule.dxf.fill.bgColor.rgb.endswith("F4CCCC")
+
+
+def test_debt_history_splits_out_the_drawn_revolver():
+    h = dict(TOY, RevolverDrawn={"FY2023": 10, "FY2024": 20, "FY2025": 30})
+    wb, layout, spec, rows, *_ = _build(h)
+    ws = wb["Model"]
+    r = layout.line_row
+    assert ws.cell(r["REV_RPT"], F).value == f"=Mapping!F{rows['RevolverDrawn']}"
+    assert ws.row_dimensions[r["REV_RPT"]].hidden
+    assert ws.cell(r["REVOLVER"], F).value == f"=N(F{r['REV_RPT']})"
+    assert ws.cell(r["DEBT"], F).value == f"=N(F{r['DEBT_RPT']})-N(F{r['REV_RPT']})"
+    assert ws.cell(r["DEBT_NET"], F).value ==         f"=(F{r['DEBT']}+F{r['REVOLVER']})-(E{r['DEBT']}+E{r['REVOLVER']})"
 
 
 def test_sections_hidden_rows_and_styles():

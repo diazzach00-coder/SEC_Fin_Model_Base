@@ -181,15 +181,16 @@ def test_revolver_draws_shortfall_to_min_cash():
         assert _close(out["CASH"][fy], min_cash)
         assert out["REVOLVER_NET"][fy] > 0
         assert abs(out["BAL_CHECK"][fy]) < 1e-6
-    # interest is charged on opening revolver
+    # interest is charged on opening revolver at the revolver rate
     y2 = FCST[1]
-    rate = driver_defaults(build_spec("ppe"), TOY, FY)["INT_RATE"]
-    assert _close(out["INTEREST"][y2], rate * (out["DEBT"][y1] + out["REVOLVER"][y1]))
+    d = driver_defaults(build_spec("ppe"), TOY, FY)
+    assert _close(out["INTEREST"][y2],
+                  d["INT_RATE"] * out["DEBT"][y1] + d["REV_RATE"] * out["REVOLVER"][y1])
 
 
 def test_revolver_repays_when_cash_exceeds_min():
     # MIN_CASH above last cash: year 1 draws, later years' surplus cash repays the revolver.
-    _, out = _run(scalar_overrides={"MIN_CASH": 200.0})
+    _, out = _run(driver_overrides={"MIN_CASH": 200.0})
     y1, y2 = FCST[0], FCST[1]
     assert out["REVOLVER"][y1] > 0 and _close(out["CASH"][y1], 200.0)
     assert out["REVOLVER_NET"][y2] < 0
@@ -205,6 +206,87 @@ def test_revolver_repays_when_cash_exceeds_min():
 def test_no_revolver_when_cash_stays_above_min():
     _, out = _run()
     assert all(out["REVOLVER"][fy] == 0 for fy in FCST)
+    assert all(out["LIQ_SHORTFALL"][fy] == 0 for fy in FCST)
+    assert all(out["LIQ_SHORTFALL"][fy] is None for fy in FY)      # blank in history
+
+
+def test_revolver_capped_by_commitment_and_shortfall_reported():
+    # Huge distributions need more than the 50 commitment: the draw stops at 50, cash
+    # falls below minimum by the uncovered amount and the balance sheet still ties.
+    _, out = _run(driver_overrides={"DPU_GROWTH": 2.0}, scalar_overrides={"REV_CAP": 50.0})
+    _, free = _run(driver_overrides={"DPU_GROWTH": 2.0})
+    for fy in FCST:
+        assert _close(out["REVOLVER"][fy], 50.0)
+        assert out["LIQ_SHORTFALL"][fy] > 0
+        assert _close(out["LIQ_SHORTFALL"][fy], 130.0 - out["CASH"][fy])
+        assert abs(out["BAL_CHECK"][fy]) < 1e-6
+        assert free["REVOLVER"][fy] > 50.0                  # uncapped would draw more
+    y1 = FCST[0]
+    assert _close(out["REVOLVER_NET"][y1], 50.0)
+    assert all(_close(out["REVOLVER_NET"][fy], 0.0) for fy in FCST[1:])
+
+
+def test_revolver_unlimited_when_cap_zero():
+    spec, out = _run(driver_overrides={"DPU_GROWTH": 2.0})
+    assert scalar_defaults(spec, TOY, FY)["REV_CAP"] == 0.0
+    for fy in FCST:
+        assert _close(out["LIQ_SHORTFALL"][fy], 0.0)
+        assert _close(out["CASH"][fy], 130.0)
+        assert abs(out["BAL_CHECK"][fy]) < 1e-6
+
+
+def _with_revolver():
+    """Reported total debt 120/125/130 of which a drawn revolver 10/20/30."""
+    base = dict(TOY, TotalDebt=_h(120, 125, 130))
+    return base, dict(base, RevolverDrawn=_h(10, 20, 30))
+
+
+def test_opening_revolver_from_history():
+    base_h, h = _with_revolver()
+    spec = build_spec("ppe")
+    _, base = _run(history=base_h)
+    _, out = _run(history=h, driver_overrides={"REV_RATE": 0.08})
+    for fy, td, rv in zip(FY, (120, 125, 130), (10, 20, 30)):
+        assert _close(out["DEBT"][fy], td - rv)
+        assert _close(out["REVOLVER"][fy], rv)
+        assert _close(out["DEBT"][fy] + out["REVOLVER"][fy], td)
+        assert _close(out["DEBT_NET"][fy], base["DEBT_NET"][fy])       # financing unchanged
+        assert _close(out["CF_OTHER_FIN"][fy], base["CF_OTHER_FIN"][fy])
+        assert _close(out["FCF_FIN"][fy], TOY["FinancingCF"][fy])
+        assert _close(out["OTHER_LIAB"][fy], base["OTHER_LIAB"][fy])
+        assert _close(out["BAL_CHECK"][fy], 0.0)
+    assert _close(out["DEBT_NET"]["FY2024"], 125 - 120)
+    d = driver_defaults(spec, h, FY)
+    # interest rate on average (term debt + revolver): unchanged by the split
+    assert _close(d["INT_RATE"], 44 / ((130 + 125) / 2))
+    assert _close(d["REV_RATE"], d["INT_RATE"])
+    y1 = FCST[0]
+    assert _close(out["INTEREST"][y1], d["INT_RATE"] * 100 + 0.08 * 30)
+    assert all(abs(out["BAL_CHECK"][fy]) < 1e-6 for fy in FCST)
+    # unmapped revolver -> 0: term debt is the whole reported total
+    assert all(_close(base["REVOLVER"][fy], 0.0) for fy in FY)
+
+
+def test_min_cash_per_year_driver():
+    _, out = _run(driver_overrides={"DPU_GROWTH": 2.0,
+                                    "MIN_CASH": {"FY2026E": 10.0, "FY2027E": 40.0}})
+    assert _close(out["CASH"]["FY2026E"], 10.0)
+    for fy in FCST[1:]:                                   # later years chain =prev
+        assert _close(out["CASH"][fy], 40.0)
+    assert all(_close(out["LIQ_SHORTFALL"][fy], 0.0) for fy in FCST)
+    assert all(abs(out["BAL_CHECK"][fy]) < 1e-6 for fy in FCST)
+
+
+def test_growth_cap_scalar():
+    h = dict(TOY, Revenue=_h(100, 200, 400))
+    _, out = _run(history=h, scalar_overrides={"GROWTH_CAP": 0.05})
+    assert _close(out["REV"]["FY2026E"], 400 * 1.05)
+    _, dflt = _run(history=h)
+    assert _close(dflt["REV"]["FY2026E"], 400 * 1.15)
+    # DPU growth is capped by the same scalar (negative side: -5%)
+    h2 = dict(TOY, Distributions=_h(-400, -200, -100))
+    _, out2 = _run(history=h2, scalar_overrides={"GROWTH_CAP": 0.05})
+    assert _close(out2["DIST"]["FY2026E"], -1.0 * 0.95 * 100)
 
 
 # --- Toggles and drivers ---------------------------------------------------------------------
@@ -291,7 +373,9 @@ def test_driver_defaults_from_history():
     d = driver_defaults(build_spec("ppe"), TOY, FY)
     assert set(d) == {"REV_GROWTH", "COST_PCT", "DA_PCT", "CAPEX_PCT", "INT_RATE", "TAX_RATE",
                       "DPU_GROWTH", "UNITS", "AR_DAYS", "INV_DAYS", "AP_DAYS", "OTHER_OP",
-                      "DEBT_ISSUE"}
+                      "DEBT_ISSUE", "MIN_CASH", "REV_RATE"}
+    assert [x.key for x in build_spec("ppe").drivers][-3:] == ["DEBT_ISSUE", "MIN_CASH", "REV_RATE"]
+    assert d["MIN_CASH"] == 130.0 and _close(d["REV_RATE"], d["INT_RATE"])
     # growth guard: first history column shows 0, not -100%
     assert _close(d["REV_GROWTH"], (0 + 0.1 + 100 / 1100) / 3)
     assert _close(d["COST_PCT"], 825 / 1200)
@@ -311,7 +395,7 @@ def test_growth_drivers_capped_at_15_percent():
 
 def test_scalar_defaults():
     s = scalar_defaults(build_spec("ppe"), TOY, FY)
-    assert s == {"JV_TOGGLE": 1.0, "WC_HOLD": 0.0, "MIN_CASH": 130.0}
+    assert s == {"JV_TOGGLE": 1.0, "WC_HOLD": 0.0, "REV_CAP": 0.0, "GROWTH_CAP": 0.15}
 
 
 def test_default_asset_block_and_distributions():
@@ -365,11 +449,13 @@ def test_visible_lines_in_display_order():
     for ld in spec.lines:
         if not ld.hidden:
             by_section.setdefault(ld.section, []).append(ld.key)
-    assert by_section == {"IS": IS_KEYS, "CF": CF_KEYS, "BS": BS_KEYS, "CHECK": ["BAL_CHECK"],
-                          "RATIO": RATIO_KEYS}
+    assert by_section == {"IS": IS_KEYS, "CF": CF_KEYS, "BS": BS_KEYS,
+                          "CHECK": ["BAL_CHECK", "LIQ_SHORTFALL"], "RATIO": RATIO_KEYS}
     order = [ld.section for ld in spec.lines]
     assert order == sorted(order, key=["IS", "CF", "BS", "CHECK", "RATIO"].index)
-    assert {"CASH_PRE", "DEFTAX", "DPU_FCST"} <= {ld.key for ld in spec.lines if ld.hidden}
+    assert {"CASH_PRE", "DEFTAX", "DPU_FCST", "REV_RPT"} <=         {ld.key for ld in spec.lines if ld.hidden}
+    assert spec.line("REV_RPT").hist == "RevolverDrawn"
+    assert spec.line("LIQ_SHORTFALL").label == "Liquidity shortfall vs minimum cash"
 
 
 def test_ratio_lines_compute_in_both_ranges():

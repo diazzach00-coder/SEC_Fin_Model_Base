@@ -228,6 +228,11 @@ CONCEPTS: list[Concept] = [
                 SumGroup(("ShortTermBorrowings", "CommercialPaper"), mode="all",
                          skip_if=("DebtCurrent",)),
             )),
+    # Drawn revolver / line of credit; part of TotalDebt. Unmapped -> 0 (no opening revolver).
+    Concept("RevolverDrawn", ("BS",),
+            ("LineOfCredit", "LongTermLineOfCredit", "LinesOfCreditCurrent",
+             "RevolvingCreditFacility"),
+            r"revolv|line of credit"),
     Concept("LiabilitiesAndEquity", ("BS",),
             ("LiabilitiesAndStockholdersEquity", "LiabilitiesAndPartnersCapital"),
             r"^total liabilities and"),

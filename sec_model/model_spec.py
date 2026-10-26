@@ -14,6 +14,11 @@ workbook hides: `<X>_RPT` rows pull a reported concept that a derived line needs
 `DEFTAX` feeds the informational cash-tax-rate ratio, `CASH_PRE` feeds the revolver and `DPU_FCST`
 carries distributions per unit forward.
 
+Debt is split into term debt (`DEBT` = reported total debt less the drawn revolver) and
+the revolver (`REVOLVER`, opening balance = the reported drawn revolver, 0 when untagged).
+The revolver draws to hold the per-year `MIN_CASH` driver, up to the `REV_CAP` commitment
+(0 = unlimited); `LIQ_SHORTFALL` reports cash left below the minimum.
+
 Sign convention: IS expenses positive on lines named as expenses (OPCOST, DA,
 IMPAIR, INTEREST, TAX); GAINS positive = gain; CF lines carry their cash sign.
 
@@ -102,7 +107,9 @@ def _growth(key: str) -> Expr:
     return Fn("IF", L(key, 1).eq(0), 0, L(key) / L(key, 1) - 1)
 
 
-def _capped(e: Expr, cap: float = 0.15) -> Expr:
+def _capped(e: Expr) -> Expr:
+    """Clamp a default growth rate to +/- the GROWTH_CAP scalar."""
+    cap = Scalar("GROWTH_CAP")
     return Fn("MAX", Fn("MIN", e, cap), -cap)
 
 
@@ -152,8 +159,9 @@ def _is_lines(da_basis: str) -> list[LineDef]:
         _same("EBIT", "EBIT", L("EBITDA") + L("EQ_EARN") * (1 - jv) - L("DA") - L("IMPAIR")
               + L("GAINS"), bold=True),
         LineDef("INTEREST", "Interest expense", "IS", "InterestExpense",
-                Driver("INT_RATE") * (L("DEBT", 1) + L("REVOLVER", 1)),
-                note="on opening debt + opening revolver (no circularity)"),
+                Driver("INT_RATE") * L("DEBT", 1) + Driver("REV_RATE") * L("REVOLVER", 1),
+                note="term-debt rate on opening term debt + revolver rate on opening revolver "
+                     "(no circularity)"),
         _rpt("PRETAX_RPT", "PretaxIncome", "IS"),
         LineDef("OTHER_INC", "Other income (expense)", "IS",
                 pretax_hist - L("EBIT") + L("INTEREST"), L("OTHER_INC", 1),
@@ -178,6 +186,9 @@ def _is_lines(da_basis: str) -> list[LineDef]:
 def _cf_lines() -> list[LineDef]:
     dwc = -((L("AR") - L("AR", 1)) + (L("INV") - L("INV", 1)) - (L("AP") - L("AP", 1)))
     op_items = ("CF_NI", "CF_DA", "CF_IMPAIR", "CF_GAINS", "CF_EQ", "CF_DIST_AFF", "CF_DWC")
+    need = Fn("MAX", Driver("MIN_CASH") - L("CASH_PRE"), -L("REVOLVER", 1))
+    revolver_net = Fn("IF", Scalar("REV_CAP").eq(0), need,
+                      Fn("MIN", need, Scalar("REV_CAP") - L("REVOLVER", 1)))
     cash_pre = (L("CASH", 1) + L("OCF") + L("ICF") + L("DIST") + L("DIST_NCI") + L("DEBT_NET")
                 + L("CF_OTHER_FIN") + L("FX_OTHER"))
     return [
@@ -213,13 +224,15 @@ def _cf_lines() -> list[LineDef]:
         _rpt("DIST_NCI_RPT", "DistributionsToNCI", "CF"),
         LineDef("DIST_NCI", "Distributions to NCI", "CF", _neg_abs("DIST_NCI_RPT"),
                 -L("NI_NCI"), note="= -NI to NCI so NCI stays flat"),
-        LineDef("DEBT_NET", "Debt issuance (repayment)", "CF", L("DEBT") - L("DEBT", 1),
-                Driver("DEBT_ISSUE")),
+        LineDef("DEBT_NET", "Debt issuance (repayment)", "CF",
+                (L("DEBT") + L("REVOLVER")) - (L("DEBT", 1) + L("REVOLVER", 1)),
+                Driver("DEBT_ISSUE"),
+                note="history: change in total debt incl. revolver; forecast: term debt only"),
         LineDef("CASH_PRE", "Cash before revolver", "CF", None, cash_pre, hidden=True,
                 note="hidden helper: opening cash + every cash line except the revolver"),
-        LineDef("REVOLVER_NET", "Revolver draw (repayment)", "CF", Const(0),
-                Fn("MAX", Scalar("MIN_CASH") - L("CASH_PRE"), -L("REVOLVER", 1)),
-                note="draws to hold minimum cash; repays when cash exceeds it"),
+        LineDef("REVOLVER_NET", "Revolver draw (repayment)", "CF", Const(0), revolver_net,
+                note="draws to hold minimum cash, up to the REV_CAP commitment (0 = unlimited); "
+                     "repays when cash exceeds it"),
         _rpt("FCF_RPT", "FinancingCF", "CF"),
         LineDef("CF_OTHER_FIN", "Other financing", "CF",
                 L("FCF_RPT") - L("DIST") - L("DIST_NCI") - L("DEBT_NET"), Const(0)),
@@ -256,11 +269,16 @@ def _bs_lines() -> list[LineDef]:
               _sum("CASH", "AR", "INV", "NET_PPE", "EQ_INV", "OTHER_ASSETS"), bold=True,
               section="BS"),
         LineDef("AP", "Payables", "BS", "Payables", _wc("AP", "AP_DAYS", "OPCOST")),
-        LineDef("DEBT", "Total debt", "BS", "TotalDebt", L("DEBT", 1) + L("DEBT_NET")),
-        LineDef("REVOLVER", "Revolver", "BS", Const(0), L("REVOLVER", 1) + L("REVOLVER_NET")),
+        _rpt("DEBT_RPT", "TotalDebt", "BS"),
+        _rpt("REV_RPT", "RevolverDrawn", "BS"),
+        LineDef("DEBT", "Term debt (excl. revolver)", "BS", L("DEBT_RPT") - L("REV_RPT"),
+                L("DEBT", 1) + L("DEBT_NET"),
+                note="reported total debt less the drawn revolver"),
+        LineDef("REVOLVER", "Revolver", "BS", L("REV_RPT"), L("REVOLVER", 1) + L("REVOLVER_NET"),
+                note="opening balance = reported drawn revolver (0 when not tagged)"),
         _rpt("LE_RPT", "LiabilitiesAndEquity", "BS"),
         LineDef("OTHER_LIAB", "Other liabilities", "BS",
-                le - L("AP") - L("DEBT") - L("EQUITY") - L("NCI_BS"),
+                le - L("AP") - L("DEBT") - L("REVOLVER") - L("EQUITY") - L("NCI_BS"),
                 L("OTHER_LIAB", 1) + L("CF_OTHER_OP"),
                 note="includes preferred/temporary equity and anything not broken out; "
                      "other operating cash items accrue here so the OTHER_OP driver cannot "
@@ -274,6 +292,9 @@ def _bs_lines() -> list[LineDef]:
               section="BS"),
         _same("BAL_CHECK", "Balance check (assets - L&E)",
               L("TOTAL_ASSETS") - L("TOTAL_LE"), section="CHECK"),
+        LineDef("LIQ_SHORTFALL", "Liquidity shortfall vs minimum cash", "CHECK", None,
+                Fn("MAX", 0, Driver("MIN_CASH") - L("CASH")),
+                note="cash below minimum: revolver commitment exhausted"),
     ]
 
 
@@ -288,7 +309,8 @@ def _ratio_lines(da_basis: str) -> list[LineDef]:
                L("DA") / da_base),
         _ratio("CAPEX_PCT_HIST", "Capex % revenue", -L("CAPEX") / L("REV")),
         _ratio("INT_RATE_HIST", "Interest rate on average debt",
-               L("INTEREST") / Fn("AVERAGE", L("DEBT"), L("DEBT", 1))),
+               L("INTEREST") / Fn("AVERAGE", L("DEBT") + L("REVOLVER"),
+                                  L("DEBT", 1) + L("REVOLVER", 1))),
         # The TAX_RATE driver uses the effective rate (spec 7.2): deferred taxes reverse,
         # so a cash rate (OKE ~1.5%) understates long-run tax in the DCF.
         _ratio("TAX_RATE_HIST", "Effective tax rate",
@@ -313,21 +335,22 @@ def _drivers(da_basis: str) -> list[DriverDef]:
     return [
         DriverDef("REV_GROWTH", "Revenue growth (placeholder asset)",
                   _capped(Hist("REV_GROWTH_HIST", 3)),
-                  note="3-yr average growth, capped at +/-15%; drives the placeholder asset only"),
+                  note="3-yr average growth, capped at +/- GROWTH_CAP; drives the placeholder "
+                       "asset only"),
         DriverDef("COST_PCT", "Operating cost % revenue (placeholder asset)",
                   L("COST_PCT_HIST"), note="last year"),
         DriverDef("DA_PCT", "D&A % opening net PP&E" if da_basis == "ppe" else "D&A % revenue",
                   Hist("DA_PCT_HIST", 3), note="3-yr average"),
         DriverDef("CAPEX_PCT", "Capex % revenue", Hist("CAPEX_PCT_HIST", 3),
                   note="3-yr average"),
-        DriverDef("INT_RATE", "Interest rate on opening debt", L("INT_RATE_HIST"),
-                  note="last year interest / average debt"),
+        DriverDef("INT_RATE", "Interest rate on opening term debt", L("INT_RATE_HIST"),
+                  note="last year interest / average debt (incl. revolver)"),
         DriverDef("TAX_RATE", "Effective tax rate", Hist("TAX_RATE_HIST", 3),
                   note="3-yr average of tax / pretax, clamped 0-35% (cash rate shown on "
                        "the Model for reference)"),
         DriverDef("DPU_GROWTH", "Distribution per unit growth",
                   _capped(Hist("DPU_GROWTH_HIST", 3)),
-                  note="3-yr average growth, capped at +/-15%"),
+                  note="3-yr average growth, capped at +/- GROWTH_CAP"),
         DriverDef("UNITS", "Diluted units", L("UNITS"), fmt="units", note="last year, flat"),
         DriverDef("AR_DAYS", "Receivable days (of revenue)", L("AR_DAYS_HIST"), fmt="days",
                   note="last year"),
@@ -339,6 +362,10 @@ def _drivers(da_basis: str) -> list[DriverDef]:
                   note="input; accrues to other liabilities"),
         DriverDef("DEBT_ISSUE", "Debt issuance (repayment)", Const(0), fmt="money",
                   note="input"),
+        DriverDef("MIN_CASH", "Minimum cash balance", L("CASH"), fmt="money",
+                  note="last reported cash; the revolver draws/repays to hold it"),
+        DriverDef("REV_RATE", "Revolver interest rate", L("INT_RATE_HIST"),
+                  note="revolver rate; defaults to the term-debt rate"),
     ]
 
 
@@ -348,8 +375,10 @@ def _scalars() -> list[ScalarDef]:
                   note="1 = include JV equity earnings in EBITDA, 0 = exclude"),
         ScalarDef("WC_HOLD", "Hold working capital flat", 0.0,
                   note="1 = hold working capital flat (no change in forecast)"),
-        ScalarDef("MIN_CASH", "Minimum cash balance", L("CASH"), fmt="money",
-                  note="last reported cash; the revolver draws/repays to hold it"),
+        ScalarDef("REV_CAP", "Revolver commitment", 0.0, fmt="money",
+                  note="revolver commitment; 0 = unlimited"),
+        ScalarDef("GROWTH_CAP", "Cap on default growth rates", 0.15, fmt="pct",
+                  note="cap on default growth rates"),
     ]
 
 
