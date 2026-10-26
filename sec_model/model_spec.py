@@ -28,12 +28,23 @@ Entity words (shares / dividends vs units / distributions) come from `labels.lab
 Drivers fill the first forecast column of the Drivers sheet with their `default`
 (evaluated in the last history column, so `Line` means last year and `Hist`
 averages the last n history years of a RATIO line); later columns chain `=prev`.
+
+First history column (`blank_first`): there is no prior year, so a lagged reference reads
+0 and would show a whole balance as a one-year change (debt "issued", a -100% growth).
+`build_spec` therefore blanks, in the FIRST history column only, every RATIO line whose
+`hist` expression contains a `Line(key, lag >= 1)`, plus `DEBT_NET` and `CF_DWC`
+(`forecast.compute` returns None there; the Model cell is left empty). `Hist` averages
+skip the blank. Same-column references to a blanked line read it as 0 (Python's None,
+``N()`` in Excel), so the derived `CF_OTHER_OP` / `CF_OTHER_FIN` absorb it and `OCF` /
+`FCF_FIN` still equal the reported totals in every column: in the first year the whole
+working-capital change and the whole debt change sit in those "other" lines, which are
+labelled derived. Totals and checks (`BAL_CHECK`) are never blanked.
 """
 from __future__ import annotations
 
 from dataclasses import dataclass
 
-from .formula import Block, Const, Driver, Expr, Fn, Hist, Line, Scalar
+from .formula import Block, Const, Driver, Expr, Fn, Hist, Line, Scalar, iter_nodes
 from .labels import ENTITY_TYPES, label
 
 SECTIONS = ("IS", "CF", "BS", "CHECK", "RATIO")
@@ -54,6 +65,7 @@ class LineDef:
     is_input_row: bool = False
     hidden: bool = False
     note: str = ""
+    blank_first: bool = False       # None / empty in the first history column (docstring)
 
 
 @dataclass
@@ -108,7 +120,8 @@ def _neg_abs(key: str) -> Expr:
 
 
 def _growth(key: str) -> Expr:
-    """x/x_prev - 1, but 0 when there is no prior value (first history column)."""
+    """x/x_prev - 1, but 0 when the prior value is 0 or unreported (the first history
+    column is blanked by `blank_first`)."""
     return Fn("IF", L(key, 1).eq(0), 0, L(key) / L(key, 1) - 1)
 
 
@@ -389,6 +402,21 @@ def _scalars() -> list[ScalarDef]:
     ]
 
 
+# CF lines whose history change reads a prior balance; RATIO lines are found by the rule.
+_BLANK_FIRST_CF = ("DEBT_NET", "CF_DWC")
+
+
+def _reads_prior_column(e) -> bool:
+    return isinstance(e, Expr) and any(isinstance(n, Line) and n.lag >= 1
+                                       for n in iter_nodes(e))
+
+
+def _mark_blank_first(lines: list[LineDef]) -> None:
+    for ld in lines:
+        ld.blank_first = (ld.key in _BLANK_FIRST_CF
+                          or (ld.section == "RATIO" and _reads_prior_column(ld.hist)))
+
+
 def build_spec(da_basis: str, entity_type: str = "corporation") -> ModelSpec:
     """The full model for one D&A basis ("ppe": % of opening net PP&E, or "revenue") and
     entity type ("corporation" | "partnership", which only changes labels)."""
@@ -398,6 +426,7 @@ def build_spec(da_basis: str, entity_type: str = "corporation") -> ModelSpec:
         raise ValueError(f"entity_type must be one of {ENTITY_TYPES}, got {entity_type!r}")
     e = entity_type
     lines = _is_lines(da_basis, e) + _cf_lines(e) + _bs_lines(e) + _ratio_lines(da_basis, e)
+    _mark_blank_first(lines)
     return ModelSpec(lines=lines, drivers=_drivers(da_basis, e), scalars=_scalars(),
                      da_basis=da_basis, entity_type=entity_type)
 

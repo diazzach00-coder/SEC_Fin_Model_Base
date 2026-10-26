@@ -252,6 +252,15 @@ def test_dcf_ufcf_rows_link_to_model():
         f'=IFERROR($D${dl.row["EV"]}/I{rows["EBITDA"]},"n/a")']
 
 
+def test_ev_ebit_multiple_row_notes_reported_basis():
+    wb, layout, wl, dl = _build()
+    ws = wb["DCF"]
+    r = dl.row["MULT_EBIT"]
+    assert ws.cell(r, 2).value == "EV / EBIT"
+    assert ws.cell(r, 9).value == "EBIT includes equity-method earnings (reported basis)"
+    assert ws.cell(r, 9).font.italic
+
+
 def _all_formula_cells(wb, sheets=None):
     for ws in wb.worksheets:
         if sheets and ws.title not in sheets:

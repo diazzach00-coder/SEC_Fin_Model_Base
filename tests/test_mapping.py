@@ -989,3 +989,50 @@ def test_long_term_investments_unmapped_without_equity_earnings():
                             mrow("us-gaap_LongTermInvestments", "Investments",
                                  {"FY2023": 7.0, "FY2024": 8.0})])
     assert resolve(st)["EquityInvestments"]["FY2024"].value == 6.0
+
+
+# --- Review Focus 5: a lone member row does not pre-empt the label fallback -----------------
+
+def test_lone_related_party_member_loses_to_custom_trade_receivables_row():
+    ar = "us-gaap_AccountsReceivableNetCurrent"
+    hdr = _hdr(_RP_AXIS, "us-gaap_RelatedPartyMember", "Related Party")
+    member = mrow(f"{ar}|Accounts receivable|us-gaap_RelatedPartyMember",
+                  "Accounts receivable", {"FY2023": 4.0, "FY2024": 1.0}, tag=ar)
+    trade = mrow("x_TradeReceivablesNetCurrent", "Trade receivables, net",
+                 {"FY2023": 900.0, "FY2024": 950.0})
+    for rows in ([hdr, member, trade], [trade, hdr, member]):
+        cv = resolve({"BS": mstmt("BS", rows)})["Receivables"]["FY2024"]
+        assert (cv.status, cv.value, cv.row_key) == ("OK", 950.0, trade.key)
+    # two or more members (EPD: related + nonrelated) still pre-empt the label fallback
+    hdr2 = _hdr(_RP_AXIS, "us-gaap_NonrelatedPartyMember", "Nonrelated Party")
+    nonrel = mrow(f"{ar}|Accounts receivable|us-gaap_NonrelatedPartyMember",
+                  "Accounts receivable", {"FY2023": 800.0, "FY2024": 850.0}, tag=ar)
+    cv = resolve({"BS": mstmt("BS", [hdr2, nonrel, hdr, member, trade])})["Receivables"]["FY2024"]
+    assert (cv.status, cv.value) == ("DERIVED", 851.0)
+
+
+@pytest.mark.parametrize("label, warns", [
+    ("Income taxes payable", False), ("Accrued interest payable", False),
+    ("Interest receivable", False), ("Notes receivable - interest bearing", False),
+    ("Other receivables", False), ("Accounts payable", True), ("Trade payables", True),
+    ("Notes receivable", True), ("Receivables", True), ("Accounts receivable, net", True),
+])
+def test_coverage_working_capital_regex(label, warns):
+    bs = mstmt("BS", [mrow("x_Row", label, {"FY2023": 1.0, "FY2024": 2.0})])
+    out = {"Receivables": {"FY2024": mapping._unmapped("Receivables", "FY2024")},
+           "Payables": {"FY2024": mapping._unmapped("Payables", "FY2024")}}
+    got = [w for w in coverage_warnings(out, {"BS": bs})
+           if w.startswith(("Receivables", "Payables"))]
+    assert bool(got) is warns, got
+
+
+@pytest.mark.parametrize("tag", ["us-gaap_LongTermInvestments", "us-gaap_Investments"])
+@pytest.mark.parametrize("label", ["Marketable securities", "Long-term investments in securities",
+                                   "Available-for-sale investments"])
+def test_gated_investment_tags_skip_securities_rows(tag, label):
+    st = _kmi_shaped(True)
+    st["BS"] = mstmt("BS", [mrow(tag, label, {"FY2023": 70.0, "FY2024": 80.0})])
+    assert resolve(st)["EquityInvestments"]["FY2024"].status == "UNMAPPED"
+    # an equity-method row under the same gated tag is still taken
+    st["BS"] = mstmt("BS", [mrow(tag, "Investments", {"FY2023": 70.0, "FY2024": 80.0})])
+    assert resolve(st)["EquityInvestments"]["FY2024"].value == 80.0

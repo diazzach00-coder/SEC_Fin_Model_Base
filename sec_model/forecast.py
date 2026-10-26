@@ -8,6 +8,7 @@ Order of work:
 1. History columns, each in topological order of its lag-0 `Line` references
    (`eval_order(spec, "hist")`). A concept-name `hist` reads
    ``history[concept][fy]``; an unmapped concept-year stays None (a blank cell).
+   A `blank_first` line is None in the first history column (`model_spec` docstring).
    Only scalars with a constant default (or an override) are visible here.
 2. Driver and scalar defaults, evaluated in the last history column.
 3. Driver values per forecast year: the default (or an override) in the first
@@ -22,25 +23,12 @@ from __future__ import annotations
 from typing import Iterator
 
 from .formula import (
-    BinOp, Block, Cmp, Driver, EvalContext, Expr, Fn, Hist, Line, Neg, Scalar, evaluate,
+    Block, Driver, EvalContext, Expr, Fn, Hist, Line, Scalar, evaluate, iter_nodes,
 )
 from .model_spec import BLOCKS, ModelSpec
 
 FIRST_COL = 1
 History = dict[str, dict[str, "float | None"]]
-
-
-def iter_nodes(expr: Expr) -> Iterator[Expr]:
-    """Yield every node of an expression tree (pre-order)."""
-    yield expr
-    if isinstance(expr, (BinOp, Cmp)):
-        yield from iter_nodes(expr.left)
-        yield from iter_nodes(expr.right)
-    elif isinstance(expr, Neg):
-        yield from iter_nodes(expr.operand)
-    elif isinstance(expr, Fn):
-        for a in expr.args:
-            yield from iter_nodes(a)
 
 
 def _formula(ld, phase: str):
@@ -138,7 +126,7 @@ class _Model:
             env = self.env(FIRST_COL + i, scalar=scalar)
             for key in order:
                 f = self.defs[key].hist
-                if f is None:
+                if f is None or (i == 0 and self.defs[key].blank_first):
                     v = None
                 elif isinstance(f, str):
                     raw = (history.get(f) or {}).get(fy)

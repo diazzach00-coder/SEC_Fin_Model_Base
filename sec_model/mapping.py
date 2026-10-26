@@ -75,14 +75,25 @@ def _member_of(r: MergedRow) -> str | None:
     return re.sub(r"\|\d+$", "", r.key[len(prefix):]) or None
 
 
-def _resolve_by_members(c: Concept, stmt: MergedStatement, fy: str) -> ConceptValue | None:
+def _excluded(c: Concept, r: MergedRow) -> bool:
+    """A row under one of the concept's gated tags whose label marks it as something else
+    (``gated_label_exclude``: a securities portfolio under LongTermInvestments)."""
+    return (c.gated_label_exclude is not None
+            and r.tag.removeprefix("us-gaap_") in c.gated_tags
+            and re.search(c.gated_label_exclude, r.label, re.IGNORECASE) is not None)
+
+
+def _resolve_by_members(c: Concept, stmt: MergedStatement, fy: str,
+                        min_members: int = 2) -> ConceptValue | None:
     """A listed tag reported only by axis member (EPD/ET: accounts receivable split into
     related and nonrelated party, no consolidated row): the sum of its member rows for the
     year. Runs only after no listed tag has a usable undimensioned row, and only when every
     member is declared under one axis by a dimension header (members of different axes
     overlap). Money rows only: share counts by class (MPLX common + Series B preferred
-    units) are not additive. One member keeps its row link (status OK), like a one-row
-    sum."""
+    units) are not additive. A tag with fewer than ``min_members`` members is skipped: the
+    tag pass needs two, so a lone member (a related-party row) never pre-empts the label
+    fallback; `_resolve_one` retries with one after it. One member keeps its row link
+    (status OK), like a one-row sum."""
     axes = _member_axes(stmt)
     for t in c.tags:
         full = f"us-gaap_{t}"
@@ -91,10 +102,10 @@ def _resolve_by_members(c: Concept, stmt: MergedStatement, fy: str) -> ConceptVa
         hits: dict[str, MergedRow] = {}
         for r in stmt.rows:
             m = (_member_of(r) if r.tag == full and r.unit == "money" and _usable(r, fy)
-                 else None)
+                 and not _excluded(c, r) else None)
             if m is not None:
                 hits.setdefault(m, r)
-        if not hits:
+        if len(hits) < min_members:
             continue
         if any(m not in axes for m in hits) or len({axes[m] for m in hits}) != 1:
             continue
@@ -128,7 +139,7 @@ def _resolve_by_tag(c: Concept, stmt: MergedStatement, fy: str) -> ConceptValue 
             if filtered:
                 if _is_undimensioned(r) and label_re.search(r.label):
                     return _ok(c, fy, r)
-            elif r.key == full:
+            elif r.key == full and not _excluded(c, r):
                 return _ok(c, fy, r)
 
     if filtered:
@@ -185,7 +196,9 @@ def _supplied_view(stmt: MergedStatement, fy: str) -> MergedStatement | None:
 
 def _resolve_one(c: Concept, statements: dict[str, MergedStatement], fy: str) -> ConceptValue:
     """Tag matching across all of the concept's statements (in order) first, then
-    label fallback across them; the first hit wins. Both passes run first on the rows the
+    label fallback across them, then a tag reported by a single axis member; the first hit
+    wins. A lone member comes last because it is usually one slice (related party) of a
+    total the filer presents on a custom-tagged row. The passes run first on the rows the
     year's source filing supplied, so a year resolves from one filing: rows only another
     filing has (another entity's history after a predecessor recast, e.g. KNTK; an older
     presentation's cash rows, e.g. JPM/ENB FY2016) are used only when that finds nothing."""
@@ -200,6 +213,12 @@ def _resolve_one(c: Concept, statements: dict[str, MergedStatement], fy: str) ->
             cv = _resolve_by_label(c, stmt, fy)
             if cv is not None:
                 return cv
+        if c.name in _LABEL_FILTERED:
+            continue
+        for _, stmt in group:
+            cv = _resolve_by_members(c, stmt, fy, min_members=1)
+            if cv is not None:
+                return _add_on(c, stmt, fy, cv)
     return _unmapped(c.name, fy)
 
 
@@ -306,16 +325,20 @@ def _separate_cash_ends(out: dict, statements: dict[str, MergedStatement]) -> No
 
 
 # Working-capital concepts are not REQUIRED, but an UNMAPPED one while the balance sheet
-# shows such a row usually means a tagging gap (EPD/ET/ENB before member sums).
-_WC_LABELS = (("Receivables", re.compile(r"receivable", re.IGNORECASE)),
-              ("Payables", re.compile(r"payable", re.IGNORECASE)))
+# shows such a row usually means a tagging gap (EPD/ET/ENB before member sums). Only a row
+# that starts with the trade item counts: "Income taxes payable" / "Interest receivable"
+# are not working capital the model carries.
+_WC_LABELS = tuple(
+    (name, re.compile(rf"^(?!.*(income tax|interest))(accounts |trade |notes )?{word}s?\b",
+                      re.IGNORECASE))
+    for name, word in (("Receivables", "receivable"), ("Payables", "payable")))
 
 
 def coverage_warnings(mapping: dict[str, dict[str, ConceptValue]],
                       statements: dict[str, MergedStatement] | None = None) -> list[str]:
     """One line per REQUIRED concept that is UNMAPPED in the latest year, plus Receivables /
     Payables UNMAPPED in the latest year while the balance sheet has a non-abstract row
-    labelled receivable / payable."""
+    labelled (accounts / trade / notes) receivable(s) / payable(s)."""
     warnings = []
     for name in REQUIRED:
         by_fy = mapping.get(name) or {}

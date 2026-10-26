@@ -8,7 +8,7 @@ column indexes; `Line(key, lag)` resolves at ``col - lag``.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Callable
+from typing import Callable, Iterator
 
 FUNCTIONS = ("MAX", "MIN", "IF", "AVERAGE", "ABS", "IFERROR")
 _CMP_OPS = ("=", "<>", "<", "<=", ">", ">=")
@@ -111,6 +111,19 @@ class Fn(Expr):
             raise ValueError(f"wrong number of arguments for {name}")
         object.__setattr__(self, "name", name)
         object.__setattr__(self, "args", tuple(_wrap(a) for a in args))
+
+
+def iter_nodes(expr: Expr) -> Iterator[Expr]:
+    """Yield every node of an expression tree (pre-order)."""
+    yield expr
+    if isinstance(expr, (BinOp, Cmp)):
+        yield from iter_nodes(expr.left)
+        yield from iter_nodes(expr.right)
+    elif isinstance(expr, Neg):
+        yield from iter_nodes(expr.operand)
+    elif isinstance(expr, Fn):
+        for a in expr.args:
+            yield from iter_nodes(a)
 
 
 @dataclass

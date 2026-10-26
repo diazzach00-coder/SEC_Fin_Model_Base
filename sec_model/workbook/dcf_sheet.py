@@ -307,6 +307,7 @@ def _equity_and_multiples(ws, row: dict, wacc: WaccLayout, last: str, lastc: int
                               (5, f"$C${ev}", f"E{rr}"), (6, f"$D${ev}", f"E{rr}"),
                               (7, f"$C${ev}", f"{last}{rr}"), (8, f"$D${ev}", f"{last}{rr}")):
             formula(ws, r, c, f'=IFERROR({evc}/{denom},"n/a")', S.FMT_X)
+    ws.cell(top + 5, 9, "EBIT includes equity-method earnings (reported basis)").font = FONT_NOTE
     return top + 5
 
 

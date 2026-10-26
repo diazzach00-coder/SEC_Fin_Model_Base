@@ -321,6 +321,68 @@ def test_note_starting_with_equals_is_text_not_formula():
     assert cell.data_type == "s"
 
 
+# --- Review Focus 4: first history column ------------------------------------------------
+
+def test_first_history_column_blank_on_lag_lines():
+    wb, layout, spec, *_ = _build()
+    ws = wb["Model"]
+    r = layout.line_row
+    blanked = [ld for ld in spec.lines if ld.blank_first]
+    assert {ld.key for ld in blanked} >= {"DEBT_NET", "CF_DWC", "REV_GROWTH_HIST"}
+    for ld in blanked:
+        assert ws.cell(r[ld.key], 4).value is None, ld.key          # no value, no formula
+        assert ws.cell(r[ld.key], 5).value == to_excel(ld.hist, render_context(layout, spec, 5))
+    # every other derived history line keeps its formula in the first column
+    for ld in spec.lines:
+        if isinstance(ld.hist, Expr) and not ld.blank_first:
+            assert ws.cell(r[ld.key], 4).value == \
+                to_excel(ld.hist, render_context(layout, spec, 4)), ld.key
+    assert ws.cell(r["BAL_CHECK"], 4).value == f"=D{r['TOTAL_ASSETS']}-D{r['TOTAL_LE']}"
+
+
+def test_first_column_references_to_a_blanked_cell_read_n():
+    """OCF / FCF_FIN in the first column equal the reported totals in Excel too: the
+    "other" lines absorb the blanked line, which every first-column formula reads as N()
+    (0), exactly as Python reads None as 0."""
+    wb, layout, spec, *_ = _build()
+    ws = wb["Model"]
+    r = layout.line_row
+    dwc, debt_net = r["CF_DWC"], r["DEBT_NET"]
+    other_op = ws.cell(r["CF_OTHER_OP"], 4).value
+    assert f"N(D{dwc})" in other_op and other_op.startswith(f"=N(D{r['OCF_RPT']})-")
+    assert f"N(D{dwc})" in ws.cell(r["OCF"], 4).value
+    assert f"N(D{debt_net})" in ws.cell(r["CF_OTHER_FIN"], 4).value
+    assert f"N(D{debt_net})" in ws.cell(r["FCF_FIN"], 4).value
+    # later columns reference the (now numeric) cell directly
+    assert f"N(E{dwc})" not in ws.cell(r["OCF"], 5).value
+    assert f"E{dwc}" in ws.cell(r["OCF"], 5).value
+    assert f"N(E{debt_net})" not in ws.cell(r["FCF_FIN"], 5).value
+    # the OCF/FCF_FIN identity, term by term: OCF = items + DWC + (OCF_RPT - items - DWC)
+    ocf = ws.cell(r["OCF"], 4).value
+    for k in ("CF_NI", "CF_DA", "CF_IMPAIR", "CF_GAINS", "CF_EQ", "CF_DIST_AFF", "CF_OTHER_OP"):
+        assert f"D{r[k]}" in ocf, k
+
+
+def test_single_history_year_drivers_render_blank_safe():
+    spec = build_spec("ppe")
+    one = {k: {"FY2025": v["FY2025"]} for k, v in TOY.items()}
+    wb = Workbook()
+    ws_map = S.get_sheet(wb, "Mapping")
+    rows = {c.name: 5 + i for i, c in enumerate(CONCEPTS)}
+    for name, row in rows.items():
+        v = (one.get(name) or {}).get("FY2025")
+        if v is not None:
+            ws_map.cell(row, 4, v)
+    layout = write_model(wb, spec, rows, {"FY2025": 4}, ["FY2025"], FCST,
+                         driver_defaults(spec, one, ["FY2025"]),
+                         scalar_defaults(spec, one, ["FY2025"]), "USD")
+    wd, lr, dr = wb["Drivers"], layout.line_row, layout.driver_row
+    # a Hist average over only the blank first column renders AVERAGE(0), not #DIV/0!
+    assert "AVERAGE(0)" in wd.cell(dr["REV_GROWTH"], 5).value
+    assert wd.cell(dr["INT_RATE"], 5).value == f"=N(Model!D{lr['INT_RATE_HIST']})"
+    assert "AVERAGE(Model!$D$" in wd.cell(dr["CAPEX_PCT"], 5).value     # not blanked
+
+
 # --- Review Focus 1: entity-aware words on every model sheet -------------------------
 
 def _texts(ws) -> list[str]:

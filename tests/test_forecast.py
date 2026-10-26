@@ -117,6 +117,63 @@ def test_history_subtotals_tie_to_reported():
     assert _close(out["CAPEX"]["FY2025"], -170.0)
 
 
+# --- Review Focus 4: first history column ------------------------------------------------
+
+# RATIO lines whose history formula reads a prior column, plus the two CF lines that do.
+BLANK_FIRST = {"REV_GROWTH_HIST", "DA_PCT_HIST", "INT_RATE_HIST", "DPU_GROWTH_HIST",
+               "DEBT_NET", "CF_DWC"}
+
+
+def test_blank_first_flag_follows_the_lag_rule():
+    assert {ld.key for ld in build_spec("ppe").lines if ld.blank_first} == BLANK_FIRST
+    # D&A % revenue reads no prior column, so it keeps its first-year value
+    assert {ld.key for ld in build_spec("revenue").lines if ld.blank_first} == \
+        BLANK_FIRST - {"DA_PCT_HIST"}
+
+
+def test_first_history_column_is_blank_on_lag_lines():
+    _, out = _run()
+    first, rest = FY[0], FY[1:]
+    for key in BLANK_FIRST:
+        assert out[key][first] is None, key
+        assert all(out[key][fy] is not None for fy in rest), key
+    assert _close(out["DEBT_NET"]["FY2024"], 1010 - 1000)
+    assert _close(out["REV_GROWTH_HIST"]["FY2024"], 0.1)
+    # balance check and the derived "other" lines stay numeric
+    for key in ("BAL_CHECK", "CF_OTHER_OP", "CF_OTHER_FIN", "OCF", "FCF_FIN"):
+        assert out[key][first] is not None, key
+    assert _close(out["BAL_CHECK"][first], 0.0)
+
+
+def test_first_column_other_lines_absorb_so_cash_totals_equal_reported():
+    _, out = _run()
+    first = FY[0]
+    for fy in FY:
+        assert _close(out["OCF"][fy], out["OCF_RPT"][fy])
+        assert _close(out["FCF_FIN"][fy], out["FCF_RPT"][fy])
+    # year 1: the whole working-capital change and debt change sit in the "other" lines
+    ops = sum(out[k][first] for k in ("CF_NI", "CF_DA", "CF_IMPAIR", "CF_GAINS", "CF_EQ",
+                                      "CF_DIST_AFF"))
+    assert _close(out["CF_OTHER_OP"][first], 300 - ops)
+    assert _close(out["CF_OTHER_FIN"][first], -120 - (-150) - (-20))
+
+
+def test_hist_averages_skip_the_blank_first_column():
+    d = driver_defaults(build_spec("ppe"), TOY, FY)
+    assert _close(d["REV_GROWTH"], (0.1 + 100 / 1100) / 2)
+    assert _close(d["DPU_GROWTH"], (0.1 / 1.5 + 0.1 / 1.6) / 2)
+    assert _close(d["DA_PCT"], (110 / 2000 + 120 / 2050) / 2)
+
+
+def test_single_history_year_drivers_read_blank_as_zero():
+    one = {k: {"FY2025": v["FY2025"]} for k, v in TOY.items()}
+    spec = build_spec("ppe")
+    d = driver_defaults(spec, one, ["FY2025"])
+    assert d["REV_GROWTH"] == 0.0 and d["INT_RATE"] == 0.0 and d["DPU_GROWTH"] == 0.0
+    out = compute(spec, one, ["FY2025"], FCST)
+    assert all(abs(out["BAL_CHECK"][fy]) < 1e-6 for fy in FCST)
+
+
 # --- Forecast balance ---------------------------------------------------------------------
 
 def test_forecast_balances_every_year():
@@ -378,12 +435,12 @@ def test_driver_defaults_from_history():
                       "DEBT_ISSUE", "MIN_CASH", "REV_RATE"}
     assert [x.key for x in build_spec("ppe").drivers][-3:] == ["DEBT_ISSUE", "MIN_CASH", "REV_RATE"]
     assert d["MIN_CASH"] == 130.0 and _close(d["REV_RATE"], d["INT_RATE"])
-    # growth guard: first history column shows 0, not -100%
-    assert _close(d["REV_GROWTH"], (0 + 0.1 + 100 / 1100) / 3)
+    # the first history column is blank (no prior year), so the average skips it
+    assert _close(d["REV_GROWTH"], (0.1 + 100 / 1100) / 2)
     assert _close(d["COST_PCT"], 825 / 1200)
     assert _close(d["CAPEX_PCT"], (150 / 1000 + 160 / 1100 + 170 / 1200) / 3)
     assert _close(d["INT_RATE"], 44 / 1015)
-    assert _close(d["DPU_GROWTH"], (0 + 0.1 / 1.5 + 0.1 / 1.6) / 3)
+    assert _close(d["DPU_GROWTH"], (0.1 / 1.5 + 0.1 / 1.6) / 2)
     assert d["UNITS"] == 100 and d["OTHER_OP"] == 0 and d["DEBT_ISSUE"] == 0
     assert _close(d["AR_DAYS"], 120 / 1200 * 365)
     assert _close(d["INV_DAYS"], 48 / 825 * 365)

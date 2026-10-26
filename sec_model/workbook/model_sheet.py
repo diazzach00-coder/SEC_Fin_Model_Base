@@ -9,6 +9,11 @@ Blank-safety: a Mapping cell for an unreported year holds ``""`` (text), and a M
 history cell linking to it shows blank. Excel arithmetic on ``""`` is ``#VALUE!`` and
 ``""=0`` is FALSE, whereas `forecast.compute` treats a missing value as 0. So every
 formula reference to a concept-sourced line's HISTORY cell renders as ``N(<cell>)``.
+
+First history column: a `blank_first` line's cell is left empty (`model_spec` docstring).
+References to it from that column render as ``N(<cell>)`` too (0, as Python reads None),
+and a ``Hist`` average whose range would hold only that empty cell (one history year)
+renders as ``AVERAGE(0)`` rather than ``#DIV/0!``.
 """
 from dataclasses import dataclass, field
 
@@ -68,15 +73,20 @@ def render_context(layout: ModelLayout, spec: ModelSpec, col: int,
     ``qualified``: line cells and history ranges carry the ``Model!`` prefix, for formulas
     on other sheets (the Drivers year-1 defaults)."""
     concept_lines = {ld.key for ld in spec.lines if isinstance(ld.hist, str)}
+    blank_first = {ld.key for ld in spec.lines if ld.blank_first}
     pre = f"{layout.sheet}!" if qualified else ""
 
     def line_cell(key: str, c: int) -> str:
         ref = f"{pre}{S.col(c)}{layout.line_row[key]}"
-        return f"N({ref})" if key in concept_lines and c < layout.first_fcst_col else ref
+        blank_safe = ((key in concept_lines and c < layout.first_fcst_col)
+                      or (key in blank_first and c == layout.first_hist_col))
+        return f"N({ref})" if blank_safe else ref
 
     def hist_range(key: str, n: int) -> str:
         last = layout.first_fcst_col - 1
         first = max(layout.first_hist_col, last - n + 1)
+        if key in blank_first and last == layout.first_hist_col:
+            return "0"                  # only the empty first cell: AVERAGE(0) = 0
         r = layout.line_row[key]
         return f"{pre}${S.col(first)}${r}:${S.col(last)}${r}"
 
@@ -92,8 +102,10 @@ def render_context(layout: ModelLayout, spec: ModelSpec, col: int,
     )
 
 
-def _history_value(ld, fy, mapping_rows, mapping_value_cols, ctx):
-    """(value, is_link) for a history cell."""
+def _history_value(ld, fy, mapping_rows, mapping_value_cols, ctx, first: bool):
+    """(value, is_link) for a history cell; ``first``: the first history column."""
+    if first and ld.blank_first:
+        return None, False
     if isinstance(ld.hist, str):
         r, vc = mapping_rows.get(ld.hist), mapping_value_cols.get(fy)
         if r is None or vc is None:
@@ -121,8 +133,8 @@ def _write_line(ws, ld, r, layout, ctxs, fy_labels, fcst_labels, mapping_rows,
         cell = ws.cell(r, c)
         is_link = False
         if c < layout.first_fcst_col:
-            cell.value, is_link = _history_value(ld, fy, mapping_rows,
-                                                   mapping_value_cols, ctx)
+            cell.value, is_link = _history_value(ld, fy, mapping_rows, mapping_value_cols,
+                                                   ctx, c == layout.first_hist_col)
             if ld.bold:
                 cell.fill = S.FILL_SUBTOTAL
         else:

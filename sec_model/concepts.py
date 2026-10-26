@@ -5,7 +5,8 @@ order; ``label_re`` (case-insensitive ``re.search``) is the fallback for custom
 tags. ``sign`` is -1 only where the as-reported sign is opposite to the model's
 convention. ``sum_groups`` means the concept is the sum of several rows. ``stypes`` lists
 the statements searched, in order. ``gate`` names a concept that must be mapped in the same
-year before ``gated_tags`` (and any label match outside ``ungated_label_re``) may be used.
+year before ``gated_tags`` (and any label match outside ``ungated_label_re``) may be used;
+a gated-tag row whose label matches ``gated_label_exclude`` is never used.
 """
 from dataclasses import dataclass
 
@@ -44,6 +45,9 @@ class Concept:
     gate: str | None = None
     gated_tags: tuple[str, ...] = ()
     ungated_label_re: str | None = None
+    # A row under a gated tag whose label matches this is skipped even when the gate is open
+    # (LongTermInvestments also holds securities portfolios).
+    gated_label_exclude: str | None = None
 
     def tag_sign(self, tag: str | None) -> int:
         bare = (tag or "").removeprefix("us-gaap_")
@@ -184,23 +188,26 @@ CONCEPTS: list[Concept] = [
     # ENB: "Trade receivables and unbilled revenues" / "Trade payables and accrued
     # liabilities" use the broader elements; its affiliate rows matched the bare label
     # fallback. Tags reported only by member (EPD, ET) resolve via mapping's member sum.
-    # CVX: "Accounts and notes receivable".
+    # CVX: "Accounts and notes receivable". The label fallback admits a custom "Trade
+    # receivables" row, which beats a lone related-party member row (mapping._resolve_one).
     Concept("Receivables", ("BS",),
             ("AccountsReceivableNetCurrent", "ReceivablesNetCurrent",
              "AccountsAndOtherReceivablesNetCurrent", "AccountsNotesAndLoansReceivableNetCurrent"),
-            r"^(?!.*(affiliat|related))(accounts )?receivables?\b"),
+            r"^(?!.*(affiliat|related))(accounts |trade )?receivables?\b"),
     Concept("Inventory", ("BS",), ("InventoryNet",), r"^inventor(y|ies)"),
     Concept("NetPPE", ("BS",), ("PropertyPlantAndEquipmentNet",), r"property, plant"),
     # KMI and ENB tag equity investments as LongTermInvestments ("Investments", "Long-term
     # investments"), WMB as Investments. Those elements also hold securities portfolios,
-    # so they count only for a filer that reports equity earnings that year.
+    # so they count only for a filer that reports equity earnings that year, and never on
+    # a row labelled as securities.
     Concept("EquityInvestments", ("BS",),
             ("EquityMethodInvestments",
              "InvestmentsInAffiliatesSubsidiariesAssociatesAndJointVentures",
              "LongTermInvestments", "Investments"),
             r"investments in unconsolidated|^investments$",
             gate="EquityEarnings", gated_tags=("LongTermInvestments", "Investments"),
-            ungated_label_re=r"investments in unconsolidated"),
+            ungated_label_re=r"investments in unconsolidated",
+            gated_label_exclude=r"marketable|securities|available.for.sale"),
     Concept("TotalAssets", ("BS",), ("Assets",), r"^total assets"),
     Concept("Payables", ("BS",),
             ("AccountsPayableCurrent", "AccountsPayableTradeCurrent",
