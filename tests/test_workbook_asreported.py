@@ -168,6 +168,22 @@ def test_cover_lists_filing_per_year_and_check_counts():
     assert links[1].hyperlink.location == "'Checks'!A1"
 
 
+@pytest.mark.parametrize("entity_type, text", [
+    (None, "Corporation"),
+    ("corporation", "Corporation"),
+    ("partnership", "Partnership (units, distributions)"),
+])
+def test_cover_shows_entity_type_after_currency(entity_type, text):
+    wb = Workbook()
+    kw = {} if entity_type is None else {"entity_type": entity_type}
+    write_cover(wb, CoverInfo("Acme LP", "ACM", 123, "December 31", "USD", FYS, **kw))
+    ws = wb["Cover"]
+    keys = [ws.cell(r, 2).value for r in range(4, 9)]
+    assert keys == ["Company", "Ticker", "CIK", "Fiscal year end", "Currency"]
+    assert (ws["B9"].value, ws["C9"].value) == ("Entity type", text)
+    assert ws["B10"].value == "Fiscal years pulled"
+
+
 def test_workbook_reopens_without_error():
     wb = Workbook()
     stmt = _is()

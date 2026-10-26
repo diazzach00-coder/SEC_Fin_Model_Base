@@ -54,7 +54,7 @@ def build_workbook(*, company: str, ticker: str, cik: int, currency: str,
         company=company, ticker=ticker, cik=cik, fye=fye_text(fy_ends[fy_labels[-1]]),
         currency=currency, fy_labels=list(fy_labels), forecast_labels=list(fcst_labels),
         date_pulled=date.today(), sheet_names=index, check_counts=summarize(checks),
-        filings=list(filings_per_fy)))
+        filings=list(filings_per_fy), entity_type=spec.entity_type))
 
     order = [n for n in SHEET_ORDER if n in wb.sheetnames]
     wb._sheets = [wb[n] for n in order]

@@ -89,6 +89,8 @@ def test_build_offline_fixture_ticker_produces_workbook(oke):
 def test_forecast_balances_in_result(oke):
     assert oke.da_basis == "ppe"
     assert oke.entity_type == "corporation"
+    cover = load_workbook(BytesIO(oke.xlsx))["Cover"]
+    assert (cover["B9"].value, cover["C9"].value) == ("Entity type", "Corporation")
     ws = load_workbook(BytesIO(oke.xlsx))["IS (As Reported)"]
     units = {ws.cell(r, 3).value for r in range(5, ws.max_row + 1)}
     assert {"MM shares", "per share"} <= units and not units & {"MM units", "per unit"}

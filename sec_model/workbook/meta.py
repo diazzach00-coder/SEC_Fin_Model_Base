@@ -27,6 +27,11 @@ class CoverInfo:
     sheet_names: list[str] = field(default_factory=list)
     check_counts: dict[str, int] = field(default_factory=dict)
     filings: list[tuple] = field(default_factory=list)   # (fy, form, accession, filing_date)
+    entity_type: str = "corporation"           # "corporation" | "partnership"
+
+
+ENTITY_TYPE_TEXT = {"corporation": "Corporation",
+                    "partnership": "Partnership (units, distributions)"}
 
 
 def _kv(ws, r: int, key: str, value) -> None:
@@ -51,6 +56,7 @@ def write_cover(wb, info: CoverInfo):
               if info.forecast_labels else "")
     for k, v in [("Company", info.company), ("Ticker", info.ticker), ("CIK", info.cik),
                  ("Fiscal year end", info.fye), ("Currency", info.currency),
+                 ("Entity type", ENTITY_TYPE_TEXT[info.entity_type]),
                  ("Fiscal years pulled", fy_rng), ("Forecast years", fc_rng),
                  ("Date pulled", info.date_pulled.isoformat() if info.date_pulled else ""),
                  ("Data source", info.data_source_note)]:

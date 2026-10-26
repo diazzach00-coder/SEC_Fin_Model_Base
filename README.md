@@ -33,7 +33,7 @@ premium; leave the price at 0 to enter it later in the workbook), and **CIK over
 
 | Sheet | Contents |
 |---|---|
-| **Cover** | Company, CIK, fiscal year end, currency, years pulled, the filing used for each year, a count of check results, and links to every sheet |
+| **Cover** | Company, CIK, fiscal year end, currency, entity type (corporation or partnership), years pulled, the filing used for each year, a count of check results, and links to every sheet |
 | **Checks** | Every data check with the two numbers compared, the tolerance and a note |
 | **Model** | Income statement, balance sheet and cash flow on one sheet, history then forecast, all linked, with ratios underneath and a balance check row |
 | **Revenue Streams** | 25 rows each for revenue and operating cost by stream (segment, product, region, asset), by forecast year; row 1 is a placeholder that grows the company total |
