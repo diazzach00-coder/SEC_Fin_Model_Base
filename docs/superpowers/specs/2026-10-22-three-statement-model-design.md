@@ -1,3 +1,7 @@
+> Historical design document (2026-10-22). The tool has since been generalised for any US-GAAP 10-K filer;
+> see `docs/superpowers/plans/2026-10-25-general-purpose.md` for the current release's decisions.
+> Client references below are historical context.
+
 # SEC 3-Statement Model Builder — Design
 
 Date: 2026-10-22

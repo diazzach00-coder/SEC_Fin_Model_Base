@@ -169,8 +169,9 @@ python scripts/regress.py --ua "Jane Doe jane@example.com" AAPL CVX OKE
 python scripts/regress.py --ua "Jane Doe jane@example.com" --cik XOM=34088 XOM
 ```
 
-Design and plans are in `docs/superpowers/`: the design spec in `specs/`, and the build plans
-and the acceptance-run results (per-ticker results and known limitations) in `plans/`.
+Design and plans are in `docs/superpowers/`: the original design spec (historical) in `specs/`,
+and the general-purpose release plan, the build plans and the acceptance-run results (per-ticker
+results and known limitations) in `plans/`.
 
 ## Data source and fair use
 
