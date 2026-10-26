@@ -189,3 +189,80 @@ Each has its own commit and a test that fails without it.
 Mapping changes on the list beyond those above: none. A per-ticker diff of every concept,
 year, driver default, coverage warning and check status before and after shows only the
 rows named here, and no check changed status.
+
+## 6. 2026-10-25 general-purpose release
+
+Branch `general-purpose` at 919505a (87def9a after it changes only the README): revolver
+commitment, per-year minimum cash, revolver rate and opening balance; entity-aware labels;
+Revenue Streams sheet; first-year artefacts blanked; mapping guards. Same command as
+section 1 (warm `.cache/`, `--excel --out out/`); `pytest tests -W error`: 324 passed.
+
+Result: **13 of 14 pass; exit code 0.** XOM is KNOWN (section 4), TRP gives the 40-F
+message. No FAIL check, no exception, every `bal` below 1e-6, no Excel error cell. The
+P/W/F/S counts are identical to section 1 for every ticker. Nothing needed fixing.
+
+`entity` = `labels.detect_entity_type` (the DCF reads "Value per share" or "Value per
+unit"). `value` = DCF perpetuity / exit multiple from Excel, no price entered; `10-23` is
+section 1.
+
+| Ticker | Entity | Years | P/W/F/S | cov | bal | s | value | 10-23 |
+|---|---|---|---|---|---|---|---|---|
+| OKE | corporation | 10 FY2016-FY2025 | 160/0/0/93 | 0 | 1.5e-11 | 9.4 | 105.28 / 148.23 | 113.02 / 150.37 |
+| EPD | partnership | 10 FY2016-FY2025 | 150/10/0/123 | 0 | 1.5e-11 | 8.8 | 23.72 / 19.84 | 26.01 / 20.67 |
+| ET | partnership | 10 FY2016-FY2025 | 160/0/0/105 | 0 | 2.9e-11 | 11.7 | 25.99 / 16.80 | 26.95 / 17.04 |
+| KMI | corporation | 10 FY2016-FY2025 | 151/9/0/135 | 0 | 1.5e-11 | 11.6 | 14.12 / 13.72 | 17.66 / 14.58 |
+| WMB | corporation | 10 FY2016-FY2025 | 160/0/0/70 | 0 | 1.5e-11 | 11.7 | 21.08 / 33.66 | 30.46 / 36.88 |
+| MPLX | partnership | 10 FY2016-FY2025 | 158/2/0/142 | 0 | 0.0 | 13.1 | 118.22 / 69.78 | 130.13 / 73.16 |
+| TRGP | corporation | 10 FY2016-FY2025 | 159/0/0/99 | 0 | 3.6e-12 | 10.6 | 20.82 / 66.89 | 21.22 / 66.18 |
+| KNTK | corporation | 9 FY2017-FY2025 | 143/1/0/90 | 0 | 1.8e-12 | 11.8 | 25.36 / 100.09 | -6.71 / 94.08 |
+| ENB | corporation | 10 FY2016-FY2025 | 147/10/0/100 | 0 | 2.9e-11 | 9.7 | 47.61 / 64.43 | 57.15 / 65.66 |
+| AAPL | corporation | 10 FY2016-FY2025 | 155/5/0/88 | 0 | 1.2e-10 | 8.3 | 260.82 / 111.25 | 260.74 / 111.22 |
+| CVX | corporation | 10 FY2016-FY2025 | 137/19/0/104 | 1 (Cash) | 5.8e-11 | 10.0 | 135.87 / 123.21 | 113.88 / 101.23 |
+| JPM | corporation | 10 FY2016-FY2025 | 121/29/0/90 | 1 (Revenue) | 0.0 | 11.5 | -198.39 / -198.39 | -199.01 / -199.01 |
+| TRP | - | 40-F message, as expected | - | - | - | 0.1 | - | - |
+| XOM | - | KNOWN (section 4) | - | - | - | 0.0 | - | - |
+
+**What moved, and why.**
+- **Value.** The only driver or scalar default that changed is `JV_TOGGLE`, 1 -> 0 (the
+  new keys `MIN_CASH` as a per-year driver, `REV_RATE`, `REV_CAP` and `GROWTH_CAP` aside). A
+  default-by-default diff of OKE, EPD, KNTK, CVX, KMI and WMB against main (d47d3cb) shows
+  nothing else. Setting `JV_TOGGLE` back to 1 in Excel gives the 10-23 values for all 12
+  built tickers to within 0.05 (the valuation date is `TODAY()`), e.g. OKE 113.05 / 150.42,
+  EPD 26.01 / 20.67, KNTK -6.70 / 94.13, CVX 113.89 / 101.23. With the toggle at 0 the DCF
+  leaves affiliate distributions out of UFCF and adds equity investments at book in the
+  bridge. Most JV holders fall, because PV of distributions exceeds book. KNTK and CVX rise,
+  because their book investments exceed it. AAPL and JPM have no JVs and move only by the date.
+- **DEBT** is term debt without a tagged revolver. The revolver's history has its own row
+  and the forecast draws it to hold minimum cash; no balance check or value moved because of it.
+- **JPM coverage** 2 -> 1: the Receivables coverage warning is gone (the bank row is
+  still a NOTE in the working-capital assertion), from the coverage-noise guard in ba8c9a2.
+
+### COM check (`Visible=False`, `CalculateFull`, closed without saving)
+
+`out/OKE.xlsx` (corporation) and `out/EPD.xlsx` (partnership), opened read-only with
+`DisplayAlerts=False`. No "[Repaired]" caption.
+
+- **Error cells:** zero on every sheet in both workbooks, and zero again in EPD after the
+  REV_CAP edit.
+- **Labels:** in Model, Drivers, WACC and DCF, EPD has no "share(s)", "shareholder(s)",
+  "dividend(s)", "per share" or "EPS"; OKE has no "unit(s)", "unitholder(s)",
+  "partner(s)", "per unit", "Distributions paid", "Distribution per unit" or "Distribution
+  coverage". The two hits for "unit" in OKE are the column header "Unit" (unit of measure) in
+  Model!C4 and Drivers!C4, which is neutral. "Distributions to NCI" and "Distributions from
+  affiliates" are the same for both entity types.
+- **Drivers year 1 == `forecast.driver_defaults`:** all 15 drivers, max |diff| 1.4e-17 (OKE,
+  CAPEX_PCT) and 0.0 (EPD). The scalars equal `scalar_defaults` exactly.
+- **Revolver commitment (EPD).** The default (REV_CAP 0, unlimited) draws the revolver to
+  1,367.77 / 3,146.16 / 5,360.21 / 8,036.60 / 11,203.75 (FY2026E-FY2030E). Cash holds at
+  969 and the shortfall is 0. Then `REV_CAP` (Drivers!C24) is set to 2,801, a quarter of the
+  peak need. The revolver caps at 2,801 from FY2027E; FY2027E draws 1,433.23 and then 0.
+  Cash goes 969.00 / 623.84 / -1,575.73 / -4,144.75 / -7,092.26. `LIQ_SHORTFALL` reads 0 /
+  345.16 / 2,544.73 / 5,113.75 / 8,061.26 (> 0 from FY2027E on). Max |BAL_CHECK| stays
+  0.0. Value per unit is unchanged (23.72 / 19.84), because UFCF is unlevered.
+- **Red revolver:** the Model revolver row N92:R92 has one expression rule `=N101>0.5`
+  (row 101 = `LIQ_SHORTFALL`, relative column) and the shortfall row N101:R101 has
+  `greaterThan 0.5`, in both workbooks. As a check beyond the rule,
+  `DisplayFormat.Interior.Color` on the revolver cells reads 0xF4CCCC (the fail fill) for
+  FY2027E-FY2030E and the normal forecast fill for FY2026E, which matches the shortfall years.
+- **Value per share / unit, before -> after this release:** OKE 113.02 / 150.37 -> 105.28 /
+  148.23; EPD 26.01 / 20.67 -> 23.72 / 19.84. The whole move is the `JV_TOGGLE` default.
