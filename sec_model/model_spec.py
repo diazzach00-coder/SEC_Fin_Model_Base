@@ -376,7 +376,8 @@ def _scalars() -> list[ScalarDef]:
         ScalarDef("WC_HOLD", "Hold working capital flat", 0.0,
                   note="1 = hold working capital flat (no change in forecast)"),
         ScalarDef("REV_CAP", "Revolver commitment", 0.0, fmt="money",
-                  note="revolver commitment; 0 = unlimited"),
+                  note="revolver commitment; 0 = unlimited; a commitment below the opening "
+                       "balance forces repayment down to the commitment"),
         ScalarDef("GROWTH_CAP", "Cap on default growth rates", 0.15, fmt="pct",
                   note="cap on default growth rates"),
     ]

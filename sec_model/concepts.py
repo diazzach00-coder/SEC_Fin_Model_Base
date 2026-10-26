@@ -50,6 +50,11 @@ class Concept:
         return next((s for t, s in self.tag_signs if t == bare), 1)
 
 
+# Drawn revolver / line-of-credit tags: the RevolverDrawn concept and TotalDebt's revolver
+# group use the same tags in the same first-present order, so both pick the same row.
+REVOLVER_TAGS = ("LineOfCredit", "LongTermLineOfCredit", "LinesOfCreditCurrent",
+                 "RevolvingCreditFacility")
+
 CONCEPTS: list[Concept] = [
     # ---- Income statement ----
     Concept("Revenue", ("IS",),
@@ -207,11 +212,14 @@ CONCEPTS: list[Concept] = [
     Concept("LongTermDebt", ("BS",),
             ("LongTermDebtNoncurrent", "LongTermDebt", "LongTermDebtAndCapitalLeaseObligations"),
             r"^long-term debt"),
-    # Long-term + current + short-term, first-present within the first two groups so
-    # overlapping tags are not double counted. A long-term total that already includes
-    # current maturities (LongTermDebt, ...IncludingCurrentMaturities) is a long-term
-    # component too, so short-term borrowings are still added (CVX, JPM); it then skips the
-    # current-maturities group.
+    # Long-term + current + short-term + drawn revolver, first-present within the "first"
+    # groups so overlapping tags are not double counted. A long-term total that already
+    # includes current maturities (LongTermDebt, ...IncludingCurrentMaturities) is a
+    # long-term component too, so short-term borrowings are still added (CVX, JPM); it then
+    # skips the current-maturities group. A separately presented revolver / line of credit
+    # (the RevolverDrawn tags) never overlaps the component lines, so it is summed with
+    # them; when a total-including tag supplied the long-term group the revolver is assumed
+    # to be inside it and is not added.
     Concept("TotalDebt", ("BS",),
             ("LongTermDebt", "LongTermDebtAndCapitalLeaseObligationsIncludingCurrentMaturities"),
             None,
@@ -227,12 +235,15 @@ CONCEPTS: list[Concept] = [
                 # DebtCurrent already includes short-term borrowings and commercial paper.
                 SumGroup(("ShortTermBorrowings", "CommercialPaper"), mode="all",
                          skip_if=("DebtCurrent",)),
+                SumGroup(REVOLVER_TAGS,
+                         skip_if=("LongTermDebt",
+                                  "LongTermDebtAndCapitalLeaseObligationsIncludingCurrentMaturities")),
             )),
     # Drawn revolver / line of credit; part of TotalDebt. Unmapped -> 0 (no opening revolver).
-    Concept("RevolverDrawn", ("BS",),
-            ("LineOfCredit", "LongTermLineOfCredit", "LinesOfCreditCurrent",
-             "RevolvingCreditFacility"),
-            r"revolv|line of credit"),
+    # The label fallback skips total / term-debt rows that merely mention the revolver;
+    # mapping._guard_revolver drops a year at or above TotalDebt or without TotalDebt.
+    Concept("RevolverDrawn", ("BS",), REVOLVER_TAGS,
+            r"^(?!.*(long-term debt|total|notes|senior)).*(revolv|line of credit)"),
     Concept("LiabilitiesAndEquity", ("BS",),
             ("LiabilitiesAndStockholdersEquity", "LiabilitiesAndPartnersCapital"),
             r"^total liabilities and"),

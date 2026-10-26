@@ -229,6 +229,8 @@ def test_revolver_capped_by_commitment_and_shortfall_reported():
 def test_revolver_unlimited_when_cap_zero():
     spec, out = _run(driver_overrides={"DPU_GROWTH": 2.0})
     assert scalar_defaults(spec, TOY, FY)["REV_CAP"] == 0.0
+    note = next(x.note for x in spec.scalars if x.key == "REV_CAP")
+    assert "forces repayment down to the commitment" in note
     for fy in FCST:
         assert _close(out["LIQ_SHORTFALL"][fy], 0.0)
         assert _close(out["CASH"][fy], 130.0)

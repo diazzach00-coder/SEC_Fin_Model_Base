@@ -215,6 +215,7 @@ def resolve(statements: dict[str, MergedStatement]) -> dict[str, dict[str, Conce
     _separate_distributions(out)
     _apply_gates(out, statements)
     _reconcile_total_costs(out)
+    _guard_revolver(out)
     return out
 
 
@@ -252,6 +253,24 @@ def _apply_gates(out: dict, statements: dict[str, MergedStatement]) -> None:
             g = out.get(c.gate, {}).get(fy)
             if cv.status != "UNMAPPED" and (g is None or g.value is None):
                 out[c.name][fy] = _resolve_one(ungated, statements, fy)
+
+
+def _guard_revolver(out: dict) -> None:
+    """The drawn revolver is part of total debt, so a RevolverDrawn year is set UNMAPPED
+    when TotalDebt is unmapped, or when it is at or above TotalDebt (a total-debt row
+    caught by the label) -- unless TotalDebt was built from that same revolver row (a
+    balance sheet whose only debt is the revolver). The Model then splits nothing off."""
+    for fy, rv in list(out.get("RevolverDrawn", {}).items()):
+        if rv.value is None:
+            continue
+        td = out.get("TotalDebt", {}).get(fy)
+        if td is None or td.value is None:
+            out["RevolverDrawn"][fy] = _unmapped("RevolverDrawn", fy)
+            continue
+        parts = set((td.tag or "").removeprefix("SUM(").removesuffix(")").split("+"))
+        inside = rv.tag in parts            # TotalDebt includes this very revolver row
+        if rv.value >= td.value and not inside:
+            out["RevolverDrawn"][fy] = _unmapped("RevolverDrawn", fy)
 
 
 _NCI_LABEL = re.compile(r"noncontrolling|minority", re.IGNORECASE)

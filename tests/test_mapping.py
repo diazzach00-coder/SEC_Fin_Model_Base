@@ -6,8 +6,10 @@ import pytest
 
 import sec_model.mapping as mapping
 from sec_model.concepts import CONCEPTS
+from sec_model.forecast import compute
 from sec_model.mapping import REQUIRED, coverage_warnings, resolve
 from sec_model.merge import merge_statements
+from sec_model.model_spec import build_spec
 from sec_model.rfile import parse_rfile
 from sec_model.types import Filing, MergedRow, MergedStatement
 
@@ -319,7 +321,8 @@ def test_revolver_drawn_tags_label_fallback_and_unmapped():
     cv = resolve({"BS": bs})["RevolverDrawn"]["FY2024"]
     assert (cv.status, cv.value, cv.row_key) == ("OK", 6.0, "xyz_Revolver")
     bs2 = mstmt("BS", [mrow("xyz_Loc", "Borrowings under line of credit",
-                            {"FY2023": 1.0, "FY2024": 2.0})])
+                            {"FY2023": 1.0, "FY2024": 2.0}),
+                       mrow("us-gaap_LongTermDebt", "Debt", {"FY2023": 50.0, "FY2024": 50.0})])
     assert resolve({"BS": bs2})["RevolverDrawn"]["FY2024"].value == 2.0
     empty = resolve({"BS": mstmt("BS", [mrow("us-gaap_LongTermDebt", "Debt",
                                              {"FY2023": 1.0, "FY2024": 2.0})])})
@@ -328,6 +331,75 @@ def test_revolver_drawn_tags_label_fallback_and_unmapped():
     cf = mstmt("CF", [mrow("us-gaap_ProceedsFromLinesOfCredit", "Revolver borrowings",
                            {"FY2023": 1.0, "FY2024": 2.0})])
     assert resolve({"CF": cf})["RevolverDrawn"]["FY2024"].status == "UNMAPPED"
+
+
+@pytest.mark.parametrize("label", [
+    "Long-term debt, including revolving credit facility",
+    "Total debt and line of credit borrowings",
+    "Senior notes and revolver",
+    "Notes payable under line of credit",
+])
+def test_revolver_label_fallback_skips_total_and_term_debt_rows(label):
+    bs = mstmt("BS", [mrow("xyz_Debt", label, {"FY2023": 5.0, "FY2024": 6.0}),
+                      mrow("us-gaap_LongTermDebt", "Debt", {"FY2023": 90.0, "FY2024": 90.0})])
+    assert resolve({"BS": bs})["RevolverDrawn"]["FY2024"].status == "UNMAPPED"
+
+
+@pytest.mark.parametrize("rev", [100.0, 120.0])
+def test_revolver_at_or_above_total_debt_is_unmapped(rev):
+    bs = mstmt("BS", [mrow("us-gaap_LongTermDebt", "Debt", {"FY2023": 100.0, "FY2024": 100.0}),
+                      mrow("xyz_Rev", "Revolving credit facility",
+                           {"FY2023": 40.0, "FY2024": rev})])
+    rv = resolve({"BS": bs})["RevolverDrawn"]
+    assert rv["FY2023"].value == 40.0                    # below total: kept (per year)
+    assert rv["FY2024"].status == "UNMAPPED" and rv["FY2024"].value is None
+
+
+def test_revolver_unmapped_when_total_debt_unmapped():
+    bs = mstmt("BS", [mrow("xyz_Rev", "Revolving credit facility",
+                           {"FY2023": 40.0, "FY2024": 50.0})])
+    out = resolve({"BS": bs})
+    assert out["TotalDebt"]["FY2024"].status == "UNMAPPED"
+    assert out["RevolverDrawn"]["FY2024"].status == "UNMAPPED"
+
+
+def _debt_split(rows):
+    """Resolve a BS and run the model: (mapping, model values) for FY2023-FY2024."""
+    out = resolve({"BS": mstmt("BS", rows)})
+    hist = {c: {fy: cv.value for fy, cv in yrs.items()} for c, yrs in out.items()}
+    return out, compute(build_spec("ppe"), hist, ["FY2023", "FY2024"], ["FY2025E"])
+
+
+def test_separately_presented_revolver_joins_component_total_debt():
+    out, m = _debt_split([
+        mrow("us-gaap_LongTermDebtNoncurrent", "Long-term debt", {"FY2023": 200.0, "FY2024": 200.0}),
+        mrow("us-gaap_LongTermDebtCurrent", "Current maturities", {"FY2023": 10.0, "FY2024": 10.0}),
+        mrow("us-gaap_LineOfCredit", "Credit facility", {"FY2023": 50.0, "FY2024": 50.0}),
+    ])
+    td = out["TotalDebt"]["FY2024"]
+    assert td.value == 260.0 and "us-gaap_LineOfCredit" in td.tag
+    assert out["RevolverDrawn"]["FY2024"].value == 50.0
+    assert (m["DEBT"]["FY2024"], m["REVOLVER"]["FY2024"]) == (210.0, 50.0)
+
+
+def test_revolver_assumed_inside_a_single_total_including_tag():
+    for tag in ("LongTermDebt", "LongTermDebtAndCapitalLeaseObligationsIncludingCurrentMaturities"):
+        out, m = _debt_split([
+            mrow(f"us-gaap_{tag}", "Total debt", {"FY2023": 110.0, "FY2024": 110.0}),
+            mrow("us-gaap_LineOfCredit", "Credit facility", {"FY2023": 30.0, "FY2024": 30.0}),
+        ])
+        assert out["TotalDebt"]["FY2024"].value == 110.0, tag
+        assert out["RevolverDrawn"]["FY2024"].value == 30.0, tag
+        assert (m["DEBT"]["FY2024"], m["REVOLVER"]["FY2024"]) == (80.0, 30.0), tag
+
+
+def test_revolver_only_balance_sheet_has_no_negative_term_debt():
+    out, m = _debt_split([
+        mrow("us-gaap_LineOfCredit", "Credit facility", {"FY2023": 50.0, "FY2024": 50.0}),
+    ])
+    assert out["TotalDebt"]["FY2024"].value == 50.0
+    assert out["RevolverDrawn"]["FY2024"].value == 50.0
+    assert (m["DEBT"]["FY2024"], m["REVOLVER"]["FY2024"]) == (0.0, 50.0)
 
 
 def test_diluted_units_tags_and_label_fallback_ignores_eps():
