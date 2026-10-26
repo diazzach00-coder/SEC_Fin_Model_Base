@@ -243,6 +243,38 @@ def test_mapping_sheet_follows_concept_stypes_order_for_shared_keys():
         info["rows"]["Revenue"], info["value_cols"]["FY2024"]).value
 
 
+def test_mapping_sheet_unmapped_revolver_label_explains_zero_opening():
+    wb = Workbook()
+    statements = {"IS": _stmt("IS", ["X"]), "BS": _stmt("BS", ["Cash", "us-gaap_LineOfCredit"]),
+                  "CF": _stmt("CF", ["Capex"])}
+    for st, sheet in SHEET_NAMES.items():
+        write_as_reported(wb, statements[st], sheet)
+    note = "no separately tagged revolver (opening revolver = 0)"
+    assert next(c for c in CONCEPTS if c.name == "RevolverDrawn").unmapped_note == note
+    # mapped in an earlier year only: the latest year is UNMAPPED, so the note shows
+    mapping = {c.name: {} for c in CONCEPTS}
+    mapping["RevolverDrawn"] = {
+        "FY2023": _cv("RevolverDrawn", "FY2023", 5.0, "us-gaap_LineOfCredit"),
+        "FY2024": _cv("RevolverDrawn", "FY2024", None, None, "UNMAPPED")}
+    info = write_mapping(wb, mapping, dict(SHEET_NAMES), statements, FYS)
+    ws = wb["Mapping"]
+    label_col = info["key_cols"]["FY2024"] + 2
+    r = info["rows"]["RevolverDrawn"]
+    assert ws.cell(4, label_col).value == "Label (latest)"
+    assert ws.cell(r, 2).value == "UNMAPPED" and ws.cell(r, label_col).value == note
+    g = info["rows"]["Gains"]                       # no note: label stays blank
+    assert ws.cell(g, 2).value == "UNMAPPED" and ws.cell(g, label_col).value in ("", None)
+    # mapped in the latest year: the row's own label, not the note
+    mapping["RevolverDrawn"]["FY2024"] = _cv("RevolverDrawn", "FY2024", 6.0,
+                                             "us-gaap_LineOfCredit")
+    wb2 = Workbook()
+    for st, sheet in SHEET_NAMES.items():
+        write_as_reported(wb2, statements[st], sheet)
+    info = write_mapping(wb2, mapping, dict(SHEET_NAMES), statements, FYS)
+    cell = wb2["Mapping"].cell(info["rows"]["RevolverDrawn"], label_col)
+    assert cell.value == "lbl"
+
+
 def test_mapping_sheet_negative_sign_inside_blank_guard():
     wb = Workbook()
     statements = {"IS": _stmt("IS", ["X"]), "BS": _stmt("BS", ["Cash"]), "CF": _stmt("CF", ["Capex"])}

@@ -56,8 +56,9 @@ def write_mapping(wb, mapping: dict, stmt_sheets: dict[str, str],
         cv_latest = per_fy.get(latest)
         latest_stype = _sheet_for(cv_latest, concept, statements)
         latest_ok = latest_stype in statements and latest_stype in stmt_sheets
+        status = cv_latest.status if (cv_latest and latest_ok) else "UNMAPPED"
         ws.cell(r, 1, concept.name).font = S.FONT_BOLD
-        ws.cell(r, 2, cv_latest.status if (cv_latest and latest_ok) else "UNMAPPED").font = S.FONT_BASE
+        ws.cell(r, 2, status).font = S.FONT_BASE
         ws.cell(r, 3, stmt_sheets[latest_stype] if latest_ok else "").font = S.FONT_BASE
         for fy in fy_labels:
             cv = per_fy.get(fy)
@@ -87,6 +88,9 @@ def write_mapping(wb, mapping: dict, stmt_sheets: dict[str, str],
             vcell.value = f'=IFERROR(IF({ref}="","",{sign}{ref}),"")'
             vcell.font = S.FONT_FORMULA
         ws.cell(r, tag_col, (cv_latest.tag or "") if cv_latest else "").font = S.FONT_BASE
-        ws.cell(r, label_col, (cv_latest.label or "") if cv_latest else "").font = S.FONT_BASE
+        latest_label = (cv_latest.label or "") if cv_latest else ""
+        if status == "UNMAPPED" and concept.unmapped_note:
+            latest_label = concept.unmapped_note
+        ws.cell(r, label_col, latest_label).font = S.FONT_BASE
         ws.cell(r, tag_col).alignment = Alignment(wrap_text=False)
     return {"rows": rows, "value_cols": value_cols, "key_cols": key_cols}

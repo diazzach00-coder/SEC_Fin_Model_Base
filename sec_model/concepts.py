@@ -48,6 +48,9 @@ class Concept:
     # A row under a gated tag whose label matches this is skipped even when the gate is open
     # (LongTermInvestments also holds securities portfolios).
     gated_label_exclude: str | None = None
+    # Shown in the Mapping sheet's latest-label column when the concept is UNMAPPED in the
+    # latest year, where an unmapped value has a meaning (e.g. revolver -> 0).
+    unmapped_note: str = ""
 
     def tag_sign(self, tag: str | None) -> int:
         bare = (tag or "").removeprefix("us-gaap_")
@@ -251,7 +254,8 @@ CONCEPTS: list[Concept] = [
     # mapping._guard_revolver drops a year at or above TotalDebt, without TotalDebt, or
     # outside a component-built (SUM) TotalDebt.
     Concept("RevolverDrawn", ("BS",), REVOLVER_TAGS,
-            r"^(?!.*(long-term debt|total|notes|senior)).*(revolv|line of credit)"),
+            r"^(?!.*(long-term debt|total|notes|senior)).*(revolv|line of credit)",
+            unmapped_note="no separately tagged revolver (opening revolver = 0)"),
     Concept("LiabilitiesAndEquity", ("BS",),
             ("LiabilitiesAndStockholdersEquity", "LiabilitiesAndPartnersCapital"),
             r"^total liabilities and"),
