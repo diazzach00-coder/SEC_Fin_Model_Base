@@ -26,14 +26,14 @@ edited by an analyst, not trusted as it comes.
 Other sidebar settings: years of history (2 to 15, default 10), forecast years (3 to 7,
 default 5), a **Market inputs** box (share or unit price, beta, risk-free rate, market risk
 premium; leave the price at 0 to enter it later in the workbook), and **CIK override
-(advanced)** for the case described under Limitations. Downloaded SEC pages are cached in
+(advanced)** (a CIK is the SEC's company ID number) for the case described under Limitations. Downloaded SEC pages are cached in
 `.cache/`, so running the same ticker again is fast.
 
 ## What you get
 
 | Sheet | Contents |
 |---|---|
-| **Cover** | Company, CIK (the SEC's company ID number), fiscal year end, currency, years pulled, the filing used for each year, a count of check results, and links to every sheet |
+| **Cover** | Company, CIK, fiscal year end, currency, years pulled, the filing used for each year, a count of check results, and links to every sheet |
 | **Checks** | Every data check with the two numbers compared, the tolerance and a note |
 | **Model** | Income statement, balance sheet and cash flow on one sheet, history then forecast, all linked, with ratios underneath and a balance check row |
 | **Revenue Streams** | 25 rows each for revenue and operating cost by stream (segment, product, region, asset), by forecast year; row 1 is a placeholder that grows the company total |
@@ -70,7 +70,7 @@ streams with the last reported year.
 three-year average or last year's value); later years copy the year before. Overwrite any cell.
 Revenue growth and cost percent drive only the placeholder row. Debt issuance and other
 operating items start at zero. Minimum cash defaults to last year's cash, and the revolver
-interest rate defaults to the term-debt rate.
+(the company's revolving credit line) interest rate defaults to the term-debt rate.
 
 **The switches** (at the bottom of the Drivers sheet; the first two are a 1/0 dropdown):
 
@@ -80,10 +80,8 @@ interest rate defaults to the term-debt rate.
   0 (default) keeps them below EBITDA.
 - **Hold working capital flat** (`WC_HOLD`): 1 keeps receivables, inventory and payables at last
   year's balances so working capital does not move cash; 0 (default) uses the day-count drivers.
-- **Revolver commitment** (`REV_CAP`): the most the revolver (the company's revolving credit
-  line, used as a cash buffer in the forecast) can borrow. It draws
-  to keep cash at the minimum cash driver and repays when cash is above it. 0 (default) means
-  unlimited. If a commitment is too small, cash falls below the minimum and the shortfall
+- **Revolver commitment** (`REV_CAP`): the most the revolver can borrow. It draws to keep cash
+  at the minimum cash driver and repays when cash is above it. 0 (default) means unlimited. If a commitment is too small, cash falls below the minimum and the shortfall
   row on the Model sheet turns red.
 - **Cap on default growth rates** (`GROWTH_CAP`, default 15%) limits the default revenue and
   payout growth drivers.
