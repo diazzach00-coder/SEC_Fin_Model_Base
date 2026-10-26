@@ -112,11 +112,11 @@ def main() -> None:
     st.set_page_config(page_title="SEC 3-Statement Model Builder", page_icon="📊", layout="wide")
     st.title("SEC 3-Statement Model Builder")
     st.caption("Pulls as-reported 10-K financials from SEC EDGAR, ties them out, and exports "
-               "a linked 3-statement model with WACC and DCF — for any US filer.")
+               "a linked 3-statement model with WACC and DCF — for US-GAAP 10-K filers.")
 
     with st.sidebar:
         st.header("Settings")
-        ticker = st.text_input("Ticker", value="OKE", key="ticker").strip().upper()
+        ticker = st.text_input("Ticker", value="AAPL", key="ticker").strip().upper()
         user_agent = st.text_input("SEC User-Agent (name and email)", value="",
                                    placeholder="Jane Doe jane@example.com", key="ua").strip()
         n_years = st.slider("Years of history", 2, 15, 10, key="n_years")

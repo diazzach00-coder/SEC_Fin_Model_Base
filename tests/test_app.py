@@ -62,7 +62,8 @@ def test_initial_render_has_all_inputs():
     at = _fresh()
     assert not at.exception
     assert at.title[0].value == "SEC 3-Statement Model Builder"
-    assert at.text_input(key="ticker").value == "OKE"
+    assert at.text_input(key="ticker").value == "AAPL"
+    assert at.caption[0].value.endswith("— for US-GAAP 10-K filers.")
     assert at.text_input(key="ua").value == ""
     assert at.text_input(key="ua").placeholder == "Jane Doe jane@example.com"
     assert at.slider(key="n_years").value == 10 and at.slider(key="n_fcst").value == 5
@@ -159,6 +160,7 @@ def test_shim_runs_the_app():
 @pytest.mark.skipif(not (ROOT / ".cache").is_dir(), reason="SEC cache not present")
 def test_real_oke_build_through_the_app():
     at = AppTest.from_file(APP, default_timeout=180).run()
+    at.text_input(key="ticker").set_value("OKE")
     at.text_input(key="ua").set_value(UA)
     at.button(key="build").click().run()
     assert not at.exception and not at.error
