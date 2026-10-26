@@ -32,7 +32,8 @@ def fake_result(ticker="OKE"):
         company="ONEOK INC", ticker=ticker, cik=1039684, currency="USD", fy_labels=list(FYS),
         fcst_labels=["FY2026E", "FY2027E", "FY2028E"],
         statements={s: _stmt(s) for s in ("IS", "BS", "CF")}, mapping=mapping, checks=checks,
-        coverage=["Capex is unmapped"], forecast={}, xlsx=b"PK\x03\x04fake", log=[])
+        coverage=["Capex is unmapped"], forecast={}, xlsx=b"PK\x03\x04fake", log=[],
+        entity_type="partnership")
 
 
 @pytest.fixture
@@ -90,7 +91,8 @@ def test_successful_build_shows_results_and_download(calls):
     assert "ONEOK INC (OKE)" in [h.value for h in at.header]
     metrics = {m.label: m.value for m in at.metric}
     assert metrics == {"CIK": "1039684", "Fiscal years": "FY2024–FY2025",
-                       "Forecast": "FY2026E–FY2028E", "Currency": "USD"}
+                       "Forecast": "FY2026E–FY2028E", "Currency": "USD",
+                       "Entity": "Partnership"}
     assert [w.value for w in at.warning] == ["Capex is unmapped"]
     assert at.status[0].label == "Done" and at.status[0].state == "complete"
     (dl,) = _download_buttons(at)
@@ -163,5 +165,6 @@ def test_real_oke_build_through_the_app():
     assert at.status[0].state == "complete"
     (dl,) = _download_buttons(at)
     assert dl.proto.label == "Download Excel model"
-    assert {m.label: m.value for m in at.metric}["Currency"] == "USD"
+    metrics = {m.label: m.value for m in at.metric}
+    assert (metrics["Currency"], metrics["Entity"]) == ("USD", "Corporation")
     assert len(at.tabs) == 4

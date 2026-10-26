@@ -12,7 +12,7 @@ column in topological order. Lag-1 references always point at the previous,
 already-computed column. Hidden helper lines (`hidden=True`) are real rows the
 workbook hides: `<X>_RPT` rows pull a reported concept that a derived line needs,
 `DEFTAX` feeds the informational cash-tax-rate ratio, `CASH_PRE` feeds the revolver and `DPU_FCST`
-carries distributions per unit forward.
+carries the payout per share / unit forward.
 
 Debt is split into term debt (`DEBT` = reported total debt less the drawn revolver) and
 the revolver (`REVOLVER`, opening balance = the reported drawn revolver, 0 when untagged).
@@ -21,6 +21,9 @@ The revolver draws to hold the per-year `MIN_CASH` driver, up to the `REV_CAP` c
 
 Sign convention: IS expenses positive on lines named as expenses (OPCOST, DA,
 IMPAIR, INTEREST, TAX); GAINS positive = gain; CF lines carry their cash sign.
+
+Entity words (shares / dividends vs units / distributions) come from `labels.label` keyed by
+`entity_type`; keys and formulas are the same for both entity types.
 
 Drivers fill the first forecast column of the Drivers sheet with their `default`
 (evaluated in the last history column, so `Line` means last year and `Hist`
@@ -31,6 +34,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from .formula import Block, Const, Driver, Expr, Fn, Hist, Line, Scalar
+from .labels import ENTITY_TYPES, label
 
 SECTIONS = ("IS", "CF", "BS", "CHECK", "RATIO")
 FMTS = ("money", "pct", "units", "perunit", "days", "multiple")
@@ -76,6 +80,7 @@ class ModelSpec:
     drivers: list[DriverDef]
     scalars: list[ScalarDef]
     da_basis: str
+    entity_type: str = "corporation"
 
     def line(self, key: str) -> LineDef:
         for ld in self.lines:
@@ -131,7 +136,7 @@ def _ratio(key, label, expr, fmt="pct", note="") -> LineDef:
     return LineDef(key, label, "RATIO", expr, expr, fmt=fmt, note=note)
 
 
-def _is_lines(da_basis: str) -> list[LineDef]:
+def _is_lines(da_basis: str, e: str) -> list[LineDef]:
     jv = Scalar("JV_TOGGLE")
     da_fcst = Driver("DA_PCT") * (L("NET_PPE", 1) if da_basis == "ppe" else L("REV"))
     opcost_hist = (Fn("IF", L("TCE_RPT").eq(0), L("REV") - L("OPINC_RPT"), L("TCE_RPT"))
@@ -147,7 +152,7 @@ def _is_lines(da_basis: str) -> list[LineDef]:
                 Block("ASSET_COST"),
                 note="total costs - D&A - impairments + gains; falls back to "
                      "revenue - operating income when total costs are not reported"),
-        _same("ASSET_EBITDA", "Asset EBITDA", L("REV") - L("OPCOST"), bold=True),
+        _same("ASSET_EBITDA", "EBITDA before equity earnings", L("REV") - L("OPCOST"), bold=True),
         LineDef("EQ_EARN", "Equity earnings from unconsolidated affiliates", "IS",
                 "EquityEarnings", L("EQ_EARN", 1), note="held flat"),
         _same("EBITDA", "EBITDA", L("ASSET_EBITDA") + L("EQ_EARN") * jv, bold=True,
@@ -177,13 +182,13 @@ def _is_lines(da_basis: str) -> list[LineDef]:
         _same("NI", "Net income", L("PRETAX") - L("TAX") + L("DISC_OPS"), bold=True),
         LineDef("NI_NCI", "NI to noncontrolling interests", "IS", "NIToNCI", L("NI_NCI", 1),
                 note="held flat"),
-        _same("NI_COMMON", "NI to common / partners", L("NI") - L("NI_NCI"), bold=True),
-        LineDef("UNITS", "Diluted units", "IS", "DilutedUnits", Driver("UNITS"), fmt="units"),
-        _same("EPS", "EPS / EPU", L("NI_COMMON") / L("UNITS"), fmt="perunit"),
+        _same("NI_COMMON", label("ni_common", e), L("NI") - L("NI_NCI"), bold=True),
+        LineDef("UNITS", label("units", e), "IS", "DilutedUnits", Driver("UNITS"), fmt="units"),
+        _same("EPS", label("eps", e), L("NI_COMMON") / L("UNITS"), fmt="perunit"),
     ]
 
 
-def _cf_lines() -> list[LineDef]:
+def _cf_lines(e: str) -> list[LineDef]:
     dwc = -((L("AR") - L("AR", 1)) + (L("INV") - L("INV", 1)) - (L("AP") - L("AP", 1)))
     op_items = ("CF_NI", "CF_DA", "CF_IMPAIR", "CF_GAINS", "CF_EQ", "CF_DIST_AFF", "CF_DWC")
     need = Fn("MAX", Driver("MIN_CASH") - L("CASH_PRE"), -L("REVOLVER", 1))
@@ -215,11 +220,11 @@ def _cf_lines() -> list[LineDef]:
         _same("ICF", "Cash from investing", L("CAPEX") + L("CF_OTHER_INV"), bold=True,
               section="CF"),
         _rpt("DIST_RPT", "Distributions", "CF"),
-        LineDef("DPU_FCST", "Distribution per unit", "CF",
+        LineDef("DPU_FCST", label("dpu", e), "CF",
                 Fn("ABS", L("DIST_RPT")) / L("UNITS"),
                 L("DPU_FCST", 1) * (1 + Driver("DPU_GROWTH")), fmt="perunit", hidden=True,
-                note="hidden helper: last DPU grown by DPU_GROWTH each forecast year"),
-        LineDef("DIST", "Distributions / dividends paid", "CF", _neg_abs("DIST_RPT"),
+                note="hidden helper: last year's payout grown by DPU_GROWTH each forecast year"),
+        LineDef("DIST", label("dist", e), "CF", _neg_abs("DIST_RPT"),
                 -L("DPU_FCST") * L("UNITS")),
         _rpt("DIST_NCI_RPT", "DistributionsToNCI", "CF"),
         LineDef("DIST_NCI", "Distributions to NCI", "CF", _neg_abs("DIST_NCI_RPT"),
@@ -247,7 +252,7 @@ def _cf_lines() -> list[LineDef]:
     ]
 
 
-def _bs_lines() -> list[LineDef]:
+def _bs_lines(e: str) -> list[LineDef]:
     # Each balance-sheet total falls back to the other when unmapped, so the
     # history BAL_CHECK is 0 by construction whenever either total is reported.
     ta = Fn("IF", L("TA_RPT").eq(0), L("LE_RPT"), L("TA_RPT"))
@@ -283,7 +288,7 @@ def _bs_lines() -> list[LineDef]:
                 note="includes preferred/temporary equity and anything not broken out; "
                      "other operating cash items accrue here so the OTHER_OP driver cannot "
                      "unbalance the sheet"),
-        LineDef("EQUITY", "Common / partners' equity", "BS", "EquityCommon",
+        LineDef("EQUITY", label("equity", e), "BS", "EquityCommon",
                 L("EQUITY", 1) + L("NI_COMMON") + L("DIST")),
         LineDef("NCI_BS", "Noncontrolling interests", "BS", "NCI",
                 L("NCI_BS", 1) + L("NI_NCI") + L("DIST_NCI")),
@@ -298,7 +303,7 @@ def _bs_lines() -> list[LineDef]:
     ]
 
 
-def _ratio_lines(da_basis: str) -> list[LineDef]:
+def _ratio_lines(da_basis: str, e: str) -> list[LineDef]:
     da_base = L("NET_PPE", 1) if da_basis == "ppe" else L("REV")
     return [
         _ratio("REV_GROWTH_HIST", "Revenue growth", _growth("REV")),
@@ -319,25 +324,25 @@ def _ratio_lines(da_basis: str) -> list[LineDef]:
                Fn("MAX", 0, Fn("MIN", 0.35, (L("TAX") - L("DEFTAX")) / L("PRETAX"))),
                note="deferred taxes reverse; driver uses the effective rate - override on "
                     "Drivers if you want cash taxes"),
-        _ratio("DPU_HIST", "Distribution per unit", -L("DIST") / L("UNITS"), fmt="perunit"),
-        _ratio("DPU_GROWTH_HIST", "DPU growth", _growth("DPU_HIST")),
+        _ratio("DPU_HIST", label("dpu", e), -L("DIST") / L("UNITS"), fmt="perunit"),
+        _ratio("DPU_GROWTH_HIST", label("dpu_growth", e), _growth("DPU_HIST")),
         _ratio("AR_DAYS_HIST", "Receivable days", L("AR") / L("REV") * 365, fmt="days"),
         _ratio("INV_DAYS_HIST", "Inventory days", L("INV") / L("OPCOST") * 365, fmt="days"),
         _ratio("AP_DAYS_HIST", "Payable days", L("AP") / L("OPCOST") * 365, fmt="days"),
         _ratio("NET_DEBT_EBITDA", "Net debt / EBITDA",
                (L("DEBT") + L("REVOLVER") - L("CASH")) / L("EBITDA"), fmt="multiple"),
-        _ratio("DIST_COVERAGE", "Distribution coverage (OCF - capex) / distributions",
+        _ratio("DIST_COVERAGE", label("dist_coverage", e),
                (L("OCF") + L("CAPEX")) / -L("DIST"), fmt="multiple"),
     ]
 
 
-def _drivers(da_basis: str) -> list[DriverDef]:
+def _drivers(da_basis: str, e: str) -> list[DriverDef]:
     return [
-        DriverDef("REV_GROWTH", "Revenue growth (placeholder asset)",
+        DriverDef("REV_GROWTH", "Revenue growth (placeholder stream)",
                   _capped(Hist("REV_GROWTH_HIST", 3)),
                   note="3-yr average growth, capped at +/- GROWTH_CAP; drives the placeholder "
-                       "asset only"),
-        DriverDef("COST_PCT", "Operating cost % revenue (placeholder asset)",
+                       "stream only"),
+        DriverDef("COST_PCT", "Operating cost % revenue (placeholder stream)",
                   L("COST_PCT_HIST"), note="last year"),
         DriverDef("DA_PCT", "D&A % opening net PP&E" if da_basis == "ppe" else "D&A % revenue",
                   Hist("DA_PCT_HIST", 3), note="3-yr average"),
@@ -348,10 +353,10 @@ def _drivers(da_basis: str) -> list[DriverDef]:
         DriverDef("TAX_RATE", "Effective tax rate", Hist("TAX_RATE_HIST", 3),
                   note="3-yr average of tax / pretax, clamped 0-35% (cash rate shown on "
                        "the Model for reference)"),
-        DriverDef("DPU_GROWTH", "Distribution per unit growth",
+        DriverDef("DPU_GROWTH", label("dpu_growth", e),
                   _capped(Hist("DPU_GROWTH_HIST", 3)),
                   note="3-yr average growth, capped at +/- GROWTH_CAP"),
-        DriverDef("UNITS", "Diluted units", L("UNITS"), fmt="units", note="last year, flat"),
+        DriverDef("UNITS", label("units", e), L("UNITS"), fmt="units", note="last year, flat"),
         DriverDef("AR_DAYS", "Receivable days (of revenue)", L("AR_DAYS_HIST"), fmt="days",
                   note="last year"),
         DriverDef("INV_DAYS", "Inventory days (of operating cost)", L("INV_DAYS_HIST"),
@@ -371,8 +376,9 @@ def _drivers(da_basis: str) -> list[DriverDef]:
 
 def _scalars() -> list[ScalarDef]:
     return [
-        ScalarDef("JV_TOGGLE", "Include JV equity earnings in EBITDA", 1.0,
-                  note="1 = include JV equity earnings in EBITDA, 0 = exclude"),
+        ScalarDef("JV_TOGGLE", "Include JV equity earnings in EBITDA", 0.0,
+                  note="1 = include equity-method earnings in EBITDA (common for "
+                       "partnerships and JV-heavy companies)"),
         ScalarDef("WC_HOLD", "Hold working capital flat", 0.0,
                   note="1 = hold working capital flat (no change in forecast)"),
         ScalarDef("REV_CAP", "Revolver commitment", 0.0, fmt="money",
@@ -383,13 +389,17 @@ def _scalars() -> list[ScalarDef]:
     ]
 
 
-def build_spec(da_basis: str) -> ModelSpec:
-    """The full model for one D&A basis: "ppe" (% of opening net PP&E) or "revenue"."""
+def build_spec(da_basis: str, entity_type: str = "corporation") -> ModelSpec:
+    """The full model for one D&A basis ("ppe": % of opening net PP&E, or "revenue") and
+    entity type ("corporation" | "partnership", which only changes labels)."""
     if da_basis not in DA_BASES:
         raise ValueError(f"da_basis must be one of {DA_BASES}, got {da_basis!r}")
-    lines = _is_lines(da_basis) + _cf_lines() + _bs_lines() + _ratio_lines(da_basis)
-    return ModelSpec(lines=lines, drivers=_drivers(da_basis), scalars=_scalars(),
-                     da_basis=da_basis)
+    if entity_type not in ENTITY_TYPES:
+        raise ValueError(f"entity_type must be one of {ENTITY_TYPES}, got {entity_type!r}")
+    e = entity_type
+    lines = _is_lines(da_basis, e) + _cf_lines(e) + _bs_lines(e) + _ratio_lines(da_basis, e)
+    return ModelSpec(lines=lines, drivers=_drivers(da_basis, e), scalars=_scalars(),
+                     da_basis=da_basis, entity_type=entity_type)
 
 
 _DEFAULT = build_spec("ppe")

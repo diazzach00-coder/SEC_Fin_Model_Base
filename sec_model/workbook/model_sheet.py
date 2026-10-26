@@ -2,8 +2,8 @@
 
 History columns pull concept lines from the Mapping sheet (``=Mapping!<cell>``) and
 render derived lines with `formula.to_excel`; forecast columns render each line's
-``fcst`` off the Drivers and Asset Inputs sheets (written by `inputs_sheets`). The
-Model, Drivers and Asset Inputs sheets share column letters per year.
+``fcst`` off the Drivers and Revenue Streams sheets (written by `inputs_sheets`). The
+Model, Drivers and Revenue Streams sheets share column letters per year.
 
 Blank-safety: a Mapping cell for an unreported year holds ``""`` (text), and a Model
 history cell linking to it shows blank. Excel arithmetic on ``""`` is ``#VALUE!`` and
@@ -19,8 +19,8 @@ from sec_model.formula import RenderContext, to_excel
 from sec_model.model_spec import ModelSpec
 from . import styles as S
 from .inputs_sheets import (
-    ASSETS_SHEET, DRIVERS_SHEET, FONT_FORMULA_BOLD, FONT_NOTE, NUMBER_FORMATS, frame,
-    plan_drivers, section_header, unit_for, write_assets, write_drivers,
+    DRIVERS_SHEET, FONT_FORMULA_BOLD, FONT_NOTE, NUMBER_FORMATS, STREAMS_SHEET, frame,
+    plan_drivers, section_header, unit_for, write_drivers, write_streams,
 )
 
 MODEL_SHEET = "Model"
@@ -36,11 +36,13 @@ class ModelLayout:
     first_hist_col: int                         # 4 (D)
     first_fcst_col: int
     last_col: int                               # last forecast column
-    asset_total_cell: dict[tuple[str, str], str]  # ("ASSET_REV"|"ASSET_COST", fy) -> "'Asset Inputs'!G31"
+    # ("ASSET_REV"|"ASSET_COST", fy) -> "'Revenue Streams'!G31"
+    asset_total_cell: dict[tuple[str, str], str]
     asset_total_row: dict[str, int] = field(default_factory=dict)  # block -> its total row
     sheet: str = MODEL_SHEET
     drivers_sheet: str = DRIVERS_SHEET
-    assets_sheet: str = ASSETS_SHEET
+    streams_sheet: str = STREAMS_SHEET
+    entity_type: str = "corporation"        # spec.entity_type: picks the label words
 
 
 def _plan_rows(spec: ModelSpec) -> tuple[dict[str, int], list[tuple[str, int]]]:
@@ -83,7 +85,8 @@ def render_context(layout: ModelLayout, spec: ModelSpec, col: int,
         line_cell=line_cell,
         driver_cell=lambda key, c: f"{layout.drivers_sheet}!{S.col(c)}{layout.driver_row[key]}",
         scalar_cell=lambda key: layout.scalar_cell[key],
-        block_range=lambda key, c: f"'{layout.assets_sheet}'!{S.col(c)}{layout.asset_total_row[key]}",
+        block_range=lambda key, c:
+            f"'{layout.streams_sheet}'!{S.col(c)}{layout.asset_total_row[key]}",
         hist_range=hist_range,
         first_col=layout.first_hist_col,
     )
@@ -109,7 +112,7 @@ def _write_line(ws, ld, r, layout, ctxs, fy_labels, fcst_labels, mapping_rows,
         label.alignment = Alignment(indent=1)
         ws.row_dimensions[r].hidden = True
         ws.row_dimensions[r].outlineLevel = 1
-    ws.cell(r, 3, unit_for(ld.fmt, currency)).font = S.FONT_BASE
+    ws.cell(r, 3, unit_for(ld.fmt, currency, layout.entity_type)).font = S.FONT_BASE
     if ld.bold:
         label.fill = ws.cell(r, 3).fill = S.FILL_SUBTOTAL
     for i, fy in enumerate(list(fy_labels) + list(fcst_labels)):
@@ -142,7 +145,7 @@ def write_model(wb, spec: ModelSpec, mapping_rows: dict[str, int],
                 mapping_value_cols: dict[str, int], fy_labels: list[str],
                 fcst_labels: list[str], driver_defaults: dict[str, float],
                 scalar_defaults: dict[str, float], currency: str) -> ModelLayout:
-    """Write the Model, Asset Inputs and Drivers sheets; return the Model layout.
+    """Write the Model, Revenue Streams and Drivers sheets; return the Model layout.
 
     ``mapping_rows`` / ``mapping_value_cols`` are `write_mapping`'s ``rows`` (concept ->
     row) and ``value_cols`` (fy -> column). A concept or year missing from them leaves
@@ -154,20 +157,20 @@ def write_model(wb, spec: ModelSpec, mapping_rows: dict[str, int],
     if not fy_labels:
         raise ValueError("at least one history year is required")
     ws = S.get_sheet(wb, MODEL_SHEET)
-    wa = S.get_sheet(wb, ASSETS_SHEET)
+    wa = S.get_sheet(wb, STREAMS_SHEET)
     wd = S.get_sheet(wb, DRIVERS_SHEET)
     line_row, headers = _plan_rows(spec)
     driver_row, scalar_cell = plan_drivers(spec)
-    total_row = write_assets(wa, fy_labels, fcst_labels, MODEL_SHEET, line_row, driver_row)
+    total_row = write_streams(wa, fy_labels, fcst_labels, MODEL_SHEET, line_row, driver_row)
 
     first_fcst = S.DSC + len(fy_labels)
     last_col = first_fcst + len(fcst_labels) - 1
     layout = ModelLayout(
         line_row=line_row, driver_row=driver_row, scalar_cell=scalar_cell,
         first_hist_col=S.DSC, first_fcst_col=first_fcst, last_col=last_col,
-        asset_total_cell={(k, fy): f"'{ASSETS_SHEET}'!{S.col(first_fcst + i)}{row}"
+        asset_total_cell={(k, fy): f"'{STREAMS_SHEET}'!{S.col(first_fcst + i)}{row}"
                           for k, row in total_row.items() for i, fy in enumerate(fcst_labels)},
-        asset_total_row=total_row,
+        asset_total_row=total_row, entity_type=spec.entity_type,
     )
     write_drivers(wb, wd, spec, fy_labels, fcst_labels, driver_defaults, scalar_defaults,
                   currency, render_context(layout, spec, first_fcst - 1, qualified=True))

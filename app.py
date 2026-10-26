@@ -55,12 +55,13 @@ def _color_status(value) -> str:
 
 def render_result(result) -> None:
     st.header(f"{result.company} ({result.ticker})")
-    c1, c2, c3, c4 = st.columns(4)
+    c1, c2, c3, c4, c5 = st.columns(5)
     c1.metric("CIK", str(result.cik))
     c2.metric("Fiscal years", f"{result.fy_labels[0]}–{result.fy_labels[-1]}")
     c3.metric("Forecast", f"{result.fcst_labels[0]}–{result.fcst_labels[-1]}"
               if result.fcst_labels else "none")
     c4.metric("Currency", result.currency)
+    c5.metric("Entity", result.entity_type.capitalize())
 
     st.subheader("Data checks")
     n = summarize(result.checks)
@@ -111,7 +112,7 @@ def main() -> None:
     st.set_page_config(page_title="SEC 3-Statement Model Builder", page_icon="📊", layout="wide")
     st.title("SEC 3-Statement Model Builder")
     st.caption("Pulls as-reported 10-K financials from SEC EDGAR, ties them out, and exports "
-               "a linked 3-statement model with WACC and DCF.")
+               "a linked 3-statement model with WACC and DCF — for any US filer.")
 
     with st.sidebar:
         st.header("Settings")

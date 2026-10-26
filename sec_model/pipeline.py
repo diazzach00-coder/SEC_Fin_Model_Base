@@ -15,6 +15,7 @@ from .edgar import (choose_source_filing, company_for_cik, list_annual_filings,
                     resolve_ticker, select_filings_by_fy)
 from .forecast import compute, driver_defaults, scalar_defaults
 from .http import SecClient
+from .labels import detect_entity_type
 from .mapping import coverage_warnings, normalize_expense_signs, resolve
 from .merge import designated_suppliers, merge_statements
 from .model_spec import build_spec
@@ -57,6 +58,7 @@ class BuildResult:
     da_basis: str = ""
     dropped_years: list[str] = field(default_factory=list)
     company_fye: str = ""
+    entity_type: str = "corporation"    # "corporation" | "partnership" (labels.detect_entity_type)
 
 
 def build(ticker: str, user_agent: str, n_years: int = 10, n_fcst: int = 5,
@@ -143,7 +145,9 @@ class _Run:
         latest_ppe = mapping.get("NetPPE", {}).get(fy_labels[-1])
         da_basis = ("ppe" if latest_ppe is not None and latest_ppe.status != "UNMAPPED"
                     and latest_ppe.value is not None else "revenue")
-        spec = build_spec(da_basis)
+        entity_type = detect_entity_type(mapping, fy_labels[-1])
+        self.say(f"Entity type: {entity_type}")
+        spec = build_spec(da_basis, entity_type)
         drivers = driver_defaults(spec, history, fy_labels)
         scalars = scalar_defaults(spec, history, fy_labels)
         last_year = fy_ends[fy_labels[-1]].year
@@ -166,7 +170,8 @@ class _Run:
             fcst_labels=fcst_labels, statements=statements, mapping=mapping, checks=checks,
             coverage=coverage, forecast=forecast, xlsx=xlsx, log=self.log,
             bal_check_max=bal, driver_defaults=drivers, scalar_defaults=scalars,
-            da_basis=da_basis, dropped_years=dropped, company_fye=fye_text(fy_ends[fy_labels[-1]]))
+            da_basis=da_basis, dropped_years=dropped, company_fye=fye_text(fy_ends[fy_labels[-1]]),
+            entity_type=entity_type)
 
     # -- steps ----------------------------------------------------------------
     def _companyfacts(self, cik: int) -> dict:

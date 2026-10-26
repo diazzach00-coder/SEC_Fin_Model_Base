@@ -23,7 +23,7 @@ row (banks: NOTE). NOTE lines (not asserted): interest expense / pretax income u
 the latest year.
 
 ``--excel`` recalculates each workbook in Excel (COM), asserts no error cells and prints
-the DCF value per unit (perpetuity / exit) for eyeballing. ``--cik TICKER=CIK`` builds a
+the DCF value per share / unit (perpetuity / exit) for eyeballing. ``--cik TICKER=CIK`` builds a
 ticker with a CIK override. ``KNOWN_FAILURES`` lists documented failures: reported as
 KNOWN and not counted in the exit code while the failure text still matches.
 """
@@ -209,7 +209,8 @@ def excel_check(path: Path) -> tuple[str, list[str]]:
                             errors.append(f"{ws.Name}!R{used.Row + i}C{used.Column + j}="
                                           f"{XL_ERRORS[v]}")
             dcf = wb.Worksheets("DCF")
-            r = next(r for r in range(1, 200) if dcf.Cells(r, 2).Value == "Value per unit")
+            r = next(r for r in range(1, 200)
+                     if dcf.Cells(r, 2).Value in ("Value per share", "Value per unit"))
 
             def fmt(v):
                 return f"{v:,.2f}" if isinstance(v, float) else str(v)
@@ -309,7 +310,7 @@ def main(argv=None) -> int:
     ap.add_argument("--years", type=int, default=10, help="fiscal years to request")
     ap.add_argument("--min-years", type=int, default=5, help="fewest years that pass")
     ap.add_argument("--out", type=Path, default=ROOT / "out")
-    ap.add_argument("-v", "--verbose", action="store_true", help="echo pipeline progress")
+    ap.add_argument("-v", "--verbose", action="store_true", help="echo build progress")
     ap.add_argument("--cik", action="append", default=[], metavar="TICKER=CIK",
                     help="build TICKER with a CIK override (repeatable)")
     ap.add_argument("--excel", action="store_true",

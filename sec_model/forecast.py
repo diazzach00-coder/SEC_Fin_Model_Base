@@ -12,7 +12,7 @@ Order of work:
 2. Driver and scalar defaults, evaluated in the last history column.
 3. Driver values per forecast year: the default (or an override) in the first
    year, later years chain the previous year's value, as Excel's ``=prev`` does.
-4. Placeholder asset block, unless one is given.
+4. Placeholder revenue-stream block, unless one is given.
 5. Forecast columns, each in topological order (`eval_order(spec, "fcst")`).
 
 A line with no formula for a column range is None there (blank in Excel).
@@ -227,7 +227,7 @@ def compute(spec: ModelSpec, history: History, fy_labels: list[str], fcst_labels
 
     driver_overrides: {driver: float | {fcst_year: float}}; scalar_overrides:
     {scalar: float}; asset_block: {"ASSET_REV"|"ASSET_COST": {fcst_year: float}},
-    default one asset growing last revenue at REV_GROWTH with cost at COST_PCT.
+    default one placeholder stream growing last revenue at REV_GROWTH with cost at COST_PCT.
     """
     driver_overrides = dict(driver_overrides or {})
     _check_keys(driver_overrides, [d.key for d in spec.drivers], "driver")

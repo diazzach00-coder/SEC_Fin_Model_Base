@@ -1,11 +1,12 @@
 """DCF sheet: UFCF build from the Model, discounting, terminal value both ways,
-equity bridge, multiples, value-per-unit sensitivity grids and a football field.
+equity bridge, multiples, value-per-share (per-unit) sensitivity grids and a football field.
 
 Mirrors the DCF tab of ``DCFWacc Templates.xlsx``. Sensitivities are ordinary formulas
-(no Excel Data Tables): each grid cell recomputes value per unit in closed form from the
-helper rows ``t`` (years from the valuation date) and stub-adjusted UFCF:
+(no Excel Data Tables): each grid cell recomputes value per share / unit in closed form
+from the helper rows ``t`` (years from the valuation date) and stub-adjusted UFCF:
 ``(SUMPRODUCT(UFCF, 1/(1+w)^t) + TV(w, g|m)/(1+w)^t_N - net debt) / units``.
-Price, units and net debt come from the WACC sheet (one source for both sheets).
+Price, share / unit count and net debt come from the WACC sheet (one source for both
+sheets). Shares vs units follows ``ModelLayout.entity_type`` (`labels`).
 
 JV value is counted once, following ``JV_TOGGLE``: equity earnings are always reversed
 out of the EBIT that is taxed and capitalised; with the toggle on, cash distributions
@@ -16,6 +17,7 @@ from datetime import date
 
 from openpyxl.chart import BarChart, Reference
 
+from sec_model.labels import label as entity_label, unit_noun
 from sec_model.types import MarketInputs
 from . import styles as S
 from .inputs_sheets import FONT_NOTE, _input, add_toggle_validation, section_header
@@ -101,7 +103,7 @@ def _ufcf_cell(key: str, c: int, row: dict, model_col: str, layout: ModelLayout)
 
 
 def _header(ws, wacc: WaccLayout, market: MarketInputs, last_fye: date, company: str,
-            ticker: str) -> None:
+            ticker: str, entity_type: str) -> None:
     for r, text, value in ((6, "Company name", company), (7, "Ticker", ticker)):
         label(ws, r, 2, text)
         label(ws, r, 4, value)
@@ -115,7 +117,7 @@ def _header(ws, wacc: WaccLayout, market: MarketInputs, last_fye: date, company:
     formula(ws, 11, 4, "=IF(D10>=D9,0,MIN(1,YEARFRAC(D10,D9)))", "0.000")
     label(ws, 6, 6, "Discount rate (WACC)")
     formula(ws, 6, 8, f"={wacc.wacc_cell}", S.FMT_PCT, bold=True)
-    label(ws, 7, 6, "Share price")
+    label(ws, 7, 6, f"{unit_noun(entity_type).capitalize()} price")
     p = wacc.price_cell
     formula(ws, 7, 8, f'=IF(ISNUMBER({p}),{p},"")', S.FMT_PERUNIT)
     if market.price is None:
@@ -174,7 +176,7 @@ def _terminal_value(ws, row: dict, last: str, wacc: WaccLayout, top: int) -> Non
 
 def _grid(ws, top: int, title: str, corner_text: str, col_base: str, col_step: float,
           col_fmt: str, tv: str, row: dict, last: str, wacc: WaccLayout) -> dict:
-    """5x5 value-per-unit grid; WACC down column C, ``col_base`` offsets across D:H.
+    """5x5 value-per-share (per-unit) grid; WACC down column C, ``col_base`` offsets across D:H.
     ``tv`` is the terminal-value expression with ``{w}`` and ``{x}`` placeholders."""
     label(ws, top - 1, 2, title, bold=True)
     headers(ws, top, {3: corner_text})
@@ -194,11 +196,16 @@ def _grid(ws, top: int, title: str, corner_text: str, col_base: str, col_step: f
     return {"corner": (top, 3), "range": f"D{top + 1}:H{top + 5}"}
 
 
-def football_chart(ws, rows: list[int], anchor: str) -> None:
+def _value_per(entity_type: str) -> str:
+    """"Value per share" / "Value per unit"."""
+    return f"Value {entity_label('per_unit', entity_type)}"
+
+
+def football_chart(ws, rows: list[int], anchor: str, title: str) -> None:
     """Stacked horizontal bar: invisible 'Low' series + visible 'Spread' series."""
     chart = BarChart()
     chart.type, chart.grouping, chart.overlap = "bar", "stacked", 100
-    chart.title = "Value per unit"
+    chart.title = title
     chart.add_data(Reference(ws, min_col=3, max_col=4, min_row=rows[0] - 1, max_row=rows[-1]),
                    titles_from_data=True)
     chart.set_categories(Reference(ws, min_col=2, min_row=rows[0], max_row=rows[-1]))
@@ -259,10 +266,12 @@ def _discounting(ws, row: dict, n: int, lastc: int) -> None:
         formula(ws, pv, c, f"={L}{adj}*{L}{df}", S.FMT_MONEY, bold=True)
 
 
-def _equity_and_multiples(ws, row: dict, wacc: WaccLayout, last: str, lastc: int) -> int:
+def _equity_and_multiples(ws, row: dict, wacc: WaccLayout, last: str, lastc: int,
+                          entity_type: str) -> int:
     """Equity bridge per method, then implied multiples. Returns the last row written."""
     top = row["IMPLIED"] + 2
-    section_header(ws, top, "EQUITY VALUE & VALUE PER UNIT", lastc)
+    vpu_label = _value_per(entity_type)
+    section_header(ws, top, f"EQUITY VALUE & {vpu_label.upper()}", lastc)
     headers(ws, top + 1, {3: "Perpetuity", 4: "Exit multiple"})
     ev, nd, eq, un, vpu, pr, ou = range(top + 2, top + 9)
     row.update(EV=ev, NET_DEBT=nd, EQUITY=eq, UNITS=un, VPU=vpu, PRICE=pr, OVER_UNDER=ou)
@@ -272,9 +281,9 @@ def _equity_and_multiples(ws, row: dict, wacc: WaccLayout, last: str, lastc: int
             (nd, "Less: net debt", f"={wacc.net_debt_cell}", f"={wacc.net_debt_cell}",
              S.FMT_MONEY, False),
             (eq, "Equity value", f"=C{ev}-C{nd}", f"=D{ev}-D{nd}", S.FMT_MONEY, False),
-            (un, "Diluted units (MM)", f"={wacc.diluted_units_cell}",
+            (un, f"{entity_label('units', entity_type)} (MM)", f"={wacc.diluted_units_cell}",
              f"={wacc.diluted_units_cell}", S.FMT_UNITS, False),
-            (vpu, "Value per unit", f'=IFERROR(C{eq}/C{un},"n/a")',
+            (vpu, vpu_label, f'=IFERROR(C{eq}/C{un},"n/a")',
              f'=IFERROR(D{eq}/D{un},"n/a")', S.FMT_PERUNIT, True),
             (pr, "Current price", f"={PRICE_C}", f"={PRICE_C}", S.FMT_PERUNIT, False),
             (ou, "% over / (under) valued",
@@ -301,8 +310,8 @@ def _equity_and_multiples(ws, row: dict, wacc: WaccLayout, last: str, lastc: int
     return top + 5
 
 
-def _football_field(ws, top: int, grids: dict, lastc: int) -> list[int]:
-    section_header(ws, top, "FOOTBALL FIELD: VALUE PER UNIT", lastc)
+def _football_field(ws, top: int, grids: dict, lastc: int, entity_type: str) -> list[int]:
+    section_header(ws, top, f"FOOTBALL FIELD: {_value_per(entity_type).upper()}", lastc)
     headers(ws, top + 1, {3: "Low", 4: "Spread", 5: "High"})
     ff = [top + 2, top + 3, top + 4]
     for r, name, title, fmt in ((ff[0], "perpetuity", "DCF perpetuity: g ", "0.0%"),
@@ -333,26 +342,27 @@ def write_dcf(wb, layout: ModelLayout, wacc: WaccLayout, market: MarketInputs,
     if n < 1 or n != len(fcst_labels):
         raise ValueError(f"{len(fcst_labels)} forecast labels for {n} Model forecast columns")
     ws = S.get_sheet(wb, DCF_SHEET)
+    e = layout.entity_type
     lastc = FC + n - 1
     last = S.col(lastc)
     bar_end = max(lastc, 9)
     S.title_bar(ws, 2, "Discounted Cash Flow Valuation", bar_end,
-                subtitle=f"All figures in {currency} MM except per-unit data; "
+                subtitle=f"All figures in {currency} MM except per-{unit_noun(e)} data; "
                          "yellow = input, green = result")
-    currency_note(ws, currency)
+    currency_note(ws, currency, e)
     S.set_widths(ws, {"A": 2, "B": 40, "C": 13})
     for c in range(4, bar_end + 1):
         S.set_widths(ws, {c: 13})
-    _header(ws, wacc, market, last_fye, company, ticker)
+    _header(ws, wacc, market, last_fye, company, ticker, e)
     row = _ufcf_block(ws, layout, fcst_labels, lastc)
     _discounting(ws, row, n, lastc)
 
     top = row["PV"] + 2
     section_header(ws, top, "TERMINAL VALUE", lastc)
     _terminal_value(ws, row, last, wacc, top + 1)
-    top = _equity_and_multiples(ws, row, wacc, last, lastc) + 2
+    top = _equity_and_multiples(ws, row, wacc, last, lastc, e) + 2
 
-    section_header(ws, top, "SENSITIVITY: VALUE PER UNIT", lastc)
+    section_header(ws, top, f"SENSITIVITY: {_value_per(e).upper()}", lastc)
     last_ufcf, last_ebitda = f"${last}${row['UFCF']}", f"${last}${row['EBITDA']}"
     grids = {
         "perpetuity": _grid(ws, top + 2, "WACC (rows) x long-term growth g (columns)",
@@ -362,8 +372,8 @@ def write_dcf(wb, layout: ModelLayout, wacc: WaccLayout, market: MarketInputs,
                       "WACC \\ multiple", f"$H${row['G'] + 1}", 0.5, S.FMT_X,
                       last_ebitda + "*{x}", row, last, wacc),
     }
-    ff = _football_field(ws, top + 17, grids, lastc)
-    football_chart(ws, ff, f"B{ff[-1] + 2}")
+    ff = _football_field(ws, top + 17, grids, lastc, e)
+    football_chart(ws, ff, f"B{ff[-1] + 2}", _value_per(e))
 
     ws.freeze_panes = "C5"
     a = lambda c, r: absref(DCF_SHEET, c, r)  # noqa: E731

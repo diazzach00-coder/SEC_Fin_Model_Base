@@ -19,8 +19,8 @@ from test_workbook_model import _mapping_stub
 LAST_FYE = date(2025, 12, 31)
 
 
-def _build(price=30.0, currency="USD", basic_units=98.5):
-    spec = build_spec("ppe")
+def _build(price=30.0, currency="USD", basic_units=98.5, entity_type="partnership"):
+    spec = build_spec("ppe", entity_type)
     wb = Workbook()
     rows, value_cols = _mapping_stub(wb, TOY)
     layout = write_model(wb, spec, rows, value_cols, FY, FCST, driver_defaults(spec, TOY, FY),
@@ -28,7 +28,7 @@ def _build(price=30.0, currency="USD", basic_units=98.5):
     market = MarketInputs(price=price, beta=1.1, risk_free=0.04, mrp=0.055)
     wl = write_wacc(wb, layout, market, currency, basic_units)
     dl = write_dcf(wb, layout, wl, market, FCST, currency, LAST_FYE,
-                   company="Toy Midstream LP", ticker="TOY")
+                   company="Toy Partners LP", ticker="TOY")
     buf = BytesIO()
     wb.save(buf)
     buf.seek(0)
@@ -165,7 +165,7 @@ def test_basic_units_fall_back_to_model_and_currency_note():
         _row_of(ws, "Basic units (MM)", 7)
     for name in ("WACC", "DCF"):
         note = wb[name]["B4"]
-        assert note.value == "All figures in CAD MM. Enter share price in CAD."
+        assert note.value == "All figures in CAD MM. Enter unit price in CAD."
         assert note.font.italic and note.font.color.rgb.endswith("C00000")
     usd, *_ = _build()
     assert usd["WACC"]["B4"].value is None and usd["DCF"]["B4"].value is None
@@ -177,7 +177,7 @@ def test_dcf_ufcf_rows_link_to_model():
     ws = wb["DCF"]
     lr, dr = layout.line_row, layout.driver_row
     assert ws["B2"].value == "Discounted Cash Flow Valuation"
-    assert ws["D6"].value == "Toy Midstream LP" and ws["D7"].value == "TOY"
+    assert ws["D6"].value == "Toy Partners LP" and ws["D7"].value == "TOY"
     assert ws.cell(dl.header_row, 4).value == FY[-1]
     assert [ws.cell(dl.header_row, c).value for c in range(5, 10)] == FCST
     rows = dl.row

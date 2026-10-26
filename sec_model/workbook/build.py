@@ -1,4 +1,4 @@
-"""Assemble the finished workbook from the pipeline's outputs."""
+"""Assemble the finished workbook from the build's outputs (`sec_model.pipeline.build`)."""
 from datetime import date
 from io import BytesIO
 
@@ -13,8 +13,8 @@ from .meta import CoverInfo, write_checks, write_cover, write_sources
 from .model_sheet import write_model
 from .valuation import write_dcf, write_wacc
 
-SHEET_ORDER = ["Cover", "Checks", "Model", "Asset Inputs", "Drivers", "WACC", "DCF", "Mapping",
-               SHEET_NAMES["IS"], SHEET_NAMES["BS"], SHEET_NAMES["CF"], "Sources"]
+SHEET_ORDER = ["Cover", "Checks", "Model", "Revenue Streams", "Drivers", "WACC", "DCF",
+               "Mapping", SHEET_NAMES["IS"], SHEET_NAMES["BS"], SHEET_NAMES["CF"], "Sources"]
 
 
 def fye_text(d: date) -> str:
@@ -31,7 +31,7 @@ def build_workbook(*, company: str, ticker: str, cik: int, currency: str,
     """Write every sheet and return the .xlsx bytes (sheets in ``SHEET_ORDER``).
 
     Write order follows the dependencies: As-Reported and Mapping first (the Model links
-    to Mapping rows), then Model / Asset Inputs / Drivers, WACC, DCF, Checks, Sources,
+    to Mapping rows), then Model / Revenue Streams / Drivers, WACC, DCF, Checks, Sources,
     and Cover last (it lists check counts and the sheet index).
     """
     wb = Workbook()

@@ -2,8 +2,9 @@
 
 Mirrors the WACC tab of the analyst's ``DCFWacc Templates.xlsx`` (cost of debt, cost of
 equity, capital weights with a target override, WACC; observed-or-industry beta with a
-6-row peer table) with every formula live. The share price, unit count and net-debt
-bridge also live here (right-hand block) so the DCF sheet links to one source.
+6-row peer table) with every formula live. The share / unit price, share / unit count and
+net-debt bridge also live here (right-hand block) so the DCF sheet links to one source.
+Shares vs units follows ``ModelLayout.entity_type`` (`labels`).
 
 Blank-safety: the Model's last history column can hold ``""`` for an unreported concept,
 so those links are wrapped in ``N()``; the price input may be blank, so market cap is
@@ -14,6 +15,7 @@ from dataclasses import dataclass
 from openpyxl.styles import Alignment, Font
 from openpyxl.worksheet.datavalidation import DataValidation
 
+from sec_model.labels import label as entity_label, unit_noun
 from sec_model.types import MarketInputs
 from . import styles as S
 from .inputs_sheets import FONT_FORMULA_BOLD, FONT_NOTE, _input, section_header
@@ -22,7 +24,7 @@ from .model_sheet import ModelLayout
 WACC_SHEET = "WACC"
 FONT_CCY_NOTE = Font(name=S.FONT_NAME, size=10, italic=True, color="C00000")
 N_PEERS = 6
-BASIC_UNAVAILABLE = "Diluted units (Model) — basic unavailable"
+BASIC_UNAVAILABLE = "{units} (Model) — basic unavailable"   # units = label("units")
 STEPS = (-2, -1, 0, 1, 2)          # sensitivity offsets, in units of the grid's step
 
 
@@ -56,10 +58,10 @@ def offset(base: str, k: int, step: float) -> str:
     return f"={base}{'+' if k > 0 else '-'}{abs(k) * step:g}"
 
 
-def currency_note(ws, currency: str) -> None:
+def currency_note(ws, currency: str, entity_type: str = "corporation") -> None:
     if currency != "USD":
-        ws.cell(4, 2, f"All figures in {currency} MM. Enter share price in {currency}.").font = \
-            FONT_CCY_NOTE
+        ws.cell(4, 2, f"All figures in {currency} MM. Enter {unit_noun(entity_type)} price "
+                      f"in {currency}.").font = FONT_CCY_NOTE
 
 
 def label(ws, r: int, c: int, text, bold: bool = False):
@@ -96,29 +98,31 @@ def _units_and_net_debt(ws, layout: ModelLayout, market: MarketInputs, currency:
     """Right-hand block G:K. Returns rows of price, basic, diluted, market cap, net debt."""
     m, last = layout.sheet, S.col(layout.first_fcst_col - 1)
     lr = layout.line_row
+    e = layout.entity_type
+    noun = unit_noun(e)                       # "share" | "unit"
 
     def model(key):
         return f"N({m}!{last}{lr[key]})"
 
-    _right_section(ws, 5, "SHARE PRICE & UNITS")
-    label(ws, 6, 7, f"Share price ({currency} per unit)")
+    _right_section(ws, 5, f"{noun.upper()} PRICE & {noun.upper()}S")
+    label(ws, 6, 7, f"{noun.capitalize()} price ({currency} {entity_label('per_unit', e)})")
     _input(ws.cell(6, 10), market.price, "perunit")
     if market.price is None:
         ws.cell(6, 11, "enter price").font = FONT_CCY_NOTE
     if basic_units is None:
-        label(ws, 7, 7, BASIC_UNAVAILABLE)
+        label(ws, 7, 7, BASIC_UNAVAILABLE.format(units=entity_label("units", e)))
         formula(ws, 7, 10, f"={model('UNITS')}", S.FMT_UNITS)
         ws.cell(7, 11, "Already diluted: keep the dilution inputs below at 0").font = FONT_NOTE
     else:
-        label(ws, 7, 7, "Basic units (MM)")
+        label(ws, 7, 7, f"Basic {noun}s (MM)")
         cell = ws.cell(7, 10, basic_units)
         cell.font, cell.number_format = S.FONT_INPUT, S.FMT_UNITS
-        ws.cell(7, 11, "dei cover-page units outstanding").font = FONT_NOTE
-    for r, text in enumerate(("Restricted units / RSUs", "Options / warrants", "Convertible debt",
-                              "Convertible preferred"), start=8):
+        ws.cell(7, 11, f"dei cover-page {entity_label('units_out', e).lower()}").font = FONT_NOTE
+    for r, text in enumerate((f"Restricted {noun}s / RSUs", "Options / warrants",
+                              "Convertible debt", "Convertible preferred"), start=8):
         label(ws, r, 7, text)
         _input(ws.cell(r, 10), 0, "units")
-    label(ws, 12, 7, "Diluted units (MM)", bold=True)
+    label(ws, 12, 7, f"{entity_label('units', e)} (MM)", bold=True)
     formula(ws, 12, 10, "=SUM(J7:J11)", S.FMT_UNITS, bold=True)
     label(ws, 13, 7, "Market cap")
     formula(ws, 13, 10, "=IF(ISNUMBER(J6),J6*J12,0)", S.FMT_MONEY)
@@ -148,13 +152,14 @@ def write_wacc(wb, layout: ModelLayout, market: MarketInputs, currency: str,
                basic_units: float | None = None) -> WaccLayout:
     """Write the WACC sheet; return its key cells as absolute refs.
 
-    ``basic_units``: latest dei units outstanding (MM); None links the Model's last
-    reported diluted units instead."""
+    ``basic_units``: latest dei shares / units outstanding (MM); None links the Model's
+    last reported diluted count instead."""
     ws = S.get_sheet(wb, WACC_SHEET)
+    noun = unit_noun(layout.entity_type)
     S.title_bar(ws, 2, "WACC Build-up", 11,
-                subtitle=f"All figures in {currency} MM except per-unit data; "
+                subtitle=f"All figures in {currency} MM except per-{noun} data; "
                          "yellow = input, green = result")
-    currency_note(ws, currency)
+    currency_note(ws, currency, layout.entity_type)
     S.set_widths(ws, {"A": 2, "B": 34, "C": 12, "D": 12, "E": 12, "F": 12, "G": 30,
                       "H": 12, "I": 12, "J": 12, "K": 30})
     right = _units_and_net_debt(ws, layout, market, currency, basic_units)
@@ -219,7 +224,7 @@ def write_wacc(wb, layout: ModelLayout, market: MarketInputs, currency: str,
                    "entered").font = FONT_NOTE
 
     section_header(ws, 37, "INDUSTRY BETA (PEER TABLE)", 9)
-    headers(ws, 38, {2: "Peer", 3: "Observed beta", 4: "Price", 5: "Units (MM)",
+    headers(ws, 38, {2: "Peer", 3: "Observed beta", 4: "Price", 5: f"{noun.capitalize()}s (MM)",
                      6: "Market cap", 7: "Net debt", 8: "Tax rate", 9: "Unlevered beta"})
     ws.cell(38, 2).alignment = Alignment(horizontal="left")
     for r in range(39, 39 + N_PEERS):

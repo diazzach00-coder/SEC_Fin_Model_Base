@@ -128,7 +128,7 @@ def test_forecast_balances_every_year():
 
 @pytest.mark.parametrize("kw", [
     {"scalar_overrides": {"WC_HOLD": 1}},
-    {"scalar_overrides": {"JV_TOGGLE": 0}},
+    {"scalar_overrides": {"JV_TOGGLE": 1}},
     {"driver_overrides": {"OTHER_OP": 25.0, "DEBT_ISSUE": -40.0}},
     {"driver_overrides": {"REV_GROWTH": {"FY2027E": -0.3}}},
 ])
@@ -294,8 +294,8 @@ def test_growth_cap_scalar():
 # --- Toggles and drivers ---------------------------------------------------------------------
 
 def test_jv_toggle_moves_ebitda_not_net_income():
-    _, on = _run()
-    _, off = _run(scalar_overrides={"JV_TOGGLE": 0})
+    _, on = _run(scalar_overrides={"JV_TOGGLE": 1})
+    _, off = _run()             # default 0: equity earnings excluded
     for fy in FY + FCST:
         assert _close(on["EBITDA"][fy] - off["EBITDA"][fy], on["EQ_EARN"][fy])
         assert _close(on["NI"][fy], off["NI"][fy])
@@ -397,7 +397,7 @@ def test_growth_drivers_capped_at_15_percent():
 
 def test_scalar_defaults():
     s = scalar_defaults(build_spec("ppe"), TOY, FY)
-    assert s == {"JV_TOGGLE": 1.0, "WC_HOLD": 0.0, "REV_CAP": 0.0, "GROWTH_CAP": 0.15}
+    assert s == {"JV_TOGGLE": 0.0, "WC_HOLD": 0.0, "REV_CAP": 0.0, "GROWTH_CAP": 0.15}
 
 
 def test_default_asset_block_and_distributions():

@@ -18,7 +18,7 @@ EXCHANGE_URL = "https://www.sec.gov/files/company_tickers_exchange.json"
 SUBMISSIONS_URL = f"https://data.sec.gov/submissions/CIK{CIK:010d}.json"
 FACTS_URL = f"https://data.sec.gov/api/xbrl/companyfacts/CIK{CIK:010d}.json"
 
-SHEET_ORDER = ["Cover", "Checks", "Model", "Asset Inputs", "Drivers", "WACC", "DCF", "Mapping",
+SHEET_ORDER = ["Cover", "Checks", "Model", "Revenue Streams", "Drivers", "WACC", "DCF", "Mapping",
                "IS (As Reported)", "BS (As Reported)", "CF (As Reported)", "Sources"]
 
 
@@ -88,6 +88,7 @@ def test_build_offline_fixture_ticker_produces_workbook(oke):
 
 def test_forecast_balances_in_result(oke):
     assert oke.da_basis == "ppe"
+    assert oke.entity_type == "corporation"
     assert oke.driver_defaults and oke.scalar_defaults
     assert set(oke.fcst_labels) <= set(oke.forecast["BAL_CHECK"])
     assert oke.bal_check_max < 1e-6

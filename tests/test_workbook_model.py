@@ -28,8 +28,8 @@ def _mapping_stub(wb, history):
     return rows, value_cols
 
 
-def _build(history=TOY):
-    spec = build_spec("ppe")
+def _build(history=TOY, entity_type="corporation"):
+    spec = build_spec("ppe", entity_type)
     wb = Workbook()
     rows, value_cols = _mapping_stub(wb, history)
     dd = driver_defaults(spec, history, FY)
@@ -48,9 +48,9 @@ def _cell(ws, key, c, layout):
 def test_layout_shape():
     wb, layout, spec, *_ = _build()
     assert isinstance(layout, ModelLayout)
-    assert wb.sheetnames == ["Mapping", "Model", "Asset Inputs", "Drivers"]
-    assert (layout.sheet, layout.drivers_sheet, layout.assets_sheet) == \
-        ("Model", "Drivers", "Asset Inputs")
+    assert wb.sheetnames == ["Mapping", "Model", "Revenue Streams", "Drivers"]
+    assert (layout.sheet, layout.drivers_sheet, layout.streams_sheet) == \
+        ("Model", "Drivers", "Revenue Streams")
     assert (layout.first_hist_col, layout.first_fcst_col, layout.last_col) == (4, G, 11)
     assert set(layout.line_row) == set(spec.line_keys())
     assert set(layout.driver_row) == {d.key for d in spec.drivers}
@@ -171,22 +171,29 @@ def test_driver_first_col_value_and_chain():
     assert ws.cell(layout.driver_row["REV_GROWTH"], G).value ==         f"=MAX(MIN(AVERAGE(Model!$D${layout.line_row['REV_GROWTH_HIST']}:$F$"         f"{layout.line_row['REV_GROWTH_HIST']}),{cap}),-{cap})"
 
 
-def test_asset_block_total_feeds_revenue():
+def test_stream_block_total_feeds_revenue():
     wb, layout, spec, *_ = _build()
-    ws, wa = wb["Model"], wb["Asset Inputs"]
+    ws, wa = wb["Model"], wb["Revenue Streams"]
     r, dr = layout.line_row, layout.driver_row
     rev_tot = layout.asset_total_cell[("ASSET_REV", "FY2026E")]
     cost_tot = layout.asset_total_cell[("ASSET_COST", "FY2027E")]
-    assert rev_tot.startswith("'Asset Inputs'!G")
+    assert rev_tot.startswith("'Revenue Streams'!G")
     assert ws.cell(r["REV"], G).value == "=" + rev_tot
     assert ws.cell(r["OPCOST"], H).value == "=" + cost_tot
     tot_row = int(rev_tot.rsplit("G", 1)[1])
     assert wa.cell(tot_row, 2).value == "Total revenue"
+    assert wa["B2"].value == "Revenue Streams"
+    assert wa["B3"].value == (
+        "Enter revenue and operating cost by stream (segment, product line, region, asset "
+        "…) for each forecast year. Row 1 grows the consolidated figures off the Drivers "
+        "sheet; overwrite it with real streams.")
+    assert wa.cell(tot_row - 26, 2).value == "REVENUE BY STREAM"
+    assert wa.cell(tot_row + 2, 2).value == "OPERATING COST BY STREAM"
     first = tot_row - 25
     assert wa.cell(tot_row, G).value == f"=SUM(G{first}:G{tot_row - 1})"
-    assert wa.cell(first, 2).value == "Consolidated"
+    assert wa.cell(first, 2).value == "Total company (placeholder)"
     assert wa.cell(tot_row - 1, 2).value == "Other / unallocated"
-    # placeholder asset: last reported revenue grown by the (per-year) REV_GROWTH driver
+    # placeholder stream: last reported revenue grown by the (per-year) REV_GROWTH driver
     assert wa.cell(first, G).value == \
         f"=N(Model!F{r['REV']})*(1+Drivers!G{dr['REV_GROWTH']})"
     assert wa.cell(first, H).value == f"=G{first}*(1+Drivers!H{dr['REV_GROWTH']})"
@@ -202,7 +209,7 @@ def test_asset_block_total_feeds_revenue():
     assert wa.cell(rec, F).value == f"=Model!F{r['REV']}"
     assert wa.cell(rec, G).value is None
     assert wa.cell(rec + 1, F).value == f"=Model!F{r['OPCOST']}"
-    assert wa.cell(rec + 2, 2).value == "Asset EBITDA"
+    assert wa.cell(rec + 2, 2).value == "EBITDA before equity earnings"
     assert wa.cell(rec + 2, G).value == f"=G{tot_row}-G{cfirst + 25}"
 
 
@@ -275,7 +282,8 @@ def test_sections_hidden_rows_and_styles():
     assert ebitda.border.top.style == "thin"
     assert ws.cell(r["EBITDA_MARGIN"], 5).number_format == S.FMT_PCT
     assert ws.cell(r["NET_DEBT_EBITDA"], 5).number_format == S.FMT_X
-    assert ws.cell(r["EPS"], 3).value == "per unit"
+    assert ws.cell(r["EPS"], 3).value == "per share"
+    assert ws.cell(r["UNITS"], 3).value == "MM shares"
     assert ws.cell(r["REV"], 3).value == "$MM"
     note_col = layout.last_col + 2
     assert ws.cell(r["EQ_EARN"], note_col).value == "held flat"
@@ -311,3 +319,57 @@ def test_note_starting_with_equals_is_text_not_formula():
     cell = load_workbook(buf)["Model"].cell(layout.line_row["REV"], layout.last_col + 2)
     assert cell.value == "= revenue note, not a formula"
     assert cell.data_type == "s"
+
+
+# --- Review Focus 1: entity-aware words on every model sheet -------------------------
+
+def _texts(ws) -> list[str]:
+    """Every literal text cell on ``ws`` (formulas excluded)."""
+    return [c.value for row in ws.iter_rows() for c in row
+            if isinstance(c.value, str) and not c.value.startswith("=")]
+
+
+def _four_sheets(entity_type):
+    from datetime import date
+
+    from sec_model.types import MarketInputs
+    from sec_model.workbook.valuation import write_dcf, write_wacc
+    spec = build_spec("ppe", entity_type)
+    wb = Workbook()
+    rows, value_cols = _mapping_stub(wb, TOY)
+    layout = write_model(wb, spec, rows, value_cols, FY, FCST, driver_defaults(spec, TOY, FY),
+                         scalar_defaults(spec, TOY, FY), "USD")
+    market = MarketInputs(price=30.0)
+    wl = write_wacc(wb, layout, market, "USD", 98.5)
+    write_dcf(wb, layout, wl, market, FCST, "USD", date(2025, 12, 31))
+    return {name: _texts(wb[name]) for name in ("Model", "Drivers", "WACC", "DCF")}
+
+
+@pytest.mark.parametrize("entity_type, words, foreign", [
+    ("partnership",
+     {"Model": ["Distribution per unit", "Diluted units", "Distributions paid",
+                "Partners' capital", "Earnings per unit (diluted)", "MM units"],
+      "Drivers": ["Distribution per unit growth", "Diluted units"],
+      "WACC": ["Unit price (USD per unit)", "Basic units (MM)", "Diluted units (MM)"],
+      "DCF": ["Unit price", "Diluted units (MM)", "Value per unit"]},
+     r"\bshares?\b|dividend|shareholder"),
+    ("corporation",
+     {"Model": ["Dividend per share", "Diluted shares", "Dividends paid",
+                "Shareholders' equity", "EPS (diluted)", "MM shares"],
+      "Drivers": ["Dividend per share growth", "Diluted shares"],
+      "WACC": ["Share price (USD per share)", "Basic shares (MM)", "Diluted shares (MM)"],
+      "DCF": ["Share price", "Diluted shares (MM)", "Value per share"]},
+     r"\bunits?\b|distribution per|partners'|unitholder"),
+])
+def test_entity_labels_on_model_drivers_wacc_dcf(entity_type, words, foreign):
+    import re
+    texts = _four_sheets(entity_type)
+    for sheet, expected in words.items():
+        for w in expected:
+            assert w in texts[sheet], (entity_type, sheet, w)
+    dpu = "Distribution per unit" if entity_type == "partnership" else "Dividend per share"
+    for sheet in ("Model", "Drivers"):
+        assert any(dpu in t for t in texts[sheet]), (sheet, dpu)
+    bad = [(sheet, t) for sheet, ts in texts.items() for t in ts
+           if t != "Unit" and re.search(foreign, t, re.I)]   # "Unit" = column header
+    assert not bad, bad

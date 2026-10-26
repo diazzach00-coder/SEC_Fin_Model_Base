@@ -1,8 +1,8 @@
-"""Drivers and Asset Inputs sheets: the analyst's input surfaces behind the Model sheet.
+"""Drivers and Revenue Streams sheets: the analyst's input surfaces behind the Model sheet.
 
 Both sheets use the Model's column letters for the same fiscal year (history from D,
 forecast right after), so `Driver(key)` renders as ``Drivers!<same column><row>`` and
-`Block(key)` as the Asset Inputs total cell in the same column. History columns are
+`Block(key)` as the Revenue Streams total cell in the same column. History columns are
 left empty here.
 
 Year-1 driver cells and Expr scalar defaults are formulas, not pasted numbers (spec 7.2:
@@ -17,26 +17,33 @@ from openpyxl.worksheet.datavalidation import DataValidation
 from openpyxl.workbook.defined_name import DefinedName
 
 from sec_model.formula import Const, Expr, RenderContext, to_excel
+from sec_model.labels import label, unit_noun
 
 from .asreported import unit_note
 from . import styles as S
 
 DRIVERS_SHEET = "Drivers"
-ASSETS_SHEET = "Asset Inputs"
-N_ASSETS = 25
+STREAMS_SHEET = "Revenue Streams"
+N_STREAMS = 25
 
 NUMBER_FORMATS = {"money": S.FMT_MONEY, "pct": S.FMT_PCT, "units": S.FMT_UNITS,
                   "perunit": S.FMT_PERUNIT, "days": S.FMT_DAYS, "multiple": S.FMT_X}
-_UNITS = {"pct": "%", "units": "MM units", "perunit": "per unit", "days": "days",
-          "multiple": "x"}
+_UNITS = {"pct": "%", "days": "days", "multiple": "x"}
 # 0/1 switches: the cell gets a 1/0 dropdown so a typo cannot silently change the model.
 TOGGLE_SCALARS = ("JV_TOGGLE", "WC_HOLD")
 FONT_NOTE = Font(name=S.FONT_NAME, size=9, italic=True, color="808080")
 FONT_FORMULA_BOLD = Font(name=S.FONT_NAME, size=10, bold=True, color="000000")
 
 
-def unit_for(fmt: str, currency: str) -> str:
-    return unit_note("money", currency) if fmt == "money" else _UNITS.get(fmt, "")
+def unit_for(fmt: str, currency: str, entity_type: str = "corporation") -> str:
+    """Unit-column text: "$MM", "%", "MM shares" / "MM units", "per share" / "per unit" ..."""
+    if fmt == "money":
+        return unit_note("money", currency)
+    if fmt == "units":
+        return f"MM {unit_noun(entity_type)}s"
+    if fmt == "perunit":
+        return label("per_unit", entity_type)
+    return _UNITS.get(fmt, "")
 
 
 def frame(ws, title: str, subtitle: str, first_labels: list[str], fy_labels, fcst_labels,
@@ -120,7 +127,7 @@ def write_drivers(wb, ws, spec, fy_labels, fcst_labels, driver_defaults: dict,
     for d in spec.drivers:
         driver_row[d.key] = r
         ws.cell(r, 2, d.label).font = S.FONT_BASE
-        ws.cell(r, 3, unit_for(d.fmt, currency)).font = S.FONT_BASE
+        ws.cell(r, 3, unit_for(d.fmt, currency, spec.entity_type)).font = S.FONT_BASE
         for c in range(first_fcst, last_col + 1):
             if c == first_fcst:
                 _input(ws.cell(r, c), _default_cell(d.default, ctx, driver_defaults.get(d.key)),
@@ -148,21 +155,22 @@ def write_drivers(wb, ws, spec, fy_labels, fcst_labels, driver_defaults: dict,
     return driver_row, scalar_cell
 
 
-def _asset_block(ws, top: int, title: str, total_label: str, first_fcst: int, last_col: int,
-                 consolidated) -> int:
-    """Section header at ``top``, 25 asset rows, totals row. ``consolidated(c)`` is the
+def _stream_block(ws, top: int, title: str, total_label: str, first_fcst: int, last_col: int,
+                  consolidated) -> int:
+    """Section header at ``top``, 25 stream rows, totals row. ``consolidated(c)`` is the
     row-1 formula for column c. Returns the totals row."""
     section_header(ws, top, title, last_col)
     first = top + 1
-    for i in range(N_ASSETS):
+    for i in range(N_STREAMS):
         r = first + i
-        name = "Consolidated" if i == 0 else ("Other / unallocated" if i == N_ASSETS - 1 else None)
+        name = ("Total company (placeholder)" if i == 0
+                else "Other / unallocated" if i == N_STREAMS - 1 else None)
         _input(ws.cell(r, 2), name, None)
         _input(ws.cell(r, 3), "All segments" if i == 0 else None, None)
         for c in range(first_fcst, last_col + 1):
             _input(ws.cell(r, c), consolidated(c, r) if i == 0 else None, "money",
                    formula=i == 0)
-    total = first + N_ASSETS
+    total = first + N_STREAMS
     ws.cell(total, 2, total_label).font = S.FONT_BOLD
     for c in range(2, last_col + 1):
         cell = ws.cell(total, c)
@@ -176,18 +184,19 @@ def _asset_block(ws, top: int, title: str, total_label: str, first_fcst: int, la
     return total
 
 
-def write_assets(ws, fy_labels, fcst_labels, model_sheet: str, model_row: dict,
-                 driver_row: dict) -> dict[str, int]:
-    """Revenue and operating-cost blocks of 25 assets, totals and reconciliation.
+def write_streams(ws, fy_labels, fcst_labels, model_sheet: str, model_row: dict,
+                  driver_row: dict) -> dict[str, int]:
+    """Revenue and operating-cost blocks of 25 streams, totals and reconciliation.
 
-    Row 1 of each block is a ``Consolidated`` placeholder: revenue = last reported revenue
-    grown each year by that year's REV_GROWTH (chained, as `forecast.compute` does), cost =
-    revenue x COST_PCT. Returns {"ASSET_REV": total row, "ASSET_COST": total row}."""
-    last_col = frame(ws, "Asset Inputs",
-                     "Enter East Daley asset-level revenue and operating cost by forecast year. "
-                     "Row 1 is a placeholder that grows the consolidated figures off the "
-                     "Drivers sheet; overwrite it with real assets.",
-                     ["Asset", "Segment"], fy_labels, fcst_labels)
+    Row 1 of each block is a ``Total company (placeholder)`` row: revenue = last reported
+    revenue grown each year by that year's REV_GROWTH (chained, as `forecast.compute` does),
+    cost = revenue x COST_PCT. Returns {"ASSET_REV": total row, "ASSET_COST": total row}."""
+    last_col = frame(ws, STREAMS_SHEET,
+                     "Enter revenue and operating cost by stream (segment, product line, "
+                     "region, asset \u2026) for each forecast year. Row 1 grows the "
+                     "consolidated figures off the Drivers sheet; overwrite it with real "
+                     "streams.",
+                     ["Stream", "Segment"], fy_labels, fcst_labels)
     S.set_widths(ws, {"B": 40, "C": 18})
     first_fcst = S.DSC + len(fy_labels)
     last_hist = S.col(first_fcst - 1)
@@ -198,11 +207,11 @@ def write_assets(ws, fy_labels, fcst_labels, model_sheet: str, model_row: dict,
                 else f"{S.col(c - 1)}{r}")
         return f"={base}*(1+{DRIVERS_SHEET}!{S.col(c)}{g_row})"
 
-    rev_total = _asset_block(ws, 5, "REVENUE BY ASSET", "Total revenue", first_fcst, last_col,
-                             rev_formula)
-    rev_first = rev_total - N_ASSETS
-    cost_total = _asset_block(
-        ws, rev_total + 2, "OPERATING COST BY ASSET", "Total operating cost", first_fcst,
+    rev_total = _stream_block(ws, 5, "REVENUE BY STREAM", "Total revenue", first_fcst, last_col,
+                              rev_formula)
+    rev_first = rev_total - N_STREAMS
+    cost_total = _stream_block(
+        ws, rev_total + 2, "OPERATING COST BY STREAM", "Total operating cost", first_fcst,
         last_col, lambda c, r: f"={S.col(c)}{rev_first}*{DRIVERS_SHEET}!{S.col(c)}{cost_row}")
 
     r = cost_total + 2
@@ -215,7 +224,7 @@ def write_assets(ws, fy_labels, fcst_labels, model_sheet: str, model_row: dict,
         cell.font = S.FONT_FORMULA
         cell.number_format = S.FMT_MONEY
     r += 1
-    ws.cell(r, 2, "Asset EBITDA").font = S.FONT_BOLD
+    ws.cell(r, 2, "EBITDA before equity earnings").font = S.FONT_BOLD
     for c in range(first_fcst, last_col + 1):
         L = S.col(c)
         cell = ws.cell(r, c, f"={L}{rev_total}-{L}{cost_total}")
