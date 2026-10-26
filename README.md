@@ -13,7 +13,8 @@ edited by an analyst, not trusted as it comes.
 
 ## Quick start
 
-1. Clone the repository and open a terminal in it. You need Python 3.10 or newer.
+1. Clone the repository (`git clone https://github.com/diazzach00-coder/SEC_Fin_Model_Base.git`,
+   or download the ZIP from GitHub) and open a terminal in it. You need Python 3.10 or newer.
 2. Install the dependencies: `pip install -r requirements.txt`
 3. Start the app: `streamlit run app.py`, then open `http://localhost:8501`.
 4. In the sidebar type a **ticker** (for example `AAPL`) and your **name and email**
@@ -32,16 +33,16 @@ premium; leave the price at 0 to enter it later in the workbook), and **CIK over
 
 | Sheet | Contents |
 |---|---|
-| **Cover** | Company, CIK, fiscal year end, currency, years pulled, the filing used for each year, a count of check results, and links to every sheet |
+| **Cover** | Company, CIK (the SEC's company ID number), fiscal year end, currency, years pulled, the filing used for each year, a count of check results, and links to every sheet |
 | **Checks** | Every data check with the two numbers compared, the tolerance and a note |
 | **Model** | Income statement, balance sheet and cash flow on one sheet, history then forecast, all linked, with ratios underneath and a balance check row |
 | **Revenue Streams** | 25 rows each for revenue and operating cost by stream (segment, product, region, asset), by forecast year; row 1 is a placeholder that grows the company total |
 | **Drivers** | Forecast assumptions by year (growth, margins, capex, tax, interest, working-capital days, payout, minimum cash) plus the model switches |
-| **WACC** | CAPM cost of equity, cost of debt, capital weights, beta selection and a sensitivity grid; the share or unit price lives here |
+| **WACC** | Cost of equity (CAPM, the standard risk-and-return formula), cost of debt, capital weights, beta selection and a sensitivity grid; the share or unit price lives here |
 | **DCF** | Unlevered free cash flow, terminal value, bridge to equity, value per share or unit, and sensitivity grids made of ordinary formulas (no Excel Data Tables) |
 | **Mapping** | One row per model concept, with the as-reported line it was taken from in each year, and an editable key to repoint it |
 | **Income Statement, Balance Sheet, Cash Flow (As Reported)** | Every line of the filing in its original order and indentation, with the SEC's numbers |
-| **Sources** | Form, accession number, filing date and link to the filing page for each year and statement |
+| **Sources** | Form, accession number, filing date and link to the SEC report page (R-file) for each statement and year |
 
 Colour legend, used on every sheet:
 
@@ -52,8 +53,9 @@ Colour legend, used on every sheet:
 - **Light-blue fill**: forecast columns.
 - **Red**: a failed check or a cash shortfall.
 
-The file has formulas and no stored results: Excel calculates everything on opening, but
-viewers that do not calculate (some previewers, `openpyxl` with `data_only=True`) show empty cells.
+The file has formulas and no stored results, so you need Excel (or another spreadsheet app that
+calculates formulas) to see numbers: previewers and readers that do not calculate (for example
+`openpyxl` with `data_only=True`) show empty cells.
 
 ## How to use the model
 
@@ -72,11 +74,14 @@ interest rate defaults to the term-debt rate.
 
 **The switches** (at the bottom of the Drivers sheet; the first two are a 1/0 dropdown):
 
-- **JV toggle** (`JV_TOGGLE`): 1 counts equity-method earnings inside EBITDA, which suits
-  partnerships and joint-venture-heavy companies; 0 (default) keeps them below EBITDA.
+- **JV toggle** (`JV_TOGGLE`): 1 counts equity-method earnings (the share of profit from
+  joint ventures and other affiliates) inside EBITDA (earnings before interest, tax,
+  depreciation and amortization), which suits partnerships and joint-venture-heavy companies;
+  0 (default) keeps them below EBITDA.
 - **Hold working capital flat** (`WC_HOLD`): 1 keeps receivables, inventory and payables at last
   year's balances so working capital does not move cash; 0 (default) uses the day-count drivers.
-- **Revolver commitment** (`REV_CAP`): the most the revolver can borrow. The revolver draws
+- **Revolver commitment** (`REV_CAP`): the most the revolver (the company's revolving credit
+  line, used as a cash buffer in the forecast) can borrow. It draws
   to keep cash at the minimum cash driver and repays when cash is above it. 0 (default) means
   unlimited. If a commitment is too small, cash falls below the minimum and the shortfall
   row on the Model sheet turns red.
@@ -84,8 +89,10 @@ interest rate defaults to the term-debt rate.
   payout growth drivers.
 
 **Price and beta.** On the WACC sheet, enter the share or unit price in the yellow box in the
-right-hand block, and the risk-free rate, market risk premium and beta on the left (the beta
-used is chosen by "Select beta for model"). The DCF sheet reads them from there. With no price
+right-hand block, and the risk-free rate and market risk premium on the left. The beta you
+type is "Observed beta" in the beta selection block further down (cell C34); the "Beta" cell
+at the top is a formula that follows the "Select beta for model" dropdown (Observed or
+Industry). The DCF sheet reads all of these from the WACC sheet. With no price
 the WACC uses a 55% equity weight, which you can change, and the value-versus-price line says
 "enter price".
 
@@ -95,10 +102,12 @@ it is counted on the Cover sheet and shown in red. SKIP means a check could not 
 (an input was missing); SKIPs are not problems by themselves.
 
 **Repointing a Mapping key.** Each concept (for example Revenue or Receivables) is matched to
-a line of the filing by its XBRL tag, or by its label when the tag is unusual. If the match is
-wrong or missing, go to the Mapping sheet, find the concept, and in the yellow "Key" cell of the
-year paste the row key of the right line from column A of the matching As-Reported sheet. The
-value and everything downstream update. A status of UNMAPPED means no line was found.
+a line of the filing by its XBRL tag (the standard name filers attach to each figure), or by
+its label when the tag is unusual. If the match is wrong or missing, go to the Mapping sheet,
+find the concept, and in the yellow "Key" cell of the year paste the row key of the right line
+from column A of the matching As-Reported sheet (column A is hidden: unhide it first by
+selecting columns A-B, right-clicking and choosing Unhide). The value and everything
+downstream update. A status of UNMAPPED means no line was found.
 
 ## Checks
 
@@ -110,9 +119,9 @@ larger of 1 (in millions) or 0.5% of the larger figure, to allow for rounding.
 | BS balances | Total assets equal total liabilities and equity | FAIL |
 | NI ties IS=CF | Net income on the income statement equals the first line of the cash flow statement | FAIL |
 | Cash roll-forward | Opening cash plus the net change equals ending cash; opening is the prior year's ending cash | FAIL (WARN if only the cash definition changed between filings) |
-| CF cash vs BS cash | Cash flow ending cash equals balance sheet cash | WARN (restricted cash is often included) |
+| CF cash vs BS cash | Cash flow ending cash equals balance sheet cash | WARN (the cash flow figure often includes restricted cash, cash held back for a specific purpose) |
 | Subtotal | The indented lines above a "Total ..." row add up to it | WARN |
-| API cross-check | Revenue, net income, total assets and operating cash flow against the SEC's companyfacts data | WARN, FAIL if more than 5% apart |
+| API cross-check | Revenue, net income, total assets and operating cash flow against the SEC's companyfacts data (its XBRL facts API) | WARN, FAIL if more than 5% apart |
 | Coverage | All three statements are present each year and the key lines (revenue, operating income, D&A, cash, total debt) are mapped | WARN |
 
 ## Limitations
@@ -144,6 +153,8 @@ larger of 1 (in millions) or 0.5% of the larger figure, to allow for rounding.
 pip install -r requirements-dev.txt
 python -m pytest tests -W error
 ```
+
+`requirements-dev.txt` includes `requirements.txt` plus pytest, so one install covers both.
 
 Tests marked `network` read real SEC pages from the `.cache/` folder and are skipped when it is
 absent. The code is in `sec_model/` (reading and merging filings, `mapping.py` and
